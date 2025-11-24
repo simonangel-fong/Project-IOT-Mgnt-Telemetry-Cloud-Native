@@ -34,8 +34,6 @@ from ..schemas import (
 router = APIRouter(
     prefix="/telemetry",
     tags=["telemetry"],
-    # Optional: hide nulls in responses if you want a cleaner payload:
-    # response_model_exclude_none=True,
 )
 
 logger = logging.getLogger(__name__)

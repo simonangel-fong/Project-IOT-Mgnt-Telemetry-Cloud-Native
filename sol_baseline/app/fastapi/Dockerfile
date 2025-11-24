@@ -7,6 +7,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TZ=America/Toronto \
     DEBIAN_FRONTEND=noninteractive
 
+# default 2 workers
+ENV WORKER=2
+
 # Set timezone data
 RUN apt-get update && \
     apt-get install -y --no-install-recommends tzdata curl && \
@@ -30,4 +33,9 @@ USER appuser
 EXPOSE 8000
 
 # Run FastAPI with uvicorn, uvloop + httptools
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--loop", "uvloop", "--http", "httptools"]
+CMD ["sh", "-c", "uvicorn app.main:app \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --workers ${WORKER:-2} \
+  --loop uvloop \
+  --http httptools"]

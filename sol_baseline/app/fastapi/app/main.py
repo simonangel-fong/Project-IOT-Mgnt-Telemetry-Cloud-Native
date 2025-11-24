@@ -87,6 +87,11 @@ async def home() -> dict:
 
         response["cors"] = settings.cors_list
 
+        response["tuning"] = {
+            "pool_size": settings.pool_size,
+            "max_overflow": settings.max_overflow,
+        }
+
     return response
 
 # ====================
