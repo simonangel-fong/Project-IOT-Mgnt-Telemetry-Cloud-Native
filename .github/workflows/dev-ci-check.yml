@@ -143,6 +143,16 @@ jobs:
           tflint --init
           tflint -f compact
 
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-sarif-action@v0.1.0
+        with:
+          working_directory: ${{ matrix.path }}
+          tfsec_args : >
+            --concise-output
+            --format sarif
+            --out tfsec.sarif
+            --soft-fail-severities LOW, MEDIUM
+
       - name: Send email notification
         if: failure()
         uses: dawidd6/action-send-mail@v3
