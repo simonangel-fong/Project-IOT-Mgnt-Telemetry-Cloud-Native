@@ -150,12 +150,11 @@ jobs:
           tfsec_args:
             --concise-output
             --format json
-            --out tfsec.json
 
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: tfsec.json     
+      # - name: Upload SARIF file
+      #   uses: github/codeql-action/upload-sarif@v1
+      #   with:
+      #     sarif_file: tfsec.json     
 
       - name: Send email notification
         if: failure()
