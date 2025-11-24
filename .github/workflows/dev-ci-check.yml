@@ -93,9 +93,9 @@ jobs:
       TF_VERSION: 1.9.8
       TF_LINT_VERSION: v0.53.0
       TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
-    defaults:
-      run:
-        working-directory: ${{ matrix.path }}
+    # defaults:
+    #   run:
+    #     working-directory: ${{ matrix.path }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
