@@ -2,8 +2,10 @@
 
 - [Solution: Baseline](./doc/baseline/baseline.md)
 
-| Solution | Design                               | Tune                 |
-| -------- | ------------------------------------ | -------------------- |
-| Baseline | ECS(FastAPI){1 cpu}+RDS{4 cpu}       | NA                   |
-| Tune-App | ECS(FastAPI){1 cpu}+RDS{4 cpu}       | pool+overflow+worker |
-| Redis    | ECS(FastAPI){1 cpu}+Redis+RDS{4 cpu} | pool+overflow+worker |
+| Solution ID  | Design                               | Tune                 |
+| ------------ | ------------------------------------ | -------------------- |
+| Sol-Baseline | ECS(FastAPI){1 cpu}+RDS{4 cpu}       | NA                   |
+| Sol-ECS      | ECS(FastAPI){1 cpu}+RDS{4 cpu}       | pool+overflow+worker |
+| Sol-Redis    | ECS(FastAPI){1 cpu}+Redis+RDS{4 cpu} | pool+overflow+worker |
+
+- [Sol-Baseline](./doc/baseline/baseline.md)
