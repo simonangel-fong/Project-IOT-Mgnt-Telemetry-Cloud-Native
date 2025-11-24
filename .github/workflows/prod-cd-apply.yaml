@@ -1,0 +1,371 @@
+name: Apply(Prod)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "master"
+    paths:
+      - "app/fastapi/**"
+      - "app/pgdb/**"
+      - "aws/**"
+      - ".github/workflows/prod-cd-apply.yaml"
+
+  schedule:
+    # 9:00 toronto time
+    - cron: "0 14 * * *"
+
+concurrency:
+  group: prod-apply-${{ github.ref_name }}
+  cancel-in-progress: false # keep in-progress jobs
+
+permissions:
+  id-token: write # OIDC
+  contents: read
+
+jobs:
+  set-tf-ini:
+    name: Get Terraform Flag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Terraform Flag
+        id: set_flag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TF_INI_CONTENT=$(tr -d '\n' < aws/terraform.ini | tr '[:upper:]' '[:lower:]')
+                   
+          if [ "$TF_INI_CONTENT" == "deploy" ]; then
+            echo "TF_DEPLOY_FLAG=true" >> "$GITHUB_OUTPUT"
+            echo "Setting TF_DEPLOY_FLAG to true (Deploy mode)."
+          elif [ "$TF_INI_CONTENT" == "destroy" ]; then
+            echo "TF_DEPLOY_FLAG=false" >> "$GITHUB_OUTPUT"
+            echo "Setting TF_DEPLOY_FLAG to false (Destroy mode)."
+          else
+            echo "::error::Invalid terraform.ini content: '$TF_INI_CONTENT' (expected 'deploy' or 'destroy')" 
+            exit 1
+          fi
+    outputs:
+      TF_DEPLOY_FLAG: ${{ steps.set_flag.outputs.TF_DEPLOY_FLAG }}
+
+  ecr-push:
+    name: Push Image to ECR - ${{ matrix.service.name }} (Prod)
+    needs: set-tf-ini
+    if: needs.set-tf-ini.outputs.TF_DEPLOY_FLAG == 'true'
+    runs-on: ubuntu-latest
+    environment: prod
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: fastapi
+            docker_context: app/fastapi
+          - name: pgdb
+            docker_context: app/pgdb
+          - name: redis
+            docker_context: app/redis
+          - name: device
+            docker_context: app/device
+
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      DIR_DOCKFILE: ${{ matrix.service.docker_context }} # dockfile path
+      ECR_REPOSITORY: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{ vars.APP }}-${{ matrix.service.name }}"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.ECR_REPOSITORY }}
+
+      - name: Build and push Docker image
+        id: build-push
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          context: ${{ env.DIR_DOCKFILE }}
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ env.ECR_REPOSITORY }}:${{ vars.ENV }}
+            ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Send email notification (on failure)
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} ${{ vars.APP }}-${{ matrix.service.name }} (${{ vars.ENV }})"
+          to: ${{ secrets.EMAIL_USERNAME }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          html_body: |
+            <h2>GitHub Actions CI/CD Notification</h2>
+            <p><b>Project</b>: ${{ vars.PROJECT }}</p>
+            <p><b>Application</b>: ${{ vars.APP }} (service: ${{ matrix.service.name }})</p>
+            <p><b>Repository</b>: ${{ github.repository }}</p>
+            <p><b>Env</b>: ${{ vars.ENV }}</p>
+            <p><b>Job</b>: ${{ github.job }}</p>
+            <p><b>Status</b>: ${{ job.status }}</p>
+            <p><b>Branch</b>: ${{ github.ref }}</p>
+            <p><b>Workflow</b>: ${{ github.workflow }}</p>
+            <p><b>Commit</b>: ${{ github.sha }}</p>
+            <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
+
+  deploy:
+    name: Deploy(Prod)
+    needs:
+      - ecr-push
+      - set-tf-ini
+    if: needs.set-tf-ini.outputs.TF_DEPLOY_FLAG == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: prod
+    env:
+      TF_DIR: aws
+      TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
+      TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+      TF_VAR_env: ${{ vars.ENV }}
+      TF_VAR_aws_ecr_fastapi: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{vars.APP}}-fastapi"
+      TF_VAR_aws_ecr_pgdb: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{vars.APP}}-pgdb"
+      TF_VAR_aws_ecr_redis: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{vars.APP}}-redis"
+      TF_VAR_app_pgdb_host: ${{ vars.APP_PGDB_HOST }}
+      TF_VAR_app_pgdb_db: ${{ vars.APP_PGDB_DB }}
+      TF_VAR_app_pgdb_user: ${{ vars.APP_PGDB_USER }}
+      TF_VAR_app_pgdb_pwd: ${{ secrets.APP_PGDB_PWD }}
+      TF_VAR_app_redis_host: ${{ vars.APP_REDIS_HOST }}
+      TF_VAR_app_pgdb_init_user: ${{ vars.APP_PGDB_INIT_USER }}
+      TF_VAR_app_pgdb_init_db: ${{ vars.APP_PGDB_INIT_DB }}
+      TF_VAR_app_pgdb_init_pwd: ${{ secrets.APP_PGDB_INIT_PWD }}
+      TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
+      TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update DNS
+        run: |
+          sed -i "s/${{vars.DOMAIN_DEV}}/${{vars.DOMAIN}}/g" "app/html/js/main.js"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ vars.TF_VERSION }}
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN}}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Configure Terraform plugin cache
+        run: |
+          mkdir -pv ${{ env.TF_PLUGIN_CACHE_DIR }}
+          echo 'plugin_cache_dir = "${{ env.TF_PLUGIN_CACHE_DIR }}"' > ~/.terraformrc
+
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+          key: ${{ runner.os }}-terraform-${{ vars.TF_VERSION }}-${{ hashFiles('aws/.terraform.lock.hcl') }}
+
+      - name: Terraform init - S3 backend
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform init -reconfigure -input=false \
+            -backend-config="bucket=${{ vars.AWS_BACKEND_BUCKET }}" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="key=${{ vars.PROJECT }}-${{vars.APP}}/${{ vars.ENV }}/terraform.tfstate" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform fmt -check -recursive -no-color
+          terraform validate -no-color
+
+      - name: Deploy - Terraform Plan
+        working-directory: ${{ env.TF_DIR }}
+        id: deploy-plan
+        run: terraform plan -out=tfplan -input=false -no-color
+
+      - name: Deploy - Show plan (JSON)
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform show -json tfplan > tfplan.json
+
+      - name: Deploy - Save plan artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-bundle-deploy
+          path: |
+            ${{ env.TF_DIR }}/tfplan
+            ${{ env.TF_DIR }}/tfplan.json
+          retention-days: 3
+
+      - name: Deploy - Terraform Apply
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform apply -auto-approve -no-color tfplan
+
+      - name: Send email notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} ${{vars.APP}} (${{vars.ENV}})"
+          to: ${{ secrets.EMAIL_USERNAME }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          html_body: |
+            <h2>GitHub Actions CI/CD Notification</h2>
+            <p><b>Project</b>: ${{ vars.PROJECT}}</p>
+            <p><b>Application</b>: ${{ vars.APP}}</p>
+            <p><b>Repository</b>: ${{ github.repository }}</p>
+            <p><b>Env</b>: ${{ vars.ENV }}</p>
+            <p><b>Job</b>: ${{ github.job }}</p>
+            <p><b>Status</b>: ${{ job.status }}</p>
+            <p><b>Branch</b>: ${{ github.ref }}</p>
+            <p><b>Workflow</b>: ${{ github.workflow }}</p>
+            <p><b>Commit</b>: ${{ github.sha }}</p>
+            <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
+
+  destroy:
+    name: Destroy(Prod)
+    needs: set-tf-ini
+    if: needs.set-tf-ini.outputs.TF_DEPLOY_FLAG == 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: prod
+    env:
+      TF_DIR: aws
+      TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
+      TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+      TF_VAR_env: ${{ vars.ENV }}
+      TF_VAR_aws_ecr_fastapi: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{vars.APP}}-fastapi"
+      TF_VAR_aws_ecr_pgdb: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{vars.APP}}-pgdb"
+      TF_VAR_aws_ecr_redis: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{vars.APP}}-redis"
+      TF_VAR_app_pgdb_host: ${{ vars.APP_PGDB_HOST }}
+      TF_VAR_app_pgdb_db: ${{ vars.APP_PGDB_DB }}
+      TF_VAR_app_pgdb_user: ${{ vars.APP_PGDB_USER }}
+      TF_VAR_app_pgdb_pwd: ${{ secrets.APP_PGDB_PWD }}
+      TF_VAR_app_redis_host: ${{ vars.APP_REDIS_HOST }}
+      TF_VAR_app_pgdb_init_user: ${{ vars.APP_PGDB_INIT_USER }}
+      TF_VAR_app_pgdb_init_db: ${{ vars.APP_PGDB_INIT_DB }}
+      TF_VAR_app_pgdb_init_pwd: ${{ secrets.APP_PGDB_INIT_PWD }}
+      TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
+      TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ vars.TF_VERSION }}
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN}}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Configure Terraform plugin cache
+        run: |
+          mkdir -pv ${{ env.TF_PLUGIN_CACHE_DIR }}
+          echo 'plugin_cache_dir = "${{ env.TF_PLUGIN_CACHE_DIR }}"' > ~/.terraformrc
+
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+          key: ${{ runner.os }}-terraform-${{ vars.TF_VERSION }}-${{ hashFiles('aws/.terraform.lock.hcl') }}
+
+      - name: Terraform init - S3 backend
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform init -reconfigure -input=false \
+            -backend-config="bucket=${{ vars.AWS_BACKEND_BUCKET }}" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="key=${{ vars.PROJECT }}-${{vars.APP}}/${{ vars.ENV }}/terraform.tfstate" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform fmt -check -recursive -no-color
+          terraform validate -no-color
+
+      - name: Destroy - Terraform Plan
+        working-directory: ${{ env.TF_DIR }}
+        id: plan-destroy
+        run: terraform plan -out=tfplan-destroy -input=false -no-color -destroy
+
+      - name: Destroy - Show plan (JSON)
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform show -json tfplan-destroy > tfplan-destroy.json
+
+      - name: Destroy - Save plan artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-bundle-destroy
+          path: |
+            ${{ env.TF_DIR }}/tfplan-destroy
+            ${{ env.TF_DIR }}/tfplan-destroy.json
+          retention-days: 3
+
+      - name: Destroy - Terraform Apply
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform apply -auto-approve -no-color tfplan-destroy
+
+      - name: Send email notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} ${{vars.APP}} (${{vars.ENV}})"
+          to: ${{ secrets.EMAIL_USERNAME }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          html_body: |
+            <h2>GitHub Actions CI/CD Notification</h2>
+            <p><b>Project</b>: ${{ vars.PROJECT}}</p>
+            <p><b>Application</b>: ${{ vars.APP}}</p>
+            <p><b>Repository</b>: ${{ github.repository }}</p>
+            <p><b>Env</b>: ${{ vars.ENV }}</p>
+            <p><b>Job</b>: ${{ github.job }}</p>
+            <p><b>Status</b>: ${{ job.status }}</p>
+            <p><b>Branch</b>: ${{ github.ref }}</p>
+            <p><b>Workflow</b>: ${{ github.workflow }}</p>
+            <p><b>Commit</b>: ${{ github.sha }}</p>
+            <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
