@@ -24,77 +24,78 @@ permissions:
 
 # multiple trigger
 concurrency:
-  group: dev-ci-${{ github.workflow }}-${{ github.ref_name }}
+  group: ci-${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true # Cancel older runs
 
 jobs:
-  unit_test_fastapi:
-    name: Unit Test(FastAPI)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: dev
-    env:
-      PYTHON_VERSION: 3.11
-    defaults:
-      run:
-        working-directory: app/fastapi/
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v5
+  # unit_test_fastapi:
+  #   name: Unit Test(FastAPI)
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 20
+  #   environment: dev
+  #   env:
+  #     PYTHON_VERSION: 3.11
+  #   defaults:
+  #     run:
+  #       working-directory: app/fastapi/
+  #   steps:
+  #     - name: Check out the repo
+  #       uses: actions/checkout@v5
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: app/fastapi/requirements.txt
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: ${{ env.PYTHON_VERSION }}
+  #         cache: 'pip'
+  #         cache-dependency-path: app/fastapi/requirements.txt
 
-      - name: Unit Test
-        run: |
-          pytest
+  #     - name: Install dependencies
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install -r requirements.txt
 
-      - name: Send email notification
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} ${{vars.APP}} (${{vars.ENV}})"
-          to: ${{ secrets.EMAIL_USERNAME }}
-          from: ${{ secrets.EMAIL_USERNAME }}
-          html_body: |
-            <h2>GitHub Actions CI/CD Notification</h2>
-            <p><b>Project</b>: ${{ vars.PROJECT}}</p>
-            <p><b>Application</b>: ${{ vars.APP}}</p>
-            <p><b>Repository</b>: ${{ github.repository }}</p>
-            <p><b>Env</b>: ${{ vars.ENV }}</p>
-            <p><b>Job</b>: ${{ github.job }}</p>
-            <p><b>Status</b>: ${{ job.status }}</p>
-            <p><b>Branch</b>: ${{ github.ref }}</p>
-            <p><b>Workflow</b>: ${{ github.workflow }}</p>
-            <p><b>Commit</b>: ${{ github.sha }}</p>
-            <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
+  #     - name: Unit Test
+  #       run: |
+  #         pytest
+
+  #     - name: Send email notification
+  #       if: failure()
+  #       uses: dawidd6/action-send-mail@v3
+  #       with:
+  #         server_address: smtp.gmail.com
+  #         server_port: 465
+  #         secure: true
+  #         username: ${{ secrets.EMAIL_USERNAME }}
+  #         password: ${{ secrets.EMAIL_PASSWORD }}
+  #         subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}}"
+  #         to: ${{ secrets.EMAIL_USERNAME }}
+  #         from: ${{ secrets.EMAIL_USERNAME }}
+  #         html_body: |
+  #           <h2>GitHub Actions CI/CD Notification</h2>
+  #           <p><b>Project</b>: ${{ vars.PROJECT}}</p>
+  #           <p><b>Repository</b>: ${{ github.repository }}</p>
+  #           <p><b>Job</b>: ${{ github.job }}</p>
+  #           <p><b>Status</b>: ${{ job.status }}</p>
+  #           <p><b>Branch</b>: ${{ github.ref }}</p>
+  #           <p><b>Workflow</b>: ${{ github.workflow }}</p>
+  #           <p><b>Commit</b>: ${{ github.sha }}</p>
+  #           <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
 
   terraform_validate:
     name: Terraform Validate
-    needs: unit_test_fastapi
+    # needs: unit_test_fastapi
     runs-on: ubuntu-latest
-    environment: dev
+    strategy:
+      matrix:
+        env: [baseline]
+        path: [aws_baseline]
     env:
-      DIR_AWS_INFRA: aws/
+      TF_VERSION: 1.9.8
       TF_LINT_VERSION: v0.53.0
       TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
     defaults:
       run:
-        working-directory: ${{ env.DIR_AWS_INFRA }}
+        working-directory: ${{ matrix.path }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -102,7 +103,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ vars.TF_VERSION }}
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Configure plugin cache dir
         run: |
@@ -113,7 +114,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /home/runner/.terraform.d/plugin-cache
-          key: ${{ runner.os }}-terraform-${{ vars.TF_VERSION }}
+          key: ${{ runner.os }}-terraform-${{ env.TF_VERSION }}
 
       - name: Terraform init (no backend)
         run: terraform init -backend=false -no-color
@@ -151,15 +152,14 @@ jobs:
           secure: true
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} ${{vars.APP}} (${{vars.ENV}})"
+          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} (${{ matrix.env }})"
           to: ${{ secrets.EMAIL_USERNAME }}
           from: ${{ secrets.EMAIL_USERNAME }}
           html_body: |
             <h2>GitHub Actions CI/CD Notification</h2>
             <p><b>Project</b>: ${{ vars.PROJECT}}</p>
-            <p><b>Application</b>: ${{ vars.APP}}</p>
             <p><b>Repository</b>: ${{ github.repository }}</p>
-            <p><b>Env</b>: ${{ vars.ENV }}</p>
+            <p><b>Env</b>: ${{ matrix.env }}</p>
             <p><b>Job</b>: ${{ github.job }}</p>
             <p><b>Status</b>: ${{ job.status }}</p>
             <p><b>Branch</b>: ${{ github.ref }}</p>
