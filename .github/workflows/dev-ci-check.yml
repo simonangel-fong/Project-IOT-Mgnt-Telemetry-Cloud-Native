@@ -149,14 +149,13 @@ jobs:
           working_directory: ${{ matrix.path }}
           tfsec_args:
             --concise-output
-            --format text
-            --out tfsec.txt
-            --soft-fail LOW, MEDIUM
+            --format json
+            --out tfsec.json
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
         with:
-          sarif_file: tfsec.sarif     
+          sarif_file: tfsec.json     
 
       - name: Send email notification
         if: failure()
