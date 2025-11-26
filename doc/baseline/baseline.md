@@ -10,6 +10,19 @@ python.exe -m pip install --upgrade pip
 pip install fastapi "uvicorn[standard]" "SQLAlchemy[asyncio]" asyncpg pydantic python-dotenv pydantic-settings pytest pytest-asyncio httpx redis
 
 uvicorn app.main:app --reload
+```
+
+## ECR
+
+```sh
+aws ecr get-login-password --region ca-central-1 | docker login --username AWS --password-stdin 099139718958.dkr.ecr.ca-central-1.amazonaws.com
+# Login Succeeded
+
+docker build -t fastaapi sol_baseline/app/fastapi
+# tag
+docker tag fastaapi 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry-fastapi:baseline
+# push to docker
+docker push 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry-fastapi:baseline
 
 ```
 

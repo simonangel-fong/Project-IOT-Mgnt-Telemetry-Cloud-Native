@@ -48,7 +48,8 @@ class Settings(BaseSettings):
         description="Comma-separated list of allowed CORS origins",
     )
     debug: bool = True
-    env: Literal["dev", "staging", "prod"] = "dev"
+    env: str = "dev"
+    # env: Literal["dev", "staging", "prod"] = "dev"
 
     # performance tuning
     pool_size: int = Field(

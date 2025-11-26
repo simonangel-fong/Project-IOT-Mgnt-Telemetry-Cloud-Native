@@ -1,3 +1,5 @@
+name: iot mgnt telemetry - baseline
+
 # volumes:
 #   pgdata:
 
@@ -58,18 +60,15 @@ services:
       context: ./fastapi/
       dockerfile: Dockerfile
     environment:
-      - APP_NAME=fdsfafdsa
-      - CORS=http://localhost,http://localhost:8080,https://localhost
-      - ENV=dev
+      - APP_NAME=local test
+      # - CORS=http://localhost,http://localhost:8080,https://localhost
+      - ENV=baseline
       - DEBUG=true
       - POSTGRES__HOST=postgres
       - POSTGRES__PORT=5432
       - POSTGRES__USER=app_user
       - POSTGRES__DB=app_db
       - POSTGRES__PASSWORD=postgres
-      - REDIS__HOST=redis
-      - REDIS__PORT=6379
-      - REDIS__DB=0
     networks:
       # - public_network
       - private_network

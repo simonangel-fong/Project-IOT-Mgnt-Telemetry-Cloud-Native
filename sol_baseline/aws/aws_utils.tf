@@ -1,3 +1,22 @@
+# aws_utils.tf
+# ###############################
+# ACM Certificate
+# ###############################
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1" # Required for CloudFront ACM
+}
+
+data "aws_acm_certificate" "cert" {
+  domain      = "*.${var.domain_name}"
+  provider    = aws.us_east_1
+  types       = ["AMAZON_ISSUED"]
+  most_recent = true
+}
+
+
+
+
 # ##############################
 # Data
 # ##############################
@@ -54,7 +73,8 @@ resource "aws_kms_key" "cloudwatch_log" {
   }
 }
 
-resource "aws_kms_alias" "cloudwatch_logs" {
+resource "aws_kms_alias" "cloudwatch_log" {
   name          = "alias/${var.project}-${var.env}-cloudwatch-logs"
   target_key_id = aws_kms_key.cloudwatch_log.key_id
 }
+
