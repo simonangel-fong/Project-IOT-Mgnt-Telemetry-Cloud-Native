@@ -1,4 +1,4 @@
-name: iot mgnt telemetry - baseline
+name: baseline
 
 # volumes:
 #   pgdata:
