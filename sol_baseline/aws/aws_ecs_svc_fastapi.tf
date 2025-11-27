@@ -1,3 +1,5 @@
+# aws_ecs_svc_fastapi.tf
+
 # #################################
 # Variable
 # #################################
@@ -5,10 +7,10 @@ locals {
   svc_fastapi_log_group_name = "/ecs/task/${var.project}-${var.env}-fastapi"
   debug                      = var.env == "prod" ? false : true
   ecr_fastapi                = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.project}-fastapi:${var.env}"
-  app_pgdb_host              = "postgress"
-  app_pgdb_db                = "postgress"
-  app_pgdb_user              = "postgress"
-  app_pgdb_pwd               = "postgress"
+  app_pgdb_host              = aws_db_instance.postgres.address
+  app_pgdb_db                = aws_db_instance.postgres.db_name
+  app_pgdb_user              = aws_db_instance.postgres.username
+  app_pgdb_pwd               = aws_db_instance.postgres.password
 }
 
 # #################################
@@ -37,17 +39,12 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_fastap
 resource "aws_iam_role" "ecs_task_role_fastapi" {
   name               = "${var.project}-${var.env}-task-role-fastapi"
   assume_role_policy = data.aws_iam_policy_document.assume_role_ecs.json
-
-  # tags = {
-  #   Project = var.project
-  #   Role    = "ecs-task-role-fastapi"
-  # }
 }
 
 # ##############################
 # Security Group
 # ##############################
-resource "aws_security_group" "sg_fastapi" {
+resource "aws_security_group" "fastapi" {
   name        = "${var.project}-${var.env}-sg-fastapi"
   description = "App security group"
   vpc_id      = aws_vpc.main.id
@@ -71,19 +68,6 @@ resource "aws_security_group" "sg_fastapi" {
 
   tags = {
     Name = "${var.project}-${var.env}-sg-fastapi"
-  }
-}
-
-# #################################
-# CloudWatch: log group
-# #################################
-resource "aws_cloudwatch_log_group" "log_group_fastapi" {
-  name              = local.svc_fastapi_log_group_name
-  retention_in_days = 7
-  kms_key_id        = aws_kms_key.cloudwatch_log.arn
-
-  tags = {
-    Name = "${var.project}-${var.env}-log-group-fastapi"
   }
 }
 
@@ -136,7 +120,7 @@ resource "aws_ecs_service" "ecs_svc_fastapi" {
 
   # network
   network_configuration {
-    security_groups  = [aws_security_group.sg_fastapi.id]
+    security_groups  = [aws_security_group.fastapi.id]
     subnets          = [for subnet in aws_subnet.public : subnet.id]
     assign_public_ip = true # enable public ip
   }
@@ -159,49 +143,3 @@ resource "aws_ecs_service" "ecs_svc_fastapi" {
     aws_vpc_endpoint.s3,
   ]
 }
-
-# # #################################
-# # Service: Scaling policy
-# # #################################
-# resource "aws_appautoscaling_target" "scaling_target_fastapi" {
-#   service_namespace  = "ecs"
-#   resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.ecs_svc_fastapi.name}"
-#   scalable_dimension = "ecs:service:DesiredCount"
-#   min_capacity       = 1
-#   max_capacity       = 20
-# }
-
-# # scaling policy: cpu
-# resource "aws_appautoscaling_policy" "scaling_cpu_fastapi" {
-#   name               = "${var.project}-scale-cpu-fastapi"
-#   resource_id        = aws_appautoscaling_target.scaling_target_fastapi.resource_id
-#   scalable_dimension = aws_appautoscaling_target.scaling_target_fastapi.scalable_dimension
-#   service_namespace  = aws_appautoscaling_target.scaling_target_fastapi.service_namespace
-#   policy_type        = "TargetTrackingScaling"
-
-#   target_tracking_scaling_policy_configuration {
-#     predefined_metric_specification {
-#       predefined_metric_type = "ECSServiceAverageCPUUtilization"
-#     }
-#     target_value       = 40 # cpu%
-#     scale_in_cooldown  = 30
-#     scale_out_cooldown = 30
-#   }
-# }
-
-# resource "aws_appautoscaling_policy" "scaling_memory_fastapi" {
-#   name               = "${var.project}-scale-memory-fastapi"
-#   resource_id        = aws_appautoscaling_target.scaling_target_fastapi.resource_id
-#   scalable_dimension = aws_appautoscaling_target.scaling_target_fastapi.scalable_dimension
-#   service_namespace  = aws_appautoscaling_target.scaling_target_fastapi.service_namespace
-#   policy_type        = "TargetTrackingScaling"
-
-#   target_tracking_scaling_policy_configuration {
-#     predefined_metric_specification {
-#       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
-#     }
-#     target_value       = 40
-#     scale_in_cooldown  = 60
-#     scale_out_cooldown = 60
-#   }
-# }
