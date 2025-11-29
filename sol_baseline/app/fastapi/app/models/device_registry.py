@@ -22,7 +22,7 @@ class DeviceRegistry(Base):
     __tablename__ = "device_registry"
     __table_args__ = (
         Index("ix_device_registry_device_uuid", "device_uuid", unique=True),
-        {"schema": "db_schema"},
+        {"schema": "app"},
     )
 
     id: Mapped[int] = mapped_column(
@@ -61,7 +61,6 @@ class DeviceRegistry(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
-        # DB trigger db_schema.set_updated_at() is responsible for keeping this fresh.
         doc="Timestamp when this registry row was last updated (UTC).",
     )
 

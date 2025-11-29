@@ -1,12 +1,11 @@
--- 07_sample_device_registry.sql
-\echo
-\echo '######## Sample data: device_registry ########'
-\echo
+-- V020__seed_tb_device_registry.sql
+------------------------------------------------------------
+-- Seed sample data into app.device_registry for development and testing.
+------------------------------------------------------------
 
-\connect app_db
-SET ROLE app_owner;
+SET LOCAL ROLE app_owner;
 
-INSERT INTO db_schema.device_registry (alias, device_uuid, api_key_hash)
+INSERT INTO app.device_registry (alias, device_uuid, api_key_hash)
 VALUES
     ('device-001', 'e003031d-e441-4ece-ba5b-7d54d5b1da21', '99f93d33035dd7bef57594c41d0f5efc7a5ffefbd00cc24856437596341d444d'),
     ('device-002', 'd6a07ca5-0ce9-41c3-8dc8-eec41b47b47b', '66ae0f8285772deedc9fb1a27b23ce2ce226f47a1750ac030c84345d3c35c7b2'),
@@ -17,12 +16,13 @@ VALUES
     ('device-007', '9ee2c87c-d990-44cc-a51f-fe3414daddd6', '45166388b314c25ab1d11d90e5facb7ca66b51d49d5f9e786b15e45c784f5360'),
     ('device-008', '4b02cbb7-53ea-4dff-8d5d-b93db0dcb5c1', '3c5a6b18ce89bd774d0d721fbfd4f72641a8606f27eae6cc0d6167dad33f8146'),
     ('device-009', '8ce6142d-28d5-4dcf-82a9-ef9326c93f03', '87b59d61f79ff74e3e137079e65d856d476aaabfbc0775da633d579db44d6781'),
-    ('device-010', '03618450-a5c7-4bb4-a437-21e978a41c5e', '8c6a752eb54049a2605ae9d70dfc15961ee30e7fdff47a9b8d78906283554118');
+    ('device-010', '03618450-a5c7-4bb4-a437-21e978a41c5e', '8c6a752eb54049a2605ae9d70dfc15961ee30e7fdff47a9b8d78906283554118')
+ON CONFLICT (device_uuid) DO NOTHING;
 
+RESET ROLE;
+
+------------------------------------------------------------
 -- Confirm
+------------------------------------------------------------
 SELECT *
-FROM db_schema.device_registry
-ORDER BY id
-LIMIT 10;
-
-
+FROM app.device_registry;

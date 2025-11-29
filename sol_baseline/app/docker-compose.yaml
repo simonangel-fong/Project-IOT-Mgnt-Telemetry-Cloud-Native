@@ -15,9 +15,9 @@ services:
     container_name: postgres
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app_db
+      POSTGRES_USER: rdsadmin
+      POSTGRES_PASSWORD: test123
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./pgdb/config:/config
@@ -46,50 +46,53 @@ services:
           cpus: "0.5"
           memory: 1024M
 
-  init_db:
-    container_name: init_db
-    restart: "no"
+  flyway:
+    container_name: flyway
     build:
-      context: ./init_db/
+      context: ./flyway/
       dockerfile: Dockerfile
+    restart: "no"
     environment:
-      PGHOST: postgres
-      PGPORT: 5432
-      PGDATABASE: postgres
-      PGUSER: postgres
-      PGPASSWORD: postgres
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/app_db
+      FLYWAY_USER: rdsadmin
+      FLYWAY_PASSWORD: test123
+      FLYWAY_PLACEHOLDERS_APP_USER_PASSWORD: "test123"
+      FLYWAY_PLACEHOLDERS_APP_READONLY_PASSWORD: "test123"
     networks:
       - private_network
     depends_on:
       postgres:
         condition: service_healthy
 
-  fastapi01:
-    container_name: fastapi01
-    # image: 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry-fastapi:dev
-    # image: simonangelfong/demo-ecs-svc-fastapi
-    # image: fastapi
+  fastapi:
+    container_name: fastapi
     build:
       context: ./fastapi/
       dockerfile: Dockerfile
     environment:
-      - APP_NAME=local test
-      # - CORS=http://localhost,http://localhost:8080,https://localhost
-      - ENV=baseline
-      - DEBUG=true
-      - POSTGRES__HOST=postgres
-      - POSTGRES__PORT=5432
-      - POSTGRES__USER=app_user
-      - POSTGRES__DB=app_db
-      - POSTGRES__PASSWORD=postgres
+      APP_NAME: iot-mgnt-telemetry
+      ENV: baseline
+      DEBUG: true
+      POSTGRES__HOST: postgres
+      POSTGRES__DB: app_db
+      POSTGRES__PORT: 5432
+      POSTGRES__USER: app_user
+      POSTGRES__PASSWORD: test123
     networks:
-      # - public_network
       - private_network
     ports:
       - 8000:8000
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     depends_on:
-      - postgres
-      - init_db
+      postgres:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
     deploy:
       resources:
         limits:
@@ -104,13 +107,15 @@ services:
     image: nginx:latest
     volumes:
       - ./nginx/config/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./html:/var/www/html
     networks:
       - public_network
       - private_network
     ports:
       - "8080:8080"
     depends_on:
-      - fastapi01
-      - postgres
-      - init_db
+      postgres:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+      fastapi:
+        condition: service_healthy

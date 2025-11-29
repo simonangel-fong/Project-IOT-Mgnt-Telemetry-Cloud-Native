@@ -1,5 +1,6 @@
 // test_hp_read.js
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.4/index.js";
+import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
 import { parseNumberEnv, getDeviceForVU } from "./utils.js";
 import { getTelemetryLatest } from "./target_url.js";
 
@@ -11,12 +12,12 @@ const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
 // High-performance read test parameters
 const RATE_START = parseNumberEnv("RATE_START", 50); // initial RPS
 const RATE_TARGET = parseNumberEnv("RATE_TARGET", 1000); // peak RPS
-const STAGE_RAMP = parseNumberEnv("STAGE_RAMP", 2); // minutes per ramp stage
-const STAGE_PEAK = parseNumberEnv("STAGE_PEAK", 4); // minutes to hold peak
+const STAGE_RAMP = parseNumberEnv("STAGE_RAMP", 5); // minutes per ramp stage
+const STAGE_PEAK = parseNumberEnv("STAGE_PEAK", 5); // minutes to hold peak
 
 // VU pool
 const VU = parseNumberEnv("VU", 50); // pre-allocated VUs
-const MAX_VU = parseNumberEnv("MAX_VU", 1000); // safety upper bound
+const MAX_VU = parseNumberEnv("MAX_VU", 200); // safety upper bound
 
 // ==============================
 // k6 options
@@ -90,6 +91,7 @@ export default hp_read_telemetry;
 export function handleSummary(data) {
   return {
     "hp_read_test.json": JSON.stringify(data, null, 2),
+    "hp_read_test.html": htmlReport(data),
     stdout: textSummary(data, { indent: " ", enableColors: true }),
   };
 }

@@ -18,7 +18,7 @@ class TelemetryEvent(Base):
     """
 
     __tablename__ = "telemetry_event"
-    __table_args__ = {"schema": "db_schema"}
+    __table_args__ = {"schema": "app"}
 
     id: Mapped[int] = mapped_column(
         BigInteger,

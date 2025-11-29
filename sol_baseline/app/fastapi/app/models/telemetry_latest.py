@@ -23,19 +23,19 @@ class TelemetryLatest(Base):
     __tablename__ = "telemetry_latest"
     __table_args__ = (
         Index("idx_telemetry_latest_system_time_utc", "system_time_utc"),
-        {"schema": "db_schema"},
+        {"schema": "app"},
     )
 
     device_uuid: Mapped[UUID_Type] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey(
-            "db_schema.device_registry.device_uuid",
+            "app.device_registry.device_uuid",
             ondelete="CASCADE",
         ),
         primary_key=True,
         doc=(
             "Device UUID (primary key). "
-            "FK to db_schema.device_registry(device_uuid) with ON DELETE CASCADE."
+            "FK to app.device_registry(device_uuid) with ON DELETE CASCADE."
         ),
     )
 
