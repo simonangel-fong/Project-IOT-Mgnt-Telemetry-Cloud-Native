@@ -1,5 +1,6 @@
 // test_hp_write.js
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.4/index.js";
+import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
 import { parseNumberEnv, getDeviceForVU } from "./utils.js";
 import { postTelemetry } from "./target_url.js";
 
@@ -8,14 +9,18 @@ import { postTelemetry } from "./target_url.js";
 // ==============================
 const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
 
+// Tag to distinguish solution variants
+const SOLUTION_ID = __ENV.SOLUTION_ID || "Sol-Baseline"; // e.g. Sol-Baseline / Sol-ECS / Sol-Redis
+const PROFILE = "write-heavy";
+
 // High-performance write test parameters
-const RATE_START = parseNumberEnv("RATE_START", 50); // initial RPS
+const RATE_START = parseNumberEnv("RATE_START", 50);     // initial RPS
 const RATE_TARGET = parseNumberEnv("RATE_TARGET", 1000); // peak RPS
-const STAGE_RAMP = parseNumberEnv("STAGE_RAMP", 2); // minutes per ramp stage
-const STAGE_PEAK = parseNumberEnv("STAGE_PEAK", 4); // minutes to hold peak
+const STAGE_RAMP = parseNumberEnv("STAGE_RAMP", 2);      // minutes per ramp stage
+const STAGE_PEAK = parseNumberEnv("STAGE_PEAK", 4);      // minutes to hold peak
 
 // VU pool
-const VU = parseNumberEnv("VU", 50); // pre-allocated VUs
+const VU = parseNumberEnv("VU", 50);        // pre-allocated VUs
 const MAX_VU = parseNumberEnv("MAX_VU", 1000); // safety upper bound
 
 // ==============================
@@ -23,20 +28,23 @@ const MAX_VU = parseNumberEnv("MAX_VU", 1000); // safety upper bound
 // ==============================
 export const options = {
   cloud: {
-    name: "High-Performance Write Test",
+    name: `HP Write – ${SOLUTION_ID}`,
+  },
+
+  // Global tags applied to all metrics
+  tags: {
+    solution: SOLUTION_ID,
+    profile: PROFILE,
   },
 
   thresholds: {
-    http_req_failed: [
-      {
-        threshold: "rate<0.05", // less than 5% failures allowed under HP load
-        abortOnFail: true,
-        delayAbortEval: "1m",
-      },
+    // Overall failure rate 
+    "http_req_failed{scenario:hp_write_telemetry}": [
+      "rate<0.05", // less than 5% failures
     ],
 
-    // Focus on POST /telemetry
-    "http_req_duration{endpoint:telemetry_post}": [
+    // POST /telemetry
+    "http_req_duration{scenario:hp_write_telemetry,endpoint:telemetry_post}": [
       "p(50)<150", // median
       "p(95)<400", // p95 under 400ms at high write load
       "p(99)<800", // p99 under 800ms
@@ -47,24 +55,19 @@ export const options = {
     hp_write_telemetry: {
       executor: "ramping-arrival-rate",
       startRate: RATE_START, // initial RPS
-      timeUnit: "1s", // RPS
+      timeUnit: "1s",        // RPS-based
 
-      preAllocatedVUs: VU, // initial VU pool
-      maxVUs: MAX_VU, // max VU
+      preAllocatedVUs: VU,   // initial VU pool
+      maxVUs: MAX_VU,        // max VUs
 
+      // Smooth ramp to RATE_TARGET and then hold
       stages: [
-        // Ramp up
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.2) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.2) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.4) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.4) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.6) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.6) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.8) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.8) },
-        { duration: `${STAGE_RAMP}m`, target: RATE_TARGET },
-        // Hold the peak RPS
-        { duration: `${STAGE_PEAK}m`, target: RATE_TARGET },
+        { duration: `${STAGE_RAMP}m`, target: RATE_START },                          // warm-up
+        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.25) },
+        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.5) },
+        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.75) },
+        { duration: `${STAGE_RAMP}m`, target: RATE_TARGET },                         // reach peak
+        { duration: `${STAGE_PEAK}m`, target: RATE_TARGET },                         // hold peak
       ],
 
       gracefulStop: "60s",
@@ -76,9 +79,8 @@ export const options = {
 // ==============================
 // Scenario function
 // ==============================
-const device = getDeviceForVU();
-
 export function hp_write_telemetry() {
+  const device = getDeviceForVU();
   postTelemetry({ base_url: BASE_URL, device });
 }
 
@@ -90,6 +92,7 @@ export default hp_write_telemetry;
 export function handleSummary(data) {
   return {
     "hp_write_test.json": JSON.stringify(data, null, 2),
+    "hp_write_test.html": htmlReport(data),
     stdout: textSummary(data, { indent: " ", enableColors: true }),
   };
 }

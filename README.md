@@ -2,12 +2,6 @@
 
 - [Solution: Baseline](./doc/baseline/baseline.md)
 
-| Solution ID  | Design                               | Tune                 |
-| ------------ | ------------------------------------ | -------------------- |
-| Sol-Baseline | ECS(FastAPI){1 cpu}+RDS{4 cpu}       | NA                   |
-| Sol-ECS      | ECS(FastAPI){1 cpu}+RDS{4 cpu}       | pool+overflow+worker |
-| Sol-Redis    | ECS(FastAPI){1 cpu}+Redis+RDS{4 cpu} | pool+overflow+worker |
-
 ## Goal
 
 Evaluate how multiple **system architectures** impact the performance of an IoT telemetry platform, focusing on:
@@ -26,13 +20,13 @@ Evaluate how multiple **system architectures** impact the performance of an IoT 
 
 ## 2.1 System Architecture Variants
 
-| Variant             | Description                                        | Intended Improvement                        |
-| ------------------- | -------------------------------------------------- | ------------------------------------------- |
-| **Baseline**        | FastAPI + PostgreSQL (ECS + RDS)                   | Starting reference                          |
-| **App Tuning**      | DB connection pool tuning; optimized SQL/app logic | Higher throughput, lower latency            |
-| **ECS Autoscaling** | Horizontal scaling of API containers               | Improved handling of peak load              |
-| **Redis Caching**   | Cache read endpoints                               | Faster reads, reduced DB load               |
-| **Write Queue**     | Async write pipeline (producer → queue → consumer) | Higher write throughput, smoother ingestion |
+| Solution ID  | Variant             | Description                                        | Intended Improvement                        |
+| ------------ | ------------------- | -------------------------------------------------- | ------------------------------------------- |
+| Sol-Baseline | **Baseline**        | FastAPI + PostgreSQL (ECS + RDS)                   | Starting reference                          |
+| Sol-App      | **App Tuning**      | DB connection pool tuning; optimized SQL/app logic | Higher throughput, lower latency            |
+| Sol-Scale    | **ECS Autoscaling** | Horizontal scaling of API containers               | Improved handling of peak load              |
+| Sol-Cache    | **Redis Caching**   | Cache read endpoints                               | Faster reads, reduced DB load               |
+| Sol-Queue    | **Write Queue**     | Async write pipeline (producer → queue → consumer) | Higher write throughput, smoother ingestion |
 
 ---
 
@@ -81,23 +75,23 @@ All architectures are evaluated using the same workload profiles and metrics to 
 
 ### Comparison Table
 
-| Architecture Variant | Test Profile | p95 Latency (ms) | Error Rate (%) | Max Sustainable RPS | RDS CPU Max (%) | ECS CPU Max (%) | SLO Status | Notes |
-| -------------------- | ------------ | ---------------- | -------------- | ------------------- | --------------- | --------------- | ---------- | ----- |
-| Baseline             | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| Baseline             | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| Baseline             | Mixed        |                  |                |                     |                 |                 |            |       |
-| App Tuning           | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| App Tuning           | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| App Tuning           | Mixed        |                  |                |                     |                 |                 |            |       |
-| ECS Autoscaling      | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| ECS Autoscaling      | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| ECS Autoscaling      | Mixed        |                  |                |                     |                 |                 |            |       |
-| Redis Caching        | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| Redis Caching        | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| Redis Caching        | Mixed        |                  |                |                     |                 |                 |            |       |
-| Write Queue          | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| Write Queue          | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| Write Queue          | Mixed        |                  |                |                     |                 |                 |            |       |
+| Solution ID  | Test Profile | p95 Latency (ms) | Error Rate (%) | Max Sustainable RPS | RDS CPU Max (%) | ECS CPU Max (%) | SLO Status | Notes |
+| ------------ | ------------ | ---------------- | -------------- | ------------------- | --------------- | --------------- | ---------- | ----- |
+| Sol-Baseline | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| Sol-Baseline | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| Sol-Baseline | Mixed        |                  |                |                     |                 |                 |            |       |
+| Sol-App      | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| Sol-App      | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| Sol-App      | Mixed        |                  |                |                     |                 |                 |            |       |
+| Sol-Scale    | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| Sol-Scale    | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| Sol-Scale    | Mixed        |                  |                |                     |                 |                 |            |       |
+| Sol-Cache    | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| Sol-Cache    | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| Sol-Cache    | Mixed        |                  |                |                     |                 |                 |            |       |
+| Sol-Queue    | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| Sol-Queue    | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| Sol-Queue    | Mixed        |                  |                |                     |                 |                 |            |       |
 
 ---
 
