@@ -2,25 +2,11 @@
   {
     "name": "fastapi",
     "image": "${image}",
+
     "cpu": 1024,
     "memory": 2048,
     "essential": true,
-    "portMappings": [
-      {
-        "name": "fastapi",
-        "containerPort": 8000,
-        "protocol": "tcp"
-      }
-    ],
-    "logConfiguration": {
-      "logDriver": "awslogs",
-      "options": {
-        "awslogs-create-group": "true",
-        "awslogs-group": "${awslogs_group}",
-        "awslogs-region": "${region}",
-        "awslogs-stream-prefix": "ecs"
-      }
-    },
+
     "environment": [
       { "name": "APP_NAME", "value": "${project}" },
       { "name": "ENV", "value": "${env}" },
@@ -31,6 +17,26 @@
       { "name": "POSTGRES__USER", "value": "${pgdb_user}" },
       { "name": "POSTGRES__PASSWORD", "value": "${pgdb_pwd}" }
     ],
+
+    "portMappings": [
+      {
+        "name": "fastapi",
+        "containerPort": 8000,
+        "protocol": "tcp"
+      }
+    ],
+
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-create-group": "true",
+        "awslogs-group": "${awslogs_group}",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "ecs",
+        "awslogs-datetime-format": "%Y-%m-%dT%H:%M:%S.%f%z"
+      }
+    },
+
     "healthCheck": {
       "command": [
         "CMD-SHELL",
@@ -40,6 +46,9 @@
       "timeout": 5,
       "retries": 3,
       "startPeriod": 15
-    }
+    },
+
+    "stopTimeout": 30,
+    "readonlyRootFilesystem": false
   }
 ]

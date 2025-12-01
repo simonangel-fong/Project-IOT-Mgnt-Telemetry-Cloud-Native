@@ -2,8 +2,8 @@
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import MetaData
 
-# specify db_schema schema
-metadata = MetaData(schema="db_schema")
+# specify app schema
+metadata = MetaData(schema="app")
 
 
 class Base(DeclarativeBase):

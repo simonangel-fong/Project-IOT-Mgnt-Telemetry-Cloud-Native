@@ -24,5 +24,5 @@ RESET ROLE;
 ------------------------------------------------------------
 -- Confirm
 ------------------------------------------------------------
-SELECT *
-FROM app.device_registry;
+-- SELECT *
+-- FROM app.device_registry;

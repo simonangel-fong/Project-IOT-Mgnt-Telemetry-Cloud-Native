@@ -1,6 +1,16 @@
 # Project: IOT Management Telemetry - Cloud Native Solution
 
-- [Solution: Baseline](./doc/baseline/baseline.md)
+- [Project: IOT Management Telemetry - Cloud Native Solution](#project-iot-management-telemetry---cloud-native-solution)
+  - [Goal](#goal)
+  - [Design: System Architecture Variants](#design-system-architecture-variants)
+  - [Design: Testing](#design-testing)
+      - [Workload Profiles](#workload-profiles)
+      - [Load Model](#load-model)
+      - [Metrics Collected](#metrics-collected)
+    - [Comparison Method](#comparison-method)
+    - [Comparison Table](#comparison-table)
+
+---
 
 ## Goal
 
@@ -16,9 +26,7 @@ Evaluate how multiple **system architectures** impact the performance of an IoT 
 
 ---
 
-# 2. Design
-
-## 2.1 System Architecture Variants
+## Design: System Architecture Variants
 
 | Solution ID  | Variant             | Description                                        | Intended Improvement                        |
 | ------------ | ------------------- | -------------------------------------------------- | ------------------------------------------- |
@@ -30,15 +38,15 @@ Evaluate how multiple **system architectures** impact the performance of an IoT 
 
 ---
 
-## 2.2 Test Design
+## Design: Testing
 
-### Core Idea
+- **Core Idea**
 
 Use the **same k6 tests** across **different architectures** to ensure a fair and scientific **comparison**.
 
 ---
 
-### Workload Profiles
+#### Workload Profiles
 
 | Test Profile    | Purpose                          | Workload Characteristics             |
 | --------------- | -------------------------------- | ------------------------------------ |
@@ -48,7 +56,7 @@ Use the **same k6 tests** across **different architectures** to ensure a fair an
 
 ---
 
-### Load Model
+#### Load Model
 
 - **k6 `ramping-arrival-rate`** (RPS-based): Controls the number of requests per second.
 - **Ramp or step to ~1000 RPS**: Gradual increase toward the target load.
@@ -56,7 +64,7 @@ Use the **same k6 tests** across **different architectures** to ensure a fair an
 
 ---
 
-### Metrics Collected
+#### Metrics Collected
 
 | Category           | Metrics                                                                     |
 | ------------------ | --------------------------------------------------------------------------- |
@@ -67,11 +75,9 @@ Use the **same k6 tests** across **different architectures** to ensure a fair an
 
 ---
 
-## 2.3 Comparison Method
+### Comparison Method
 
 All architectures are evaluated using the same workload profiles and metrics to enable consistent comparison.
-
-### Comparison Table
 
 ### Comparison Table
 

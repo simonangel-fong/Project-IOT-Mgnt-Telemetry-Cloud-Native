@@ -102,3 +102,7 @@ resource "aws_route_table_association" "public" {
   subnet_id      = each.value.id
   route_table_id = aws_route_table.public.id
 }
+
+output "subnet_id" {
+  value = [for s in aws_subnet.private : s.id]
+}

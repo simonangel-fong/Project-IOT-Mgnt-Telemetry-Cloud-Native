@@ -52,8 +52,8 @@ RESET ROLE;
 ------------------------------------------------------------
 -- Confirm
 ------------------------------------------------------------
-SELECT *
-FROM app.telemetry_event;
+-- SELECT *
+-- FROM app.telemetry_event;
 
-SELECT *
-FROM app.telemetry_latest;
+-- SELECT *
+-- FROM app.telemetry_latest;

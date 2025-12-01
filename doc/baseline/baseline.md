@@ -7,7 +7,7 @@
   - [Local Testing](#local-testing)
   - [ECR](#ecr)
     - [fastapi](#fastapi)
-    - [init\_db](#init_db)
+    - [flyway](#flyway)
   - [AWS](#aws)
   - [Remote Testing](#remote-testing)
 
@@ -70,16 +70,26 @@ docker push 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry-f
 
 ---
 
-### init_db
+### flyway
+
+- test
 
 ```sh
-aws ecr create-repository --repository-name iot-mgnt-telemetry-init-db --region ca-central-1
+docker compose -f sol_baseline/app/docker-compose.yaml down -v
+docker compose -f sol_baseline/app/docker-compose.yaml up -d --build
 
-docker build -t init-db sol_baseline/app/init_db
+```
+
+- push image
+
+```sh
+aws ecr create-repository --repository-name iot-mgnt-telemetry-flyway --region ca-central-1
+
+docker build -t flyway sol_baseline/app/flyway
 # tag
-docker tag init-db 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry-init-db:baseline
+docker tag flyway 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry-flyway:baseline
 # push to docker
-docker push 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry-init-db:baseline
+docker push 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry-flyway:baseline
 ```
 
 ---
@@ -96,6 +106,9 @@ terraform fmt && terraform validate
 
 terraform apply -auto-approve
 
+# execute flyway to init rds
+aws ecs run-task --cluster iot-mgnt-telemetry-baseline-cluster --task-definition iot-mgnt-telemetry-baseline-task-flyway --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[subnet-,subnet-,subnet-],securityGroups=[sg-]}"
+
 terraform destroy -auto-approve
 
 ```
@@ -105,5 +118,15 @@ terraform destroy -auto-approve
 ## Remote Testing
 
 ```sh
-docker run --rm --name aws_test_smoke -p 5665:5665 -e BASE_URL="http://iot-baseline.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/aws_test_smoke.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
+# smoke
+docker run --rm --name test_smoke -p 5665:5665 -e BASE_URL="https://iot-baseline.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/aws_test_smoke.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
+
+# read heavy
+docker run --rm --name test_hp_read -p 5665:5665 -e SOLUTION_ID="Sol-Baseline" -e BASE_URL="https://iot-baseline.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/aws_test_hp_read.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
+
+# write heavy
+docker run --rm --name test_hp_write -p 5665:5665 -e SOLUTION_ID="Sol-Baseline" -e BASE_URL="https://iot-baseline.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/aws_test_hp_write.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
+
+# mixed
+docker run --rm --name test_hp_mixed -p 5665:5665 -e SOLUTION_ID="Sol-Baseline" -e BASE_URL="https://iot-baseline.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/aws_test_hp_mixed.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_mixed.js
 ```

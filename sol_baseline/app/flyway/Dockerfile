@@ -1,7 +1,9 @@
 # flyway/Dockerfile
-FROM flyway/flyway:10-alpine
+FROM flyway/flyway:11-alpine
 
 WORKDIR /flyway
+# copy db scripts
+COPY ./conf /flyway/conf
 # copy sql scripts
 COPY ./sql /flyway/sql
 # copy conf

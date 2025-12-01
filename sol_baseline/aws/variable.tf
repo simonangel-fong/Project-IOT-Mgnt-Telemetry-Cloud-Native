@@ -45,6 +45,13 @@ variable "db_password" {
   type = string
 }
 
+variable "db_app_pwd" {
+  type = string
+}
+
+variable "db_readonly_pwd" {
+  type = string
+}
 
 # ##############################
 # AWS Cloudfront

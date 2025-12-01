@@ -16,7 +16,7 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: app_db
-      POSTGRES_USER: rdsadmin
+      POSTGRES_USER: dbadmin
       POSTGRES_PASSWORD: test123
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -54,11 +54,12 @@ services:
     restart: "no"
     environment:
       FLYWAY_URL: jdbc:postgresql://postgres:5432/app_db
-      FLYWAY_USER: rdsadmin
-      FLYWAY_PASSWORD: test123
+      FLYWAY_USER: dbadmin
+      FLYWAY_PASSWORD: postgres
       FLYWAY_PLACEHOLDERS_APP_USER_PASSWORD: "test123"
       FLYWAY_PLACEHOLDERS_APP_READONLY_PASSWORD: "test123"
     networks:
+      # - public_network
       - private_network
     depends_on:
       postgres:
@@ -79,6 +80,7 @@ services:
       POSTGRES__USER: app_user
       POSTGRES__PASSWORD: test123
     networks:
+      # - public_network
       - private_network
     ports:
       - 8000:8000

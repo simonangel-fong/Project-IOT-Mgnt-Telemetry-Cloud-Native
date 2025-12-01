@@ -23,10 +23,11 @@ resource "aws_security_group" "postgres" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    security_groups = [
-      aws_security_group.fastapi.id, # allow fastapi
-      aws_security_group.init_db.id, # allow init_db
-    ]
+    # security_groups = [
+    #   # aws_security_group.fastapi.id, # allow fastapi
+    #   aws_security_group.flyway.id, # allow flyway
+    # ]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -77,7 +78,7 @@ resource "aws_db_instance" "postgres" {
   db_name  = var.db_name
 
   # Networking
-  publicly_accessible    = false
+  publicly_accessible = false
   db_subnet_group_name   = aws_db_subnet_group.postgres.name
   vpc_security_group_ids = [aws_security_group.postgres.id]
 

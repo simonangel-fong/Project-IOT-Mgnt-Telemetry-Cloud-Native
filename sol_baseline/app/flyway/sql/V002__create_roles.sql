@@ -83,20 +83,20 @@ END
 $do$;
 
 
-------------------------------------------------------------
--- Confirm
-------------------------------------------------------------
-SELECT
-    rolname,
-    rolcanlogin,
-    rolsuper,
-    rolcreaterole,
-    rolcreatedb,
-    rolinherit,
-    rolconnlimit
-FROM
-    pg_roles
-WHERE
-    rolname IN ('app_owner', 'app_user', 'app_readonly')
-ORDER BY
-    rolname;
+-- ------------------------------------------------------------
+-- -- Confirm
+-- ------------------------------------------------------------
+-- SELECT
+--     rolname,
+--     rolcanlogin,
+--     rolsuper,
+--     rolcreaterole,
+--     rolcreatedb,
+--     rolinherit,
+--     rolconnlimit
+-- FROM
+--     pg_roles
+-- WHERE
+--     rolname IN ('app_owner', 'app_user', 'app_readonly')
+-- ORDER BY
+--     rolname;
