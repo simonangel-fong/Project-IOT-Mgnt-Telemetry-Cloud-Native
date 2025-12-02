@@ -47,7 +47,7 @@ export const options = {
       {
         threshold: "rate<0.01", // SLO
         abortOnFail: true, // abort when 1st failure
-        delayAbortEval: "10s", // delay to collect degraded system data
+        delayAbortEval: "0s", // delay to collect degraded system data
       },
     ],
 

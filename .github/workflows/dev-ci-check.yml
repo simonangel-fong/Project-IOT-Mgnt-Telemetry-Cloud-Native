@@ -31,11 +31,12 @@ jobs:
     name: Unit Test(FastAPI)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:  
-      matrix:  
-        solution: [sol_baseline, sol_tune]  
     env:
       PYTHON_VERSION: 3.11
+    defaults:
+      run:
+        shell: bash
+        working-directory: app/fastapi
     steps:
       - name: Check out the repo
         uses: actions/checkout@v5
@@ -86,7 +87,7 @@ jobs:
     strategy:
       matrix:
         env: [baseline]
-        path: [aws_baseline]
+        path: [sol_baseline]
     env:
       TF_VERSION: 1.9.8
       TF_LINT_VERSION: v0.53.0
@@ -141,7 +142,7 @@ jobs:
       - name: TFSec
         uses: aquasecurity/tfsec-sarif-action@v0.1.0
         with:
-          working_directory: ${{ matrix.path }}
+          working_directory: aws/${{ matrix.path }}
           # tfsec_args: --concise-output
 
       - name: Send email notification
