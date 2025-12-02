@@ -103,3 +103,4 @@ All architectures are evaluated using the same workload profiles and metrics to 
 
 - [Sol-Baseline](./doc/baseline/baseline.md)
 - [Sol-Tune](./doc/tune/tune.md)
+- [FastAPI](./doc/fastapi/fastapi.md)

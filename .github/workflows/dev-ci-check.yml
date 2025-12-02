@@ -7,16 +7,15 @@ on:
     branches:
       - "feature-*"
     paths:
-      - "app/**"
-      - "aws_**"
+      - "sol_**"
       - ".github/workflows/dev-ci-check.yml"
   # pull master
   pull_request:
     branches:
       - "master"
+      - "*_testing"
     paths:
-      - "app/**"
-      - "aws/**"
+      - "sol_**"
 
 # read only
 permissions:
@@ -32,11 +31,11 @@ jobs:
     name: Unit Test(FastAPI)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:  
+      matrix:  
+        solution: [sol_baseline, sol_tune]  
     env:
       PYTHON_VERSION: 3.11
-    defaults:
-      run:
-        working-directory: app/fastapi/
     steps:
       - name: Check out the repo
         uses: actions/checkout@v5

@@ -31,8 +31,8 @@ pytest
 ## Local - Testing
 
 ```sh
-docker compose -f sol_tune/app/docker-compose.yaml down -v
-docker compose -f sol_tune/app/docker-compose.yaml up -d --build
+docker compose -f app/compose.tune.yaml down -v
+docker compose -f app/compose.tune.yaml up -d --build
 
 # smoke
 docker run --rm --name test_smoke --net=tune_public_network -p 5665:5665 -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/sol_tuned_local_smoke.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
