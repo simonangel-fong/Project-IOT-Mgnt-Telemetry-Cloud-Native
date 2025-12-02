@@ -47,13 +47,20 @@ export const options = {
       {
         threshold: "rate<0.01", // SLO
         abortOnFail: true, // abort when 1st failure
-        delayAbortEval: "0s", // delay to collect degraded system data
+        delayAbortEval: "10s", // delay to collect degraded system data
       },
     ],
 
     // GET /telemetry/latest
     "http_req_duration{scenario:hp_read_telemetry,endpoint:telemetry_get_latest}":
-      [{ threshold: "p(95)<300" }, { threshold: "p(99)<1000" }],
+      [
+        {
+          threshold: "p(95)<300",
+          // abortOnFail: true, // abort when 1st failure
+          // delayAbortEval: "10s", // delay to collect degraded system data
+        },
+        { threshold: "p(99)<1000" },
+      ],
   },
 
   scenarios: {
@@ -68,14 +75,9 @@ export const options = {
       // Smooth ramp up to RATE_TARGET and then hold
       stages: [
         { duration: `${STAGE_RAMP}m`, target: RATE_START }, // warm-up
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.2) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.2) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.4) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.4) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.6) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.6) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.8) },
-        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.8) },
+        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.25) },
+        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.5) },
+        { duration: `${STAGE_RAMP}m`, target: Math.round(RATE_TARGET * 0.75) },
         { duration: `${STAGE_RAMP}m`, target: RATE_TARGET }, // reach peak
         { duration: `${STAGE_PEAK}m`, target: RATE_TARGET }, // hold peak
       ],
