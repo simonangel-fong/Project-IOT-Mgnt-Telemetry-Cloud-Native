@@ -7,13 +7,14 @@ on:
     branches:
       - "feature-*"
     paths:
-      - "sol_**"
+      - "aws/**"
+      - "app/**"
       - ".github/workflows/dev-ci-check.yml"
   # pull master
   pull_request:
     branches:
       - "master"
-      - "*_testing"
+      - "*-testing"
     paths:
       - "sol_**"
 
