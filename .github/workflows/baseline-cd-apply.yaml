@@ -36,7 +36,7 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       DIR_DOCKFILE: ${{ matrix.service.docker_context }} # dockfile path
-      ECR_REPOSITORY: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}"
+      ECR_REPOSITORY: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{matrix.service.name}}"
 
     steps:
       - name: Checkout repository
