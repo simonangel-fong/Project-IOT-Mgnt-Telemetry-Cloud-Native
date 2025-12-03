@@ -5,12 +5,13 @@ on:
   push:
     branches:
       - "feature-baseline-testing"
+      - ".github/workflows/baseline-cd-apply.yml"
     paths:
       - "app/fastapi/**"
       - "aws/sol_baseline"
 
 concurrency:
-  group: prod-apply-${{ github.ref_name }}
+  group: baseline-cd-apply-${{ github.ref_name }}
   cancel-in-progress: false # keep in-progress jobs
 
 permissions:
@@ -19,7 +20,7 @@ permissions:
 
 jobs:
   ecr-push:
-    name: Push Image to ECR - ${{ matrix.service.name }} (Prod)
+    name: Push Image to ECR - ${{ matrix.service.name }} (Baseline)
     runs-on: ubuntu-latest
     environment: baseline
     strategy:
