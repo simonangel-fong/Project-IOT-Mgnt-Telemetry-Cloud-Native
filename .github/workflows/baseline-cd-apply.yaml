@@ -5,10 +5,10 @@ on:
   push:
     branches:
       - "feature-baseline-testing"
-      - ".github/workflows/baseline-cd-apply.yaml"
     paths:
       - "app/fastapi/**"
-      - "aws/sol_baseline"
+      - "aws/sol_baseline/**"
+      - ".github/workflows/baseline-cd-apply.yaml"
 
 concurrency:
   group: baseline-cd-apply-${{ github.ref_name }}
