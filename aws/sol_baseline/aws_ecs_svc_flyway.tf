@@ -91,6 +91,10 @@ resource "aws_ecs_task_definition" "flyway" {
   ]
 }
 
-output "sg_flyway_id" {
-  value = aws_security_group.flyway.id
+output "flyway_run_task_cmd" {
+  description = "AWS CLI command to run the Flyway task against the RDS instance"
+  value       = <<EOT
+aws ecs run-task --cluster iot-mgnt-telemetry-baseline-cluster --task-definition iot-mgnt-telemetry-baseline-task-flyway --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[${join(",", [for s in aws_subnet.private : s.id])}],securityGroups=[${aws_security_group.flyway.id}]}"
+EOT
 }
+
