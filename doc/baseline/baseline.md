@@ -18,6 +18,7 @@
 ```sh
 git branch feature-baseline-dev
 git branch feature-baseline-testing
+git checkout feature-baseline-testing
 ```
 
 ## Local Testing
