@@ -20,87 +20,87 @@ permissions:
   contents: read
 
 jobs:
-  ecr-push:
-    name: ECR Push(${{ matrix.service.name }})
-    runs-on: ubuntu-latest
-    environment: baseline
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          - name: fastapi
-            docker_context: app/fastapi
-          - name: flyway
-            docker_context: app/flyway
+  # ecr-push:
+  #   name: ECR Push(${{ matrix.service.name }})
+  #   runs-on: ubuntu-latest
+  #   environment: baseline
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       service:
+  #         - name: fastapi
+  #           docker_context: app/fastapi
+  #         - name: flyway
+  #           docker_context: app/flyway
 
-    env:
-      DIR_DOCKFILE: ${{ matrix.service.docker_context }} # dockfile path
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      ECR_REPOSITORY: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{matrix.service.name}}"
+  #   env:
+  #     DIR_DOCKFILE: ${{ matrix.service.docker_context }} # dockfile path
+  #     AWS_REGION: ${{ vars.AWS_REGION }}
+  #     AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  #     ECR_REPOSITORY: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{matrix.service.name}}"
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
+  #     - name: Configure AWS credentials (OIDC)
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN }}
+  #         aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+  #     - name: Login to Amazon ECR
+  #       id: login-ecr
+  #       uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.ECR_REPOSITORY }}
+  #     - name: Extract Docker metadata
+  #       id: meta
+  #       uses: docker/metadata-action@v5
+  #       with:
+  #         images: ${{ env.ECR_REPOSITORY }}
 
-      - name: Build and push Docker image
-        id: build-push
-        uses: docker/build-push-action@v3
-        with:
-          push: true
-          context: ${{ env.DIR_DOCKFILE }}
-          labels: ${{ steps.meta.outputs.labels }}
-          tags: |
-            ${{ env.ECR_REPOSITORY }}
-            ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+  #     - name: Build and push Docker image
+  #       id: build-push
+  #       uses: docker/build-push-action@v3
+  #       with:
+  #         push: true
+  #         context: ${{ env.DIR_DOCKFILE }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+  #         tags: |
+  #           ${{ env.ECR_REPOSITORY }}
+  #           ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
-      - name: Send email notification (on failure)
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} ${{ matrix.service.name }} (${{ vars.ENV }})"
-          to: ${{ secrets.EMAIL_USERNAME }}
-          from: ${{ secrets.EMAIL_USERNAME }}
-          html_body: |
-            <h2>GitHub Actions CI/CD Notification</h2>
-            <p><b>Project</b>: ${{ vars.PROJECT }} (service: ${{ matrix.service.name }})</p>
-            <p><b>Repository</b>: ${{ github.repository }}</p>
-            <p><b>Env</b>: ${{ vars.ENV }}</p>
-            <p><b>Job</b>: ${{ github.job }}</p>
-            <p><b>Status</b>: ${{ job.status }}</p>
-            <p><b>Branch</b>: ${{ github.ref }}</p>
-            <p><b>Workflow</b>: ${{ github.workflow }}</p>
-            <p><b>Commit</b>: ${{ github.sha }}</p>
-            <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
+  #     - name: Send email notification (on failure)
+  #       if: failure()
+  #       uses: dawidd6/action-send-mail@v3
+  #       with:
+  #         server_address: smtp.gmail.com
+  #         server_port: 465
+  #         secure: true
+  #         username: ${{ secrets.EMAIL_USERNAME }}
+  #         password: ${{ secrets.EMAIL_PASSWORD }}
+  #         subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} ${{ matrix.service.name }} (${{ vars.ENV }})"
+  #         to: ${{ secrets.EMAIL_USERNAME }}
+  #         from: ${{ secrets.EMAIL_USERNAME }}
+  #         html_body: |
+  #           <h2>GitHub Actions CI/CD Notification</h2>
+  #           <p><b>Project</b>: ${{ vars.PROJECT }} (service: ${{ matrix.service.name }})</p>
+  #           <p><b>Repository</b>: ${{ github.repository }}</p>
+  #           <p><b>Env</b>: ${{ vars.ENV }}</p>
+  #           <p><b>Job</b>: ${{ github.job }}</p>
+  #           <p><b>Status</b>: ${{ job.status }}</p>
+  #           <p><b>Branch</b>: ${{ github.ref }}</p>
+  #           <p><b>Workflow</b>: ${{ github.workflow }}</p>
+  #           <p><b>Commit</b>: ${{ github.sha }}</p>
+  #           <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
 
   deploy:
     name: AWS-Deploy
-    needs:
-      - ecr-push
+    # needs:
+    #   - ecr-push
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: baseline
@@ -257,7 +257,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: baseline
     env:
-      BASE_URL: ${{ needs.deploy.outputs.BASE_URL }}
+      # BASE_URL: ${{ needs.deploy.outputs.BASE_URL }}
+      BASE_URL: https://iot-baseline.arguswatcher.net
       K6_REPORT: k6/report/baseline_cicd_smoke.html
       K6_SCRIPT: k6/script/test_smoke.js
     steps:
@@ -293,301 +294,304 @@ jobs:
             ${{ env.K6_REPORT }}
           retention-days: 7
 
-  # testing-read:
-  #   name: Performance Testing-Read
-  #   needs:
-  #     - deploy
-  #     - testing-smoke
-  #   if: ${{ needs.testing-smoke.result == 'success'}}
-  #   runs-on: ubuntu-latest
-  #   environment: baseline
-  #   env:
-  #     BASE_URL: ${{ needs.deploy.outputs.BASE_URL }}
-  #     K6_REPORT: k6/report/baseline_cicd_read.html
-  #     K6_SCRIPT: k6/script/test_hp_read.js
+  testing-read:
+    name: Performance Testing-Read
+    needs:
+      - deploy
+      - testing-smoke
+    if: ${{ needs.testing-smoke.result == 'success'}}
+    runs-on: ubuntu-latest
+    environment: baseline
+    env:
+      # BASE_URL: ${{ needs.deploy.outputs.BASE_URL }}
+      BASE_URL: https://iot-baseline.arguswatcher.net
+      K6_REPORT: k6/report/baseline_cicd_read.html
+      K6_SCRIPT: k6/script/test_hp_read.js
 
-  #   outputs:
-  #     testing_smoke_result: ${{ steps.testing-read-output.outputs.testing_read_result }}
+    outputs:
+      testing_smoke_result: ${{ steps.testing-read-output.outputs.testing_read_result }}
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup K6
-  #       uses: grafana/setup-k6-action@v1
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
 
-  #     - name: Read Testing
-  #       id: testing-read
-  #       uses: grafana/run-k6-action@v1
-  #       env:
-  #         K6_WEB_DASHBOARD: "true"
-  #         K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
-  #       with:
-  #         debug: true
-  #         fail-fast: true
-  #         flags: --env BASE_URL=${{env.BASE_URL}}
-  #         path: |
-  #           ${{ env.K6_SCRIPT }}
+      - name: Read Testing
+        id: testing-read
+        uses: grafana/run-k6-action@v1
+        env:
+          K6_WEB_DASHBOARD: "true"
+          K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
+        with:
+          debug: true
+          fail-fast: true
+          flags: --env BASE_URL=${{env.BASE_URL}}
+          path: |
+            ${{ env.K6_SCRIPT }}
 
-  #     - name: Upload report artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: "k6-report-read-${{ vars.ENV }}"
-  #         path: |
-  #           ${{ env.K6_REPORT }}
-  #         retention-days: 7
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "k6-report-read-${{ vars.ENV }}"
+          path: |
+            ${{ env.K6_REPORT }}
+          retention-days: 7
 
-  #     - name: Output Testing Status
-  #       id: testing-read-output
-  #       run: |
-  #         echo ${{ steps.testing-read.outcome }}
-  #         echo "testing_read_result=${{ steps.testing-read.outcome }}" >> "$GITHUB_OUTPUT"
+      - name: Output Testing Status
+        id: testing-read-output
+        run: |
+          echo ${{ steps.testing-read.outcome }}
+          echo "testing_read_result=${{ steps.testing-read.outcome }}" >> "$GITHUB_OUTPUT"
 
-  # testing-write:
-  #   name: Performance Testing-Write
-  #   needs:
-  #     - deploy
-  #     - testing-read
-  #     - testing-smoke
-  #   if: ${{ needs.testing-smoke.result == 'success'}}
-  #   runs-on: ubuntu-latest
-  #   environment: baseline
-  #   env:
-  #     BASE_URL: ${{ needs.deploy.outputs.BASE_URL }}
-  #     K6_REPORT: k6/report/baseline_cicd_write.html
-  #     K6_SCRIPT: k6/script/test_hp_write.js
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  testing-write:
+    name: Performance Testing-Write
+    needs:
+      - deploy
+      - testing-read
+      - testing-smoke
+    if: ${{ needs.testing-smoke.result == 'success'}}
+    runs-on: ubuntu-latest
+    environment: baseline
+    env:
+      # BASE_URL: ${{ needs.deploy.outputs.BASE_URL }}
+      BASE_URL: https://iot-baseline.arguswatcher.net
+      K6_REPORT: k6/report/baseline_cicd_write.html
+      K6_SCRIPT: k6/script/test_hp_write.js
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup K6
-  #       uses: grafana/setup-k6-action@v1
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
 
-  #     - name: Write Testing
-  #       id: testing-write
-  #       uses: grafana/run-k6-action@v1
-  #       env:
-  #         K6_WEB_DASHBOARD: "true"
-  #         K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
-  #       with:
-  #         debug: true
-  #         fail-fast: true
-  #         flags: --env BASE_URL=${{env.BASE_URL}}
-  #         path: |
-  #           ${{ env.K6_SCRIPT }}
+      - name: Write Testing
+        id: testing-write
+        uses: grafana/run-k6-action@v1
+        env:
+          K6_WEB_DASHBOARD: "true"
+          K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
+        with:
+          debug: true
+          fail-fast: true
+          flags: --env BASE_URL=${{env.BASE_URL}}
+          path: |
+            ${{ env.K6_SCRIPT }}
 
-  #     - name: Upload report artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: "k6-report-write-${{ vars.ENV }}"
-  #         path: |
-  #           ${{ env.K6_REPORT }}
-  #         retention-days: 7
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "k6-report-write-${{ vars.ENV }}"
+          path: |
+            ${{ env.K6_REPORT }}
+          retention-days: 7
 
-  # testing-mixed:
-  #   name: Performance Testing-Mixed
-  #   needs:
-  #     - deploy
-  #     - testing-read
-  #     - testing-smoke
-  #     - testing-write
-  #   if: ${{ needs.testing-smoke.result == 'success'}}
-  #   runs-on: ubuntu-latest
-  #   environment: baseline
-  #   env:
-  #     BASE_URL: ${{ needs.deploy.outputs.BASE_URL }}
-  #     K6_REPORT: k6/report/baseline_cicd_mixed.html
-  #     K6_SCRIPT: k6/script/test_hp_mixed.js
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  testing-mixed:
+    name: Performance Testing-Mixed
+    needs:
+      - deploy
+      - testing-read
+      - testing-smoke
+      - testing-write
+    if: ${{ needs.testing-smoke.result == 'success'}}
+    runs-on: ubuntu-latest
+    environment: baseline
+    env:
+      # BASE_URL: ${{ needs.deploy.outputs.BASE_URL }}
+      BASE_URL: https://iot-baseline.arguswatcher.net
+      K6_REPORT: k6/report/baseline_cicd_mixed.html
+      K6_SCRIPT: k6/script/test_hp_mixed.js
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup K6
-  #       uses: grafana/setup-k6-action@v1
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
 
-  #     - name: Mixed Testing
-  #       id: testing-mixed
-  #       uses: grafana/run-k6-action@v1
-  #       env:
-  #         K6_WEB_DASHBOARD: "true"
-  #         K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
-  #       with:
-  #         debug: true
-  #         fail-fast: true
-  #         flags: --env BASE_URL=${{env.BASE_URL}}
-  #         path: |
-  #           ${{ env.K6_SCRIPT }}
+      - name: Mixed Testing
+        id: testing-mixed
+        uses: grafana/run-k6-action@v1
+        env:
+          K6_WEB_DASHBOARD: "true"
+          K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
+        with:
+          debug: true
+          fail-fast: true
+          flags: --env BASE_URL=${{env.BASE_URL}}
+          path: |
+            ${{ env.K6_SCRIPT }}
 
-  #     - name: Upload report artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: "k6-report-mixed-${{ vars.ENV }}"
-  #         path: |
-  #           ${{ env.K6_REPORT }}
-  #         retention-days: 7
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "k6-report-mixed-${{ vars.ENV }}"
+          path: |
+            ${{ env.K6_REPORT }}
+          retention-days: 7
 
-  # notification:
-  #   name: Notify
-  #   environment: baseline
-  #   needs:
-  #     - testing-read
-  #     - testing-smoke
-  #     - testing-write
-  #     - testing-mixed
-  #   if: ${{ needs.testing-smoke.result == 'success'}}
-  #   runs-on: ubuntu-latest
+  notification:
+    name: Notify
+    environment: baseline
+    needs:
+      - testing-read
+      - testing-smoke
+      - testing-write
+      - testing-mixed
+    if: ${{ needs.testing-smoke.result == 'success'}}
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Download all report artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         path: k6-reports-all
+    steps:
+      - name: Download all report artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: k6-reports-all
 
-  #     - name: List downloaded reports
-  #       run: |
-  #         echo "Downloaded k6 report files:"
-  #         ls -R k6-reports-all
+      - name: List downloaded reports
+        run: |
+          echo "Downloaded k6 report files:"
+          ls -R k6-reports-all
 
-  #     - name: Send email notification
-  #       uses: dawidd6/action-send-mail@v3
-  #       with:
-  #         server_address: smtp.gmail.com
-  #         server_port: 465
-  #         secure: true
-  #         username: ${{ secrets.EMAIL_USERNAME }}
-  #         password: ${{ secrets.EMAIL_PASSWORD }}
-  #         subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} (${{ vars.ENV }})"
-  #         to: ${{ secrets.EMAIL_USERNAME }}
-  #         from: ${{ secrets.EMAIL_USERNAME }}
-  #         html_body: |
-  #           <h2>GitHub Actions CI/CD - k6 Testing</h2>
-  #           <p><b>Project</b>: ${{ vars.PROJECT }}</p>
-  #           <p><b>Environment</b>: ${{ vars.ENV }}</p>
-  #           <p><b>Workflow</b>: ${{ github.workflow }}</p>
-  #           <p><b>Branch</b>: ${{ github.ref }}</p>
-  #           <p><b>Commit</b>: ${{ github.sha }}</p>
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} (${{ vars.ENV }})"
+          to: ${{ secrets.EMAIL_USERNAME }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          html_body: |
+            <h2>GitHub Actions CI/CD - k6 Testing</h2>
+            <p><b>Project</b>: ${{ vars.PROJECT }}</p>
+            <p><b>Environment</b>: ${{ vars.ENV }}</p>
+            <p><b>Workflow</b>: ${{ github.workflow }}</p>
+            <p><b>Branch</b>: ${{ github.ref }}</p>
+            <p><b>Commit</b>: ${{ github.sha }}</p>
 
-  #           <h3>Results</h3>
-  #           <ul>
-  #             <li>Smoke: <b>${{ needs.testing-smoke.result }}</b></li>
-  #             <li>Read: <b>${{ needs.testing-read.result }}</b></li>
-  #             <li>Write: <b>${{ needs.testing-write.result }}</b></li>
-  #             <li>Mixed: <b>${{ needs.testing-mixed.result }}</b></li>
-  #           </ul>
+            <h3>Results</h3>
+            <ul>
+              <li>Smoke: <b>${{ needs.testing-smoke.result }}</b></li>
+              <li>Read: <b>${{ needs.testing-read.result }}</b></li>
+              <li>Write: <b>${{ needs.testing-write.result }}</b></li>
+              <li>Mixed: <b>${{ needs.testing-mixed.result }}</b></li>
+            </ul>
 
-  #           <p>
-  #             <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">
-  #               View Workflow Run
-  #             </a>
-  #           </p>
-  #           <p>All k6 HTML reports are attached to this email.</p>
-  #         attachments: |
-  #           k6-reports-all/**/*.html
+            <p>
+              <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+                View Workflow Run
+              </a>
+            </p>
+            <p>All k6 HTML reports are attached to this email.</p>
+          attachments: |
+            k6-reports-all/**/*.html
 
-  # destroy:
-  #   name: Baseline-Destroy
-  #   needs: notification
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 30
-  #   environment: baseline
-  #   env:
-  #     TF_DIR: aws/sol_${{vars.ENV}}
-  #     TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
-  #     TF_VAR_aws_region: ${{ vars.AWS_REGION }}
-  #     TF_VAR_env: ${{ vars.ENV }}
-  #     TF_VAR_db_name: ${{ secrets.DB_NAME }}
-  #     TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
-  #     TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
-  #     TF_VAR_db_app_pwd: ${{ secrets.DB_APP_PWD }}
-  #     TF_VAR_db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
-  #     TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
-  #     TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  destroy:
+    name: Baseline-Destroy
+    needs: notification
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: baseline
+    env:
+      TF_DIR: aws/sol_${{vars.ENV}}
+      TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
+      TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+      TF_VAR_env: ${{ vars.ENV }}
+      TF_VAR_db_name: ${{ secrets.DB_NAME }}
+      TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+      TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+      TF_VAR_db_app_pwd: ${{ secrets.DB_APP_PWD }}
+      TF_VAR_db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
+      TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
+      TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v3
-  #       with:
-  #         terraform_version: ${{ vars.TF_VERSION }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ vars.TF_VERSION }}
 
-  #     - name: Configure AWS credentials (OIDC)
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN}}
-  #         aws-region: ${{ vars.AWS_REGION }}
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN}}
+          aws-region: ${{ vars.AWS_REGION }}
 
-  #     - name: Configure Terraform plugin cache
-  #       run: |
-  #         mkdir -pv ${{ env.TF_PLUGIN_CACHE_DIR }}
-  #         echo 'plugin_cache_dir = "${{ env.TF_PLUGIN_CACHE_DIR }}"' > ~/.terraformrc
+      - name: Configure Terraform plugin cache
+        run: |
+          mkdir -pv ${{ env.TF_PLUGIN_CACHE_DIR }}
+          echo 'plugin_cache_dir = "${{ env.TF_PLUGIN_CACHE_DIR }}"' > ~/.terraformrc
 
-  #     - name: Cache Terraform plugins
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-  #         key: ${{ runner.os }}-terraform-${{ vars.TF_VERSION }}-${{ hashFiles('aws/.terraform.lock.hcl') }}
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+          key: ${{ runner.os }}-terraform-${{ vars.TF_VERSION }}-${{ hashFiles('aws/.terraform.lock.hcl') }}
 
-  #     - name: Terraform init - S3 backend
-  #       working-directory: ${{ env.TF_DIR }}
-  #       run: |
-  #         terraform init -reconfigure -input=false \
-  #           -backend-config="bucket=${{ vars.AWS_BACKEND_BUCKET }}" \
-  #           -backend-config="region=${{ vars.AWS_REGION }}" \
-  #           -backend-config="key=${{ vars.PROJECT }}/${{ vars.ENV }}/terraform.tfstate" \
-  #           -backend-config="encrypt=true"
+      - name: Terraform init - S3 backend
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform init -reconfigure -input=false \
+            -backend-config="bucket=${{ vars.AWS_BACKEND_BUCKET }}" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="key=${{ vars.PROJECT }}/${{ vars.ENV }}/terraform.tfstate" \
+            -backend-config="encrypt=true"
 
-  #     - name: Terraform Validate
-  #       working-directory: ${{ env.TF_DIR }}
-  #       run: |
-  #         terraform fmt -check -recursive -no-color
-  #         terraform validate -no-color
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          terraform fmt -check -recursive -no-color
+          terraform validate -no-color
 
-  #     - name: Destroy - Terraform Plan
-  #       working-directory: ${{ env.TF_DIR }}
-  #       id: destroy-plan
-  #       run: terraform plan -out=destroy-tfplan -input=false -no-color -destroy
+      - name: Destroy - Terraform Plan
+        working-directory: ${{ env.TF_DIR }}
+        id: destroy-plan
+        run: terraform plan -out=destroy-tfplan -input=false -no-color -destroy
 
-  #     - name: Destroy - Show plan (JSON)
-  #       working-directory: ${{ env.TF_DIR }}
-  #       run: terraform show -json destroy-tfplan > destroy-tfplan.json
+      - name: Destroy - Show plan (JSON)
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform show -json destroy-tfplan > destroy-tfplan.json
 
-  #     - name: Destroy - Save plan artifacts
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: tfplan-bundle-destroy
-  #         path: |
-  #           ${{ env.TF_DIR }}/destroy-tfplan
-  #           ${{ env.TF_DIR }}/destroy-tfplan.json
-  #         retention-days: 3
+      - name: Destroy - Save plan artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-bundle-destroy
+          path: |
+            ${{ env.TF_DIR }}/destroy-tfplan
+            ${{ env.TF_DIR }}/destroy-tfplan.json
+          retention-days: 3
 
-  #     - name: Destroy - Terraform Apply
-  #       working-directory: ${{ env.TF_DIR }}
-  #       run: terraform apply -auto-approve -no-color destroy-tfplan
+      - name: Destroy - Terraform Apply
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform apply -auto-approve -no-color destroy-tfplan
 
-  #     - name: Send email notification
-  #       if: failure()
-  #       uses: dawidd6/action-send-mail@v3
-  #       with:
-  #         server_address: smtp.gmail.com
-  #         server_port: 465
-  #         secure: true
-  #         username: ${{ secrets.EMAIL_USERNAME }}
-  #         password: ${{ secrets.EMAIL_PASSWORD }}
-  #         subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} (${{vars.ENV}})"
-  #         to: ${{ secrets.EMAIL_USERNAME }}
-  #         from: ${{ secrets.EMAIL_USERNAME }}
-  #         html_body: |
-  #           <h2>GitHub Actions CI/CD Notification</h2>
-  #           <p><b>Project</b>: ${{ vars.PROJECT}}</p>
-  #           <p><b>Repository</b>: ${{ github.repository }}</p>
-  #           <p><b>Env</b>: ${{ vars.ENV }}</p>
-  #           <p><b>Job</b>: ${{ github.job }}</p>
-  #           <p><b>Status</b>: ${{ job.status }}</p>
-  #           <p><b>Branch</b>: ${{ github.ref }}</p>
-  #           <p><b>Workflow</b>: ${{ github.workflow }}</p>
-  #           <p><b>Commit</b>: ${{ github.sha }}</p>
-  #           <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
+      - name: Send email notification
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} (${{vars.ENV}})"
+          to: ${{ secrets.EMAIL_USERNAME }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          html_body: |
+            <h2>GitHub Actions CI/CD Notification</h2>
+            <p><b>Project</b>: ${{ vars.PROJECT}}</p>
+            <p><b>Repository</b>: ${{ github.repository }}</p>
+            <p><b>Env</b>: ${{ vars.ENV }}</p>
+            <p><b>Job</b>: ${{ github.job }}</p>
+            <p><b>Status</b>: ${{ job.status }}</p>
+            <p><b>Branch</b>: ${{ github.ref }}</p>
+            <p><b>Workflow</b>: ${{ github.workflow }}</p>
+            <p><b>Commit</b>: ${{ github.sha }}</p>
+            <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
