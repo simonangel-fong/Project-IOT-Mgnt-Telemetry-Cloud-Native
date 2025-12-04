@@ -11,6 +11,8 @@ locals {
   app_pgdb_db                = aws_db_instance.postgres.db_name
   app_pgdb_user              = aws_db_instance.postgres.username
   app_pgdb_pwd               = aws_db_instance.postgres.password
+  pool_size                  = 10
+  max_overflow               = 5
 }
 
 # #################################
@@ -98,6 +100,8 @@ resource "aws_ecs_task_definition" "ecs_task_fastapi" {
     pgdb_db       = local.app_pgdb_db
     pgdb_user     = local.app_pgdb_user
     pgdb_pwd      = local.app_pgdb_pwd
+    pool_size     = local.pool_size
+    max_overflow  = local.max_overflow
   })
 
   tags = {

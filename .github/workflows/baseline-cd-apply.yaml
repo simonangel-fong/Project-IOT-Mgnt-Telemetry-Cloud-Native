@@ -250,18 +250,15 @@ jobs:
   #   outputs:
   #     BASE_URL: ${{ steps.output.outputs.BASE_URL }}
 
-  testing:
-    name: Baseline-Testing
+  testing-smoke:
+    name: Baseline-Testing(Smoke)
     # needs: deploy
     runs-on: ubuntu-latest
     environment: baseline
     env:
       DIR_LOAD_TESTING: k6/script
       DIR_K6_REPORT: k6/report
-      K6_REPORT_SMOKE: "${{ vars.ENV }}_cicd_smoke.html"
-      K6_REPORT_READ: "${{ vars.ENV }}_cicd_read.html"
-      K6_REPORT_WRITE: "${{ vars.ENV }}_cicd_write.html"
-      K6_REPORT_MIXED: "${{ vars.ENV }}_cicd_mixed.html"
+      K6_REPORT_SMOKE: baseline_cicd_smoke.html
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -273,13 +270,11 @@ jobs:
         run: mkdir -p "${{ env.DIR_K6_REPORT }}"
 
       - name: Smoke Testing
-        uses: grafana/run-k6-action@v1
         id: smoke-testing
+        uses: grafana/run-k6-action@v1
         env:
           K6_WEB_DASHBOARD: "true"
           K6_WEB_DASHBOARD_EXPORT: "${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_SMOKE }}"
-        #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
-        #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
         with:
           debug: true
           fail-fast: true
@@ -287,93 +282,196 @@ jobs:
           path: |
             ${{ env.DIR_LOAD_TESTING }}/test_smoke.js
 
-      - name: Read Testing
-        uses: grafana/run-k6-action@v1
-        id: read-testing
-        env:
-          K6_WEB_DASHBOARD: "true"
-          K6_WEB_DASHBOARD_EXPORT: "${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_READ }}"
-        #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
-        #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
-        with:
-          debug: true
-          fail-fast: true
-          flags: --env BASE_URL=https://iot-baseline.arguswatcher.net
-          path: |
-            ${{ env.DIR_LOAD_TESTING }}/test_hp_read.js
-
-      - name: Write Testing
-        uses: grafana/run-k6-action@v1
-        id: write-testing
-        env:
-          K6_WEB_DASHBOARD: "true"
-          K6_WEB_DASHBOARD_EXPORT: "${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_WRITE }}"
-        #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
-        #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
-        with:
-          debug: true
-          fail-fast: true
-          flags: --env BASE_URL=https://iot-baseline.arguswatcher.net
-          path: |
-            ${{ env.DIR_LOAD_TESTING }}/test_hp_write.js
-
-      - name: Mixed Testing
-        uses: grafana/run-k6-action@v1
-        id: mixed-testing
-        env:
-          K6_WEB_DASHBOARD: "true"
-          K6_WEB_DASHBOARD_EXPORT: "${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_MIXED }}"
-        #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
-        #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
-        with:
-          debug: true
-          fail-fast: true
-          flags: --env BASE_URL=https://iot-baseline.arguswatcher.net
-          path: |
-            ${{ env.DIR_LOAD_TESTING }}/test_hp_mixed.js
-
-      - name: Upload k6 report artifact
+      - name: Upload smoke report artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: "k6-smoke-report-${{ vars.ENV }}"
+          name: "k6-report-smoke-${{ vars.ENV }}"
           path: |
-            ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_SMOKE }}"
-            ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_READ }}"
-            ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_WRITE }}"
-            ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_MIXED }}"
+            ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_SMOKE }}
           retention-days: 7
 
-      - name: Send email notification
-        if: always()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} (${{ vars.ENV }})"
-          to: ${{ secrets.EMAIL_USERNAME }}
-          from: ${{ secrets.EMAIL_USERNAME }}
-          html_body: |
-            <h2>GitHub Actions CI/CD - k6 Smoke Test</h2>
-            <p><b>Project</b>: ${{ vars.PROJECT }}</p>
-            <p><b>Environment</b>: ${{ vars.ENV }}</p>
-            <p><b>Status</b>: <b>${{ job.status }}</b></p>
-            <p><b>Workflow</b>: ${{ github.workflow }}</p>
-            <p><b>Job</b>: ${{ github.job }}</p>
-            <p><b>Branch</b>: ${{ github.ref }}</p>
-            <p><b>Commit</b>: ${{ github.sha }}</p>
-            <p>
-              <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">
-                View Workflow Run
-              </a>
-            </p>
-            <p>The k6 HTML report is attached to this email.</p>
-          attachments: |
-            ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_SMOKE }}
-            ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_READ }}
+  # testing-load:
+  #   name: Baseline-Testing - Load (R/W/M)
+  #   # needs:
+  #   #   - deploy
+  #   #   - testing-smoke
+  #   # if: needs.testing-smoke.result == 'success'
+  #   runs-on: ubuntu-latest
+  #   environment: baseline
+
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - kind: read
+  #           script: test_hp_read.js
+  #         - kind: write
+  #           script: test_hp_write.js
+  #         - kind: mixed
+  #           script: test_hp_mixed.js
+
+  #   env:
+  #     DIR_LOAD_TESTING: k6/script
+  #     DIR_K6_REPORT: k6/report
+  #     TEST_KIND: ${{ matrix.kind }}
+  #     K6_REPORT: ${{vars.ENV}}_cicd_${{ matrix.kind }}.html
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+
+  #     - name: Setup K6
+  #       uses: grafana/setup-k6-action@v1
+
+  #     - name: Prepare k6 report directory
+  #       run: mkdir -p "${{ env.DIR_K6_REPORT }}"
+
+  #     - name: Run ${{ matrix.kind }} Testing
+  #       id: k6-testing
+  #       uses: grafana/run-k6-action@v1
+  #       env:
+  #         K6_WEB_DASHBOARD: "true"
+  #         K6_WEB_DASHBOARD_EXPORT: "${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT }}"
+  #       with:
+  #         debug: true
+  #         fail-fast: true
+  #         flags: --env BASE_URL=https://iot-baseline.arguswatcher.net
+  #         path: |
+  #           ${{ env.DIR_LOAD_TESTING }}/${{ matrix.script }}
+
+  #     - name: Upload ${{ matrix.kind }} report artifact
+  #       if: always()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "k6-report-${{ matrix.kind }}-${{ vars.ENV }}"
+  #         path: |
+  #           ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT }}
+  #         retention-days: 7
+
+  # testing:
+  #   name: Baseline-Testing
+  #   # needs: deploy
+  #   runs-on: ubuntu-latest
+  #   environment: baseline
+  #   env:
+  #     DIR_LOAD_TESTING: k6/script
+  #     DIR_K6_REPORT: k6/report
+  #     K6_REPORT_SMOKE: "${{ vars.ENV }}_cicd_smoke.html"
+  #     K6_REPORT_READ: "${{ vars.ENV }}_cicd_read.html"
+  #     K6_REPORT_WRITE: "${{ vars.ENV }}_cicd_write.html"
+  #     K6_REPORT_MIXED: "${{ vars.ENV }}_cicd_mixed.html"
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+
+  #     - name: Setup K6
+  #       uses: grafana/setup-k6-action@v1
+
+  #     - name: Prepare k6 report directory
+  #       run: mkdir -p "${{ env.DIR_K6_REPORT }}"
+
+  #     - name: Smoke Testing
+  #       uses: grafana/run-k6-action@v1
+  #       id: smoke-testing
+  #       env:
+  #         K6_WEB_DASHBOARD: "true"
+  #         K6_WEB_DASHBOARD_EXPORT: "${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_SMOKE }}"
+  #       #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+  #       #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+  #       with:
+  #         debug: true
+  #         fail-fast: true
+  #         flags: --env BASE_URL=https://iot-baseline.arguswatcher.net
+  #         path: |
+  #           ${{ env.DIR_LOAD_TESTING }}/test_smoke.js
+
+  #     - name: Read Testing
+  #       uses: grafana/run-k6-action@v1
+  #       id: read-testing
+  #       env:
+  #         K6_WEB_DASHBOARD: "true"
+  #         K6_WEB_DASHBOARD_EXPORT: "${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_READ }}"
+  #       #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+  #       #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+  #       with:
+  #         debug: true
+  #         fail-fast: true
+  #         flags: --env BASE_URL=https://iot-baseline.arguswatcher.net
+  #         path: |
+  #           ${{ env.DIR_LOAD_TESTING }}/test_hp_read.js
+
+  #     - name: Write Testing
+  #       uses: grafana/run-k6-action@v1
+  #       id: write-testing
+  #       env:
+  #         K6_WEB_DASHBOARD: "true"
+  #         K6_WEB_DASHBOARD_EXPORT: "${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_WRITE }}"
+  #       #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+  #       #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+  #       with:
+  #         debug: true
+  #         fail-fast: true
+  #         flags: --env BASE_URL=https://iot-baseline.arguswatcher.net
+  #         path: |
+  #           ${{ env.DIR_LOAD_TESTING }}/test_hp_write.js
+
+  #     - name: Mixed Testing
+  #       uses: grafana/run-k6-action@v1
+  #       id: mixed-testing
+  #       env:
+  #         K6_WEB_DASHBOARD: "true"
+  #         K6_WEB_DASHBOARD_EXPORT: "${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_MIXED }}"
+  #       #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+  #       #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+  #       with:
+  #         debug: true
+  #         fail-fast: true
+  #         flags: --env BASE_URL=https://iot-baseline.arguswatcher.net
+  #         path: |
+  #           ${{ env.DIR_LOAD_TESTING }}/test_hp_mixed.js
+
+  #     - name: Upload k6 report artifact
+  #       if: always()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "k6-smoke-report-${{ vars.ENV }}"
+  #         path: |
+  #           ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_SMOKE }}"
+  #           ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_READ }}"
+  #           ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_WRITE }}"
+  #           ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_MIXED }}"
+  #         retention-days: 7
+
+  #     - name: Send email notification
+  #       if: always()
+  #       uses: dawidd6/action-send-mail@v3
+  #       with:
+  #         server_address: smtp.gmail.com
+  #         server_port: 465
+  #         secure: true
+  #         username: ${{ secrets.EMAIL_USERNAME }}
+  #         password: ${{ secrets.EMAIL_PASSWORD }}
+  #         subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} (${{ vars.ENV }})"
+  #         to: ${{ secrets.EMAIL_USERNAME }}
+  #         from: ${{ secrets.EMAIL_USERNAME }}
+  #         html_body: |
+  #           <h2>GitHub Actions CI/CD - k6 Smoke Test</h2>
+  #           <p><b>Project</b>: ${{ vars.PROJECT }}</p>
+  #           <p><b>Environment</b>: ${{ vars.ENV }}</p>
+  #           <p><b>Status</b>: <b>${{ job.status }}</b></p>
+  #           <p><b>Workflow</b>: ${{ github.workflow }}</p>
+  #           <p><b>Job</b>: ${{ github.job }}</p>
+  #           <p><b>Branch</b>: ${{ github.ref }}</p>
+  #           <p><b>Commit</b>: ${{ github.sha }}</p>
+  #           <p>
+  #             <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+  #               View Workflow Run
+  #             </a>
+  #           </p>
+  #           <p>The k6 HTML report is attached to this email.</p>
+  #         attachments: |
+  #           ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_SMOKE }}
+  #           ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_READ }}
 
   # destroy:
   #   name: Destroy(Prod)
