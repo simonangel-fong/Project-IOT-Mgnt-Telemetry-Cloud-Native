@@ -243,36 +243,41 @@ jobs:
 
       - name: Output
         id: output
+        working-directory: ${{ env.TF_DIR }}
         run: |
           echo "BASE_URL=$(terraform output dns_url)" >> "$GITHUB_OUTPUT"
     outputs:
       BASE_URL: ${{ steps.output.outputs.BASE_URL }}
 
-  # testing:
-  #   name: Testing(K6)
-  #   needs: deploy
-  #   runs-on: ubuntu-latest
-  #   environment: baseline
-  #   env:
-  #     DIR_LOAD_TESTING: k6/script
-  #     TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
-  #     TF_VAR_project: ${{ vars.PROJECT }}
-  #     TF_VAR_env: ${{ vars.ENV }}
-  #     TF_VAR_dns_domain: ${{ vars.DNS_DOMAIN }}
-  #     TF_VAR_aws_region: ${{ vars.AWS_REGION }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  testing:
+    name: Baseline-Testing
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: baseline
+    env:
+      DIR_LOAD_TESTING: k6/script
+      TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
+      TF_VAR_project: ${{ vars.PROJECT }}
+      TF_VAR_env: ${{ vars.ENV }}
+      # TF_VAR_dns_domain: ${{ vars.DNS_DOMAIN }}
+      # TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup K6
-  #       uses: grafana/setup-k6-action@v1
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
 
-  #     - name: Smoke Testing
-  #       uses: grafana/run-k6-action@v1
-  #       id: smoke-testing
-  #       env:
-  #         K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
-  #         K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+      - name: test
+        run: |
+          echo "${{ needs.deploy.outputs.BASE_URL}}
+
+      # - name: Smoke Testing
+      #   uses: grafana/run-k6-action@v1
+      #   id: smoke-testing
+      # env:
+      #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+      #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
   #       with:
   #         debug: true
   #         fail-fast: true
