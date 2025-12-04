@@ -28,6 +28,9 @@ export const options = {
     name: "Smoke Testing",
   },
   thresholds: {
+    checks: ["rate>0.99"],
+    http_reqs: ["count>0"],
+
     http_req_failed: ["rate<0.01"], // HTTP-level failures
     http_req_duration: ["p(95)<500"], // Global latency guardrail
 

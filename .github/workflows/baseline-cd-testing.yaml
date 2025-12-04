@@ -179,44 +179,44 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: terraform apply -auto-approve -no-color tfplan
 
-      - name: Initial RDS
-        working-directory: ${{ env.TF_DIR }}
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION }}
-        run: |
-          set -euo pipefail
+      # - name: Initial RDS
+      #   working-directory: ${{ env.TF_DIR }}
+      #   env:
+      #     AWS_REGION: ${{ vars.AWS_REGION }}
+      #   run: |
+      #     set -euo pipefail
 
-          PARAMS_JSON="$(terraform output -json flyway_task_param)"
+      #     PARAMS_JSON="$(terraform output -json flyway_task_param)"
 
-          CLUSTER=$(echo "$PARAMS_JSON" | jq -r '.cluster')
-          TASK_DEF=$(echo "$PARAMS_JSON" | jq -r '.task_definition')
-          LAUNCH_TYPE=$(echo "$PARAMS_JSON" | jq -r '.launch_type')
-          SUBNETS=$(echo "$PARAMS_JSON" | jq -r '.subnets | join(",")')
-          SGS=$(echo "$PARAMS_JSON" | jq -r '.security_groups | join(",")')
+      #     CLUSTER=$(echo "$PARAMS_JSON" | jq -r '.cluster')
+      #     TASK_DEF=$(echo "$PARAMS_JSON" | jq -r '.task_definition')
+      #     LAUNCH_TYPE=$(echo "$PARAMS_JSON" | jq -r '.launch_type')
+      #     SUBNETS=$(echo "$PARAMS_JSON" | jq -r '.subnets | join(",")')
+      #     SGS=$(echo "$PARAMS_JSON" | jq -r '.security_groups | join(",")')
 
-          echo "Cluster: $CLUSTER"
-          echo "Task definition: $TASK_DEF"
-          echo "Subnets ID: $SUBNETS"
-          echo "Security groups ID: $SGS"
+      #     echo "Cluster: $CLUSTER"
+      #     echo "Task definition: $TASK_DEF"
+      #     echo "Subnets ID: $SUBNETS"
+      #     echo "Security groups ID: $SGS"
 
-          TASK_ARN=$(
-            aws ecs run-task \
-              --cluster "$CLUSTER" \
-              --task-definition "$TASK_DEF" \
-              --launch-type "$LAUNCH_TYPE" \
-              --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SGS]}" \
-              --region "$AWS_REGION" \
-              --query 'tasks[0].taskArn' \
-              --output text
-          )
+      #     TASK_ARN=$(
+      #       aws ecs run-task \
+      #         --cluster "$CLUSTER" \
+      #         --task-definition "$TASK_DEF" \
+      #         --launch-type "$LAUNCH_TYPE" \
+      #         --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SGS]}" \
+      #         --region "$AWS_REGION" \
+      #         --query 'tasks[0].taskArn' \
+      #         --output text
+      #     )
 
-          echo "Waiting for Flyway task to finish..."
-          aws ecs wait tasks-stopped \
-            --cluster "$CLUSTER" \
-            --tasks "$TASK_ARN" \
-            --region "$AWS_REGION"
+      #     echo "Waiting for Flyway task to finish..."
+      #     aws ecs wait tasks-stopped \
+      #       --cluster "$CLUSTER" \
+      #       --tasks "$TASK_ARN" \
+      #       --region "$AWS_REGION"
 
-          echo "Flyway migration task completed successfully."
+      #     echo "Flyway migration task completed successfully."
 
       - name: Send email notification
         if: failure()
