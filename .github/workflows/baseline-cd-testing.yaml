@@ -267,6 +267,10 @@ jobs:
       - name: Setup K6
         uses: grafana/setup-k6-action@v1
 
+      - name: test
+        run: |
+          echo ${{ needs.deploy.outputs.BASE_URL }}
+
       - name: Smoke Testing
         id: testing-smoke
         uses: grafana/run-k6-action@v1
