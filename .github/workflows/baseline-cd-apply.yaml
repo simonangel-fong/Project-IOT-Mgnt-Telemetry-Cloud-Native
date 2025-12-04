@@ -268,22 +268,18 @@ jobs:
       - name: Setup K6
         uses: grafana/setup-k6-action@v1
 
-      - name: test
-        run: |
-          echo "${{ needs.deploy.outputs.BASE_URL}}"
-
-      # - name: Smoke Testing
-      #   uses: grafana/run-k6-action@v1
-      #   id: smoke-testing
-      # env:
-      #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
-      #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
-  #       with:
-  #         debug: true
-  #         fail-fast: true
-  #         flags: --env DOMAIN=${{ env.TF_VAR_dns_domain }} --env ENV=${{ vars.ENV }}
-  #         path: |
-  #           ${{ env.DIR_LOAD_TESTING }}/test_smoke.js
+      - name: Smoke Testing
+        uses: grafana/run-k6-action@v1
+        id: smoke-testing
+        # env:
+        #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+        #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+        with:
+          debug: true
+          fail-fast: true
+          flags: --env BASE_URL=${{ needs.deploy.outputs.BASE_URL}} --env K6_WEB_DASHBOARD_EXPORT=/report/${{ vars.ENV }}_cicd_smoke.html
+          path: |
+            ${{ env.DIR_LOAD_TESTING }}/test_smoke.js
 
   #     - name: Send email notification
   #       if: always()
