@@ -257,9 +257,8 @@ jobs:
     environment: baseline
     env:
       DIR_LOAD_TESTING: k6/script
-      TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
-      TF_VAR_project: ${{ vars.PROJECT }}
-      TF_VAR_env: ${{ vars.ENV }}
+      DIR_K6_REPORT: k6/report
+      K6_REPORT_NAME: "${{ vars.ENV }}_cicd_smoke.html"
       # TF_VAR_dns_domain: ${{ vars.DNS_DOMAIN }}
       # TF_VAR_aws_region: ${{ vars.AWS_REGION }}
     steps:
@@ -269,10 +268,15 @@ jobs:
       - name: Setup K6
         uses: grafana/setup-k6-action@v1
 
+      - name: Prepare k6 report directory
+        run: mkdir -p "${{ env.DIR_K6_REPORT }}"
+
       - name: Smoke Testing
         uses: grafana/run-k6-action@v1
         id: smoke-testing
-        # env:
+        env:
+          K6_WEB_DASHBOARD: "true"
+          K6_WEB_DASHBOARD_EXPORT: "${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_NAME }}"
         #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
         #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
         with:
@@ -283,29 +287,44 @@ jobs:
           path: |
             ${{ env.DIR_LOAD_TESTING }}/test_smoke.js
 
-  #     - name: Send email notification
-  #       if: always()
-  #       uses: dawidd6/action-send-mail@v3
-  #       with:
-  #         server_address: smtp.gmail.com
-  #         server_port: 465
-  #         secure: true
-  #         username: ${{ secrets.EMAIL_USERNAME }}
-  #         password: ${{ secrets.EMAIL_PASSWORD }}
-  #         subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} (${{vars.ENV}})"
-  #         to: ${{ secrets.EMAIL_USERNAME }}
-  #         from: ${{ secrets.EMAIL_USERNAME }}
-  #         html_body: |
-  #           <h2>GitHub Actions CI/CD Notification</h2>
-  #           <p><b>Project</b>: ${{ vars.PROJECT}}</p>
-  #           <p><b>Repository</b>: ${{ github.repository }}</p>
-  #           <p><b>Env</b>: ${{ vars.ENV }}</p>
-  #           <p><b>Job</b>: ${{ github.job }}</p>
-  #           <p><b>Status</b>: ${{ job.status }}</p>
-  #           <p><b>Branch</b>: ${{ github.ref }}</p>
-  #           <p><b>Workflow</b>: ${{ github.workflow }}</p>
-  #           <p><b>Commit</b>: ${{ github.sha }}</p>
-  #           <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
+      - name: Upload k6 report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "k6-smoke-report-${{ vars.ENV }}"
+          path: |
+            ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_NAME }}
+          retention-days: 7
+
+      - name: Send email notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} (${{ vars.ENV }})"
+          to: ${{ secrets.EMAIL_USERNAME }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          html_body: |
+            <h2>GitHub Actions CI/CD - k6 Smoke Test</h2>
+            <p><b>Project</b>: ${{ vars.PROJECT }}</p>
+            <p><b>Environment</b>: ${{ vars.ENV }}</p>
+            <p><b>Status</b>: <b>${{ job.status }}</b></p>
+            <p><b>Workflow</b>: ${{ github.workflow }}</p>
+            <p><b>Job</b>: ${{ github.job }}</p>
+            <p><b>Branch</b>: ${{ github.ref }}</p>
+            <p><b>Commit</b>: ${{ github.sha }}</p>
+            <p>
+              <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">
+                View Workflow Run
+              </a>
+            </p>
+            <p>The k6 HTML report is attached to this email.</p>
+          attachments: |
+            ${{ env.DIR_K6_REPORT }}/${{ env.K6_REPORT_NAME }}
 
   # destroy:
   #   name: Destroy(Prod)
