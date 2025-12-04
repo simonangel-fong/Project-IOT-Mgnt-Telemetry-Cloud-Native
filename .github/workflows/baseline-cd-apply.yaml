@@ -1,10 +1,10 @@
-name: Apply(Baseline)
+name: Baseline - Apply
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - "feature-baseline-testing"
+      - "feature-baseline-testing" # testing branch
     paths:
       - "app/fastapi/**"
       - "aws/sol_baseline/**"
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   ecr-push:
-    name: Push Image to ECR - ${{ matrix.service.name }} (Baseline)
+    name: Baseline - Push Image to ECR(${{ matrix.service.name }})
     runs-on: ubuntu-latest
     environment: baseline
     strategy:
@@ -33,9 +33,9 @@ jobs:
             docker_context: app/flyway
 
     env:
+      DIR_DOCKFILE: ${{ matrix.service.docker_context }} # dockfile path
       AWS_REGION: ${{ vars.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      DIR_DOCKFILE: ${{ matrix.service.docker_context }} # dockfile path
       ECR_REPOSITORY: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{matrix.service.name}}"
 
     steps:
@@ -97,7 +97,7 @@ jobs:
             <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
 
   deploy:
-    name: Deploy(baseline)
+    name: Baseline - Deploy(AWS)
     needs:
       - ecr-push
     runs-on: ubuntu-latest
@@ -180,11 +180,46 @@ jobs:
 
       - name: Initial RDS
         working-directory: ${{ env.TF_DIR }}
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
-          aws ecs run-task $(terraform output -raw flyway_run_task_cmd)
+          set -euo pipefail
+
+          PARAMS_JSON="$(terraform output -json flyway_run_task)"
+
+          CLUSTER=$(echo "$PARAMS_JSON" | jq -r '.cluster')
+          TASK_DEF=$(echo "$PARAMS_JSON" | jq -r '.task_definition')
+          LAUNCH_TYPE=$(echo "$PARAMS_JSON" | jq -r '.launch_type')
+          SUBNETS=$(echo "$PARAMS_JSON" | jq -r '.subnets | join(",")')
+          SGS=$(echo "$PARAMS_JSON" | jq -r '.security_groups | join(",")')
+
+          echo "Cluster: $CLUSTER"
+          echo "Task definition: $TASK_DEF"
+          echo "Subnets ID: $SUBNETS"
+          echo "Security groups ID: $SGS"
+
+          TASK_ARN=$(
+            aws ecs run-task \
+              --cluster "$CLUSTER" \
+              --task-definition "$TASK_DEF" \
+              --launch-type "$LAUNCH_TYPE" \
+              --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SGS]}" \
+              --region "$AWS_REGION" \
+              --query 'tasks[0].taskArn' \
+              --output text
+          )
+
+          echo "Waiting for Flyway task to finish..."
+          aws ecs wait tasks-stopped \
+            --cluster "$CLUSTER" \
+            --tasks "$TASK_ARN" \
+            --region "$AWS_REGION"
+
+
+          echo "Flyway migration task completed successfully."
 
       - name: Send email notification
-        if: always()
+        if: failure()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -206,6 +241,62 @@ jobs:
             <p><b>Workflow</b>: ${{ github.workflow }}</p>
             <p><b>Commit</b>: ${{ github.sha }}</p>
             <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
+
+  # testing:
+  #   name: Testing(K6)
+  #   needs: deploy
+  #   runs-on: ubuntu-latest
+  #   environment: baseline
+  #   env:
+  #     DIR_LOAD_TESTING: k6/script
+  #     TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
+  #     TF_VAR_project: ${{ vars.PROJECT }}
+  #     TF_VAR_env: ${{ vars.ENV }}
+  #     TF_VAR_dns_domain: ${{ vars.DNS_DOMAIN }}
+  #     TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+
+  #     - name: Setup K6
+  #       uses: grafana/setup-k6-action@v1
+
+  #     - name: Run Testing
+  #       uses: grafana/run-k6-action@v1
+  #       id: testing
+  #       env:
+  #         K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+  #         K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+  #       with:
+  #         debug: true
+  #         fail-fast: true
+  #         flags: --env DOMAIN=${{ env.TF_VAR_dns_domain }} --env ENV=${{ vars.ENV }}
+  #         path: |
+  #           ${{ env.DIR_LOAD_TESTING }}/test_smoke.js
+
+  #     - name: Send email notification
+  #       if: always()
+  #       uses: dawidd6/action-send-mail@v3
+  #       with:
+  #         server_address: smtp.gmail.com
+  #         server_port: 465
+  #         secure: true
+  #         username: ${{ secrets.EMAIL_USERNAME }}
+  #         password: ${{ secrets.EMAIL_PASSWORD }}
+  #         subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} (${{vars.ENV}})"
+  #         to: ${{ secrets.EMAIL_USERNAME }}
+  #         from: ${{ secrets.EMAIL_USERNAME }}
+  #         html_body: |
+  #           <h2>GitHub Actions CI/CD Notification</h2>
+  #           <p><b>Project</b>: ${{ vars.PROJECT}}</p>
+  #           <p><b>Repository</b>: ${{ github.repository }}</p>
+  #           <p><b>Env</b>: ${{ vars.ENV }}</p>
+  #           <p><b>Job</b>: ${{ github.job }}</p>
+  #           <p><b>Status</b>: ${{ job.status }}</p>
+  #           <p><b>Branch</b>: ${{ github.ref }}</p>
+  #           <p><b>Workflow</b>: ${{ github.workflow }}</p>
+  #           <p><b>Commit</b>: ${{ github.sha }}</p>
+  #           <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
 
   # destroy:
   #   name: Destroy(Prod)

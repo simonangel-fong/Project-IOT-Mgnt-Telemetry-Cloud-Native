@@ -91,10 +91,14 @@ resource "aws_ecs_task_definition" "flyway" {
   ]
 }
 
-output "flyway_run_task_cmd" {
-  description = "AWS CLI command to run the Flyway task against the RDS instance"
-  value       = <<EOT
---cluster iot-mgnt-telemetry-baseline-cluster --task-definition iot-mgnt-telemetry-baseline-task-flyway --launch-type FARGATE --network-configuration awsvpcConfiguration={subnets=[${join(",", [for s in aws_subnet.private : s.id])}],securityGroups=[${aws_security_group.flyway.id}]}
-EOT
+output "flyway_task_param" {
+  description = "Parameters to run the Flyway ECS task for RDS initialization"
+  value = {
+    cluster         = aws_ecs_cluster.ecs_cluster.name
+    task_definition = aws_ecs_task_definition.flyway.arn
+    launch_type     = "FARGATE"
+    subnets         = [for s in aws_subnet.private : s.id]
+    security_groups = [aws_security_group.flyway.id]
+  }
 }
 

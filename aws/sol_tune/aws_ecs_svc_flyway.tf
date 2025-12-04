@@ -90,7 +90,3 @@ resource "aws_ecs_task_definition" "flyway" {
     aws_cloudwatch_log_group.flyway,
   ]
 }
-
-output "sg_flyway_id" {
-  value = aws_security_group.flyway.id
-}
