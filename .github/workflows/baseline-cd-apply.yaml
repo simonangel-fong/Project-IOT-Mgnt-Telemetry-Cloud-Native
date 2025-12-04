@@ -181,7 +181,7 @@ jobs:
       - name: Initial RDS
         working-directory: ${{ env.TF_DIR }}
         run: |
-          bash $(terraform output -raw flyway_run_task_cmd)
+          echo $(terraform output -raw flyway_run_task_cmd)
 
       - name: Send email notification
         if: always()
