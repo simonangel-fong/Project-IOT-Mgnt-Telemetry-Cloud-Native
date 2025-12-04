@@ -1,4 +1,4 @@
-name: Baseline - Destroy
+name: Baseline-Destroy
 
 on:
   workflow_dispatch:
