@@ -277,7 +277,7 @@ jobs:
         with:
           debug: true
           fail-fast: true
-          flags: --env BASE_URL=iot-baseline.arguswatcher.net
+          flags: --env BASE_URL=https://iot-baseline.arguswatcher.net
           # flags: --env BASE_URL="${{ needs.deploy.outputs.BASE_URL}}" --env K6_WEB_DASHBOARD_EXPORT=/report/${{ vars.ENV }}_cicd_smoke.html
           path: |
             ${{ env.DIR_LOAD_TESTING }}/test_smoke.js
