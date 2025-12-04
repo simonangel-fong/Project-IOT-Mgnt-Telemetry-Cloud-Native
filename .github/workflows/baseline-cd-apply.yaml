@@ -8,6 +8,7 @@ on:
     paths:
       - "app/fastapi/**"
       - "aws/sol_baseline/**"
+      - "k6/script/**"
       - ".github/workflows/baseline-cd-apply.yaml"
 
 concurrency:
