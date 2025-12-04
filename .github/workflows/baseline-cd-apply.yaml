@@ -19,239 +19,239 @@ permissions:
   contents: read
 
 jobs:
-  ecr-push:
-    name: Baseline-Push Image to ECR(${{ matrix.service.name }})
-    runs-on: ubuntu-latest
-    environment: baseline
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          - name: fastapi
-            docker_context: app/fastapi
-          - name: flyway
-            docker_context: app/flyway
+  # ecr-push:
+  #   name: Baseline-ECR Push(${{ matrix.service.name }})
+  #   runs-on: ubuntu-latest
+  #   environment: baseline
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       service:
+  #         - name: fastapi
+  #           docker_context: app/fastapi
+  #         - name: flyway
+  #           docker_context: app/flyway
 
-    env:
-      DIR_DOCKFILE: ${{ matrix.service.docker_context }} # dockfile path
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      ECR_REPOSITORY: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{matrix.service.name}}"
+  #   env:
+  #     DIR_DOCKFILE: ${{ matrix.service.docker_context }} # dockfile path
+  #     AWS_REGION: ${{ vars.AWS_REGION }}
+  #     AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  #     ECR_REPOSITORY: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{matrix.service.name}}"
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
+  #     - name: Configure AWS credentials (OIDC)
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN }}
+  #         aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+  #     - name: Login to Amazon ECR
+  #       id: login-ecr
+  #       uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.ECR_REPOSITORY }}
+  #     - name: Extract Docker metadata
+  #       id: meta
+  #       uses: docker/metadata-action@v5
+  #       with:
+  #         images: ${{ env.ECR_REPOSITORY }}
 
-      - name: Build and push Docker image
-        id: build-push
-        uses: docker/build-push-action@v3
-        with:
-          push: true
-          context: ${{ env.DIR_DOCKFILE }}
-          labels: ${{ steps.meta.outputs.labels }}
-          tags: |
-            ${{ env.ECR_REPOSITORY }}
-            ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+  #     - name: Build and push Docker image
+  #       id: build-push
+  #       uses: docker/build-push-action@v3
+  #       with:
+  #         push: true
+  #         context: ${{ env.DIR_DOCKFILE }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+  #         tags: |
+  #           ${{ env.ECR_REPOSITORY }}
+  #           ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
-      - name: Send email notification (on failure)
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} ${{ matrix.service.name }} (${{ vars.ENV }})"
-          to: ${{ secrets.EMAIL_USERNAME }}
-          from: ${{ secrets.EMAIL_USERNAME }}
-          html_body: |
-            <h2>GitHub Actions CI/CD Notification</h2>
-            <p><b>Project</b>: ${{ vars.PROJECT }} (service: ${{ matrix.service.name }})</p>
-            <p><b>Repository</b>: ${{ github.repository }}</p>
-            <p><b>Env</b>: ${{ vars.ENV }}</p>
-            <p><b>Job</b>: ${{ github.job }}</p>
-            <p><b>Status</b>: ${{ job.status }}</p>
-            <p><b>Branch</b>: ${{ github.ref }}</p>
-            <p><b>Workflow</b>: ${{ github.workflow }}</p>
-            <p><b>Commit</b>: ${{ github.sha }}</p>
-            <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
+  #     - name: Send email notification (on failure)
+  #       if: failure()
+  #       uses: dawidd6/action-send-mail@v3
+  #       with:
+  #         server_address: smtp.gmail.com
+  #         server_port: 465
+  #         secure: true
+  #         username: ${{ secrets.EMAIL_USERNAME }}
+  #         password: ${{ secrets.EMAIL_PASSWORD }}
+  #         subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} ${{ matrix.service.name }} (${{ vars.ENV }})"
+  #         to: ${{ secrets.EMAIL_USERNAME }}
+  #         from: ${{ secrets.EMAIL_USERNAME }}
+  #         html_body: |
+  #           <h2>GitHub Actions CI/CD Notification</h2>
+  #           <p><b>Project</b>: ${{ vars.PROJECT }} (service: ${{ matrix.service.name }})</p>
+  #           <p><b>Repository</b>: ${{ github.repository }}</p>
+  #           <p><b>Env</b>: ${{ vars.ENV }}</p>
+  #           <p><b>Job</b>: ${{ github.job }}</p>
+  #           <p><b>Status</b>: ${{ job.status }}</p>
+  #           <p><b>Branch</b>: ${{ github.ref }}</p>
+  #           <p><b>Workflow</b>: ${{ github.workflow }}</p>
+  #           <p><b>Commit</b>: ${{ github.sha }}</p>
+  #           <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
 
-  deploy:
-    name: Baseline-Deploy(AWS)
-    needs:
-      - ecr-push
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    environment: baseline
-    env:
-      TF_DIR: aws/sol_${{vars.ENV}}
-      TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
-      TF_VAR_aws_region: ${{ vars.AWS_REGION }}
-      TF_VAR_env: ${{ vars.ENV }}
-      TF_VAR_db_name: ${{ secrets.DB_NAME }}
-      TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
-      TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
-      TF_VAR_db_app_pwd: ${{ secrets.DB_APP_PWD }}
-      TF_VAR_db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
-      TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
-      TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # deploy:
+  #   name: Baseline-Deploy
+  #   needs:
+  #     - ecr-push
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 30
+  #   environment: baseline
+  #   env:
+  #     TF_DIR: aws/sol_${{vars.ENV}}
+  #     TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
+  #     TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+  #     TF_VAR_env: ${{ vars.ENV }}
+  #     TF_VAR_db_name: ${{ secrets.DB_NAME }}
+  #     TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+  #     TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+  #     TF_VAR_db_app_pwd: ${{ secrets.DB_APP_PWD }}
+  #     TF_VAR_db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
+  #     TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
+  #     TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ vars.TF_VERSION }}
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_version: ${{ vars.TF_VERSION }}
 
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN}}
-          aws-region: ${{ vars.AWS_REGION }}
+  #     - name: Configure AWS credentials (OIDC)
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN}}
+  #         aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Configure Terraform plugin cache
-        run: |
-          mkdir -pv ${{ env.TF_PLUGIN_CACHE_DIR }}
-          echo 'plugin_cache_dir = "${{ env.TF_PLUGIN_CACHE_DIR }}"' > ~/.terraformrc
+  #     - name: Configure Terraform plugin cache
+  #       run: |
+  #         mkdir -pv ${{ env.TF_PLUGIN_CACHE_DIR }}
+  #         echo 'plugin_cache_dir = "${{ env.TF_PLUGIN_CACHE_DIR }}"' > ~/.terraformrc
 
-      - name: Cache Terraform plugins
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-          key: ${{ runner.os }}-terraform-${{ vars.TF_VERSION }}-${{ hashFiles('aws/.terraform.lock.hcl') }}
+  #     - name: Cache Terraform plugins
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+  #         key: ${{ runner.os }}-terraform-${{ vars.TF_VERSION }}-${{ hashFiles('aws/.terraform.lock.hcl') }}
 
-      - name: Terraform init - S3 backend
-        working-directory: ${{ env.TF_DIR }}
-        run: |
-          terraform init -reconfigure -input=false \
-            -backend-config="bucket=${{ vars.AWS_BACKEND_BUCKET }}" \
-            -backend-config="region=${{ vars.AWS_REGION }}" \
-            -backend-config="key=${{ vars.PROJECT }}/${{ vars.ENV }}/terraform.tfstate" \
-            -backend-config="encrypt=true"
+  #     - name: Terraform init - S3 backend
+  #       working-directory: ${{ env.TF_DIR }}
+  #       run: |
+  #         terraform init -reconfigure -input=false \
+  #           -backend-config="bucket=${{ vars.AWS_BACKEND_BUCKET }}" \
+  #           -backend-config="region=${{ vars.AWS_REGION }}" \
+  #           -backend-config="key=${{ vars.PROJECT }}/${{ vars.ENV }}/terraform.tfstate" \
+  #           -backend-config="encrypt=true"
 
-      - name: Terraform Validate
-        working-directory: ${{ env.TF_DIR }}
-        run: |
-          terraform fmt -check -recursive -no-color
-          terraform validate -no-color
+  #     - name: Terraform Validate
+  #       working-directory: ${{ env.TF_DIR }}
+  #       run: |
+  #         terraform fmt -check -recursive -no-color
+  #         terraform validate -no-color
 
-      - name: Deploy - Terraform Plan
-        working-directory: ${{ env.TF_DIR }}
-        id: deploy-plan
-        run: terraform plan -out=tfplan -input=false -no-color
+  #     - name: Deploy - Terraform Plan
+  #       working-directory: ${{ env.TF_DIR }}
+  #       id: deploy-plan
+  #       run: terraform plan -out=tfplan -input=false -no-color
 
-      - name: Deploy - Show plan (JSON)
-        working-directory: ${{ env.TF_DIR }}
-        run: terraform show -json tfplan > tfplan.json
+  #     - name: Deploy - Show plan (JSON)
+  #       working-directory: ${{ env.TF_DIR }}
+  #       run: terraform show -json tfplan > tfplan.json
 
-      - name: Deploy - Save plan artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan-bundle-deploy
-          path: |
-            ${{ env.TF_DIR }}/tfplan
-            ${{ env.TF_DIR }}/tfplan.json
-          retention-days: 3
+  #     - name: Deploy - Save plan artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: tfplan-bundle-deploy
+  #         path: |
+  #           ${{ env.TF_DIR }}/tfplan
+  #           ${{ env.TF_DIR }}/tfplan.json
+  #         retention-days: 3
 
-      - name: Deploy - Terraform Apply
-        working-directory: ${{ env.TF_DIR }}
-        run: terraform apply -auto-approve -no-color tfplan
+  #     - name: Deploy - Terraform Apply
+  #       working-directory: ${{ env.TF_DIR }}
+  #       run: terraform apply -auto-approve -no-color tfplan
 
-      - name: Initial RDS
-        working-directory: ${{ env.TF_DIR }}
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION }}
-        run: |
-          set -euo pipefail
+  #     - name: Initial RDS
+  #       working-directory: ${{ env.TF_DIR }}
+  #       env:
+  #         AWS_REGION: ${{ vars.AWS_REGION }}
+  #       run: |
+  #         set -euo pipefail
 
-          PARAMS_JSON="$(terraform output -json flyway_task_param)"
+  #         PARAMS_JSON="$(terraform output -json flyway_task_param)"
 
-          CLUSTER=$(echo "$PARAMS_JSON" | jq -r '.cluster')
-          TASK_DEF=$(echo "$PARAMS_JSON" | jq -r '.task_definition')
-          LAUNCH_TYPE=$(echo "$PARAMS_JSON" | jq -r '.launch_type')
-          SUBNETS=$(echo "$PARAMS_JSON" | jq -r '.subnets | join(",")')
-          SGS=$(echo "$PARAMS_JSON" | jq -r '.security_groups | join(",")')
+  #         CLUSTER=$(echo "$PARAMS_JSON" | jq -r '.cluster')
+  #         TASK_DEF=$(echo "$PARAMS_JSON" | jq -r '.task_definition')
+  #         LAUNCH_TYPE=$(echo "$PARAMS_JSON" | jq -r '.launch_type')
+  #         SUBNETS=$(echo "$PARAMS_JSON" | jq -r '.subnets | join(",")')
+  #         SGS=$(echo "$PARAMS_JSON" | jq -r '.security_groups | join(",")')
 
-          echo "Cluster: $CLUSTER"
-          echo "Task definition: $TASK_DEF"
-          echo "Subnets ID: $SUBNETS"
-          echo "Security groups ID: $SGS"
+  #         echo "Cluster: $CLUSTER"
+  #         echo "Task definition: $TASK_DEF"
+  #         echo "Subnets ID: $SUBNETS"
+  #         echo "Security groups ID: $SGS"
 
-          TASK_ARN=$(
-            aws ecs run-task \
-              --cluster "$CLUSTER" \
-              --task-definition "$TASK_DEF" \
-              --launch-type "$LAUNCH_TYPE" \
-              --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SGS]}" \
-              --region "$AWS_REGION" \
-              --query 'tasks[0].taskArn' \
-              --output text
-          )
+  #         TASK_ARN=$(
+  #           aws ecs run-task \
+  #             --cluster "$CLUSTER" \
+  #             --task-definition "$TASK_DEF" \
+  #             --launch-type "$LAUNCH_TYPE" \
+  #             --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SGS]}" \
+  #             --region "$AWS_REGION" \
+  #             --query 'tasks[0].taskArn' \
+  #             --output text
+  #         )
 
-          echo "Waiting for Flyway task to finish..."
-          aws ecs wait tasks-stopped \
-            --cluster "$CLUSTER" \
-            --tasks "$TASK_ARN" \
-            --region "$AWS_REGION"
+  #         echo "Waiting for Flyway task to finish..."
+  #         aws ecs wait tasks-stopped \
+  #           --cluster "$CLUSTER" \
+  #           --tasks "$TASK_ARN" \
+  #           --region "$AWS_REGION"
 
-          echo "Flyway migration task completed successfully."
+  #         echo "Flyway migration task completed successfully."
 
-      - name: Send email notification
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} (${{vars.ENV}})"
-          to: ${{ secrets.EMAIL_USERNAME }}
-          from: ${{ secrets.EMAIL_USERNAME }}
-          html_body: |
-            <h2>GitHub Actions CI/CD Notification</h2>
-            <p><b>Project</b>: ${{ vars.PROJECT}}</p>
-            <p><b>Repository</b>: ${{ github.repository }}</p>
-            <p><b>Env</b>: ${{ vars.ENV }}</p>
-            <p><b>Job</b>: ${{ github.job }}</p>
-            <p><b>Status</b>: ${{ job.status }}</p>
-            <p><b>Branch</b>: ${{ github.ref }}</p>
-            <p><b>Workflow</b>: ${{ github.workflow }}</p>
-            <p><b>Commit</b>: ${{ github.sha }}</p>
-            <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
+  #     - name: Send email notification
+  #       if: failure()
+  #       uses: dawidd6/action-send-mail@v3
+  #       with:
+  #         server_address: smtp.gmail.com
+  #         server_port: 465
+  #         secure: true
+  #         username: ${{ secrets.EMAIL_USERNAME }}
+  #         password: ${{ secrets.EMAIL_PASSWORD }}
+  #         subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} (${{vars.ENV}})"
+  #         to: ${{ secrets.EMAIL_USERNAME }}
+  #         from: ${{ secrets.EMAIL_USERNAME }}
+  #         html_body: |
+  #           <h2>GitHub Actions CI/CD Notification</h2>
+  #           <p><b>Project</b>: ${{ vars.PROJECT}}</p>
+  #           <p><b>Repository</b>: ${{ github.repository }}</p>
+  #           <p><b>Env</b>: ${{ vars.ENV }}</p>
+  #           <p><b>Job</b>: ${{ github.job }}</p>
+  #           <p><b>Status</b>: ${{ job.status }}</p>
+  #           <p><b>Branch</b>: ${{ github.ref }}</p>
+  #           <p><b>Workflow</b>: ${{ github.workflow }}</p>
+  #           <p><b>Commit</b>: ${{ github.sha }}</p>
+  #           <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
 
-      - name: Output
-        id: output
-        working-directory: ${{ env.TF_DIR }}
-        run: |
-          echo "BASE_URL=$(terraform output dns_url)" >> "$GITHUB_OUTPUT"
-    outputs:
-      BASE_URL: ${{ steps.output.outputs.BASE_URL }}
+  #     - name: Output
+  #       id: output
+  #       working-directory: ${{ env.TF_DIR }}
+  #       run: |
+  #         echo "BASE_URL=$(terraform output dns_url)" >> "$GITHUB_OUTPUT"
+  #   outputs:
+  #     BASE_URL: ${{ steps.output.outputs.BASE_URL }}
 
   testing:
     name: Baseline-Testing
-    needs: deploy
+    # needs: deploy
     runs-on: ubuntu-latest
     environment: baseline
     env:
@@ -271,13 +271,14 @@ jobs:
       - name: Smoke Testing
         uses: grafana/run-k6-action@v1
         id: smoke-testing
-        # env:
-        #   K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
-        #   K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+        env:
+          K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
         with:
           debug: true
           fail-fast: true
-          flags: --env BASE_URL=${{ needs.deploy.outputs.BASE_URL}} --env K6_WEB_DASHBOARD_EXPORT=/report/${{ vars.ENV }}_cicd_smoke.html
+          flags: --env BASE_URL="https://iot-baseline.arguswatcher.net/"
+          # flags: --env BASE_URL="${{ needs.deploy.outputs.BASE_URL}}" --env K6_WEB_DASHBOARD_EXPORT=/report/${{ vars.ENV }}_cicd_smoke.html
           path: |
             ${{ env.DIR_LOAD_TESTING }}/test_smoke.js
 
