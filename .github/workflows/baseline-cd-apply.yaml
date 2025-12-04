@@ -251,7 +251,7 @@ jobs:
   #     BASE_URL: ${{ steps.output.outputs.BASE_URL }}
 
   testing-smoke:
-    name: Baseline-Testing(Smoke)
+    name: Smoke Testing
     # needs: deploy
     runs-on: ubuntu-latest
     environment: baseline
@@ -299,8 +299,9 @@ jobs:
           echo "testing_smoke_result=${{ steps.testing-smoke.outcome }}" >> "$GITHUB_OUTPUT"
 
   testing-read:
-    name: Baseline-Testing(Read)
+    name: Read Performance Testing
     needs: testing-smoke
+    # only when smoke success
     if: ${{ needs.testing-smoke.outputs.testing_smoke_result == 'success' }}
     runs-on: ubuntu-latest
     environment: baseline
@@ -337,44 +338,45 @@ jobs:
             ${{ env.K6_REPORT }}
           retention-days: 7
 
-  # testing-write:
-  #   name: Baseline-Testing(Write)
-  #   needs: testing-read
-  #   if: ${{ needs.testing-smoke.result }}
-  #   runs-on: ubuntu-latest
-  #   environment: baseline
-  #   env:
-  #     BASE_URL: "https://iot-baseline.arguswatcher.net"
-  #     K6_REPORT: k6/report/baseline_cicd_write.html
-  #     K6_SCRIPT: k6/script/test_hp_write.js
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  testing-write:
+    name: Write Performance Testing
+    needs: testing-read
+    # only when smoke success
+    if: ${{ needs.testing-smoke.outputs.testing_smoke_result == 'success' }}
+    runs-on: ubuntu-latest
+    environment: baseline
+    env:
+      BASE_URL: "https://iot-baseline.arguswatcher.net"
+      K6_REPORT: k6/report/baseline_cicd_write.html
+      K6_SCRIPT: k6/script/test_hp_write.js
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup K6
-  #       uses: grafana/setup-k6-action@v1
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
 
-  #     - name: Write Testing
-  #       id: testing-write
-  #       uses: grafana/run-k6-action@v1
-  #       env:
-  #         K6_WEB_DASHBOARD: "true"
-  #         K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
-  #       with:
-  #         debug: true
-  #         fail-fast: true
-  #         flags: --env BASE_URL=${{env.BASE_URL}}
-  #         path: |
-  #           ${{ env.K6_SCRIPT }}
+      - name: Write Testing
+        id: testing-write
+        uses: grafana/run-k6-action@v1
+        env:
+          K6_WEB_DASHBOARD: "true"
+          K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
+        with:
+          debug: true
+          fail-fast: true
+          flags: --env BASE_URL=${{env.BASE_URL}}
+          path: |
+            ${{ env.K6_SCRIPT }}
 
-  #     - name: Upload report artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: "k6-report-write-${{ vars.ENV }}"
-  #         path: |
-  #           ${{ env.K6_REPORT }}
-  #         retention-days: 7
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "k6-report-write-${{ vars.ENV }}"
+          path: |
+            ${{ env.K6_REPORT }}
+          retention-days: 7
 
   # testing-mixed:
   #   name: Baseline-Testing(Mixed)
