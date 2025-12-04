@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   ecr-push:
-    name: Baseline - Push Image to ECR(${{ matrix.service.name }})
+    name: Baseline-Push Image to ECR(${{ matrix.service.name }})
     runs-on: ubuntu-latest
     environment: baseline
     strategy:
@@ -97,7 +97,7 @@ jobs:
             <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
 
   deploy:
-    name: Baseline - Deploy(AWS)
+    name: Baseline-Deploy(AWS)
     needs:
       - ecr-push
     runs-on: ubuntu-latest
@@ -215,7 +215,6 @@ jobs:
             --tasks "$TASK_ARN" \
             --region "$AWS_REGION"
 
-
           echo "Flyway migration task completed successfully."
 
       - name: Send email notification
@@ -242,6 +241,13 @@ jobs:
             <p><b>Commit</b>: ${{ github.sha }}</p>
             <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
 
+      - name: Output
+        id: output
+        run: |
+          echo "BASE_URL=$(terraform output -raw dns_url)" >> "$GITHUB_OUTPUT"
+    outputs:
+      BASE_URL: ${{ steps.output.outputs.BASE_URL }}
+
   # testing:
   #   name: Testing(K6)
   #   needs: deploy
@@ -261,9 +267,9 @@ jobs:
   #     - name: Setup K6
   #       uses: grafana/setup-k6-action@v1
 
-  #     - name: Run Testing
+  #     - name: Smoke Testing
   #       uses: grafana/run-k6-action@v1
-  #       id: testing
+  #       id: smoke-testing
   #       env:
   #         K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
   #         K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
