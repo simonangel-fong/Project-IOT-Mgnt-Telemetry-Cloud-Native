@@ -104,7 +104,7 @@ jobs:
     timeout-minutes: 30
     environment: baseline
     env:
-      TF_DIR: aws
+      TF_DIR: aws/baseline
       TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
       TF_VAR_aws_region: ${{ vars.AWS_REGION }}
       TF_VAR_env: ${{ vars.ENV }}
