@@ -178,6 +178,11 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: terraform apply -auto-approve -no-color tfplan
 
+      - name: Initial RDS
+        working-directory: ${{ env.TF_DIR }}
+        run: |
+          shell $(terraform output -raw flyway_run_task_cmd)
+
       - name: Send email notification
         if: always()
         uses: dawidd6/action-send-mail@v3
