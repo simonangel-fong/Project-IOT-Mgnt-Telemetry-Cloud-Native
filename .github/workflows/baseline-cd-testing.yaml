@@ -267,12 +267,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Wait for DNS
+        run: |
+          sleep 120
+
       - name: Setup K6
         uses: grafana/setup-k6-action@v1
-
-      - name: test
-        run: |
-          echo ${{ needs.deploy.outputs.BASE_URL }}
 
       - name: Smoke Testing
         id: testing-smoke
