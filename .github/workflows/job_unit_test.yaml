@@ -9,6 +9,9 @@ jobs:
     reusable_workflow_job:
         runs-on: ubuntu-latest
         steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
             - name: show passed param
               run: |
                   echo ${{ inputs.test-string }}
