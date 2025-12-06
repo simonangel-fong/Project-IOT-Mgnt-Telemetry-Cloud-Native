@@ -1,4 +1,6 @@
 # .github/workflow/main.yaml
+name: Main Workflow
+
 on:
     workflow_dispatch:
     push:

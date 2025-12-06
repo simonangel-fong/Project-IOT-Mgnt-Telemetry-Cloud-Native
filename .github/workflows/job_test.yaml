@@ -1,4 +1,6 @@
 # .github/workflow/job_test.yaml
+name: Reusable Workflow
+
 on:
     workflow_call:
         inputs:
