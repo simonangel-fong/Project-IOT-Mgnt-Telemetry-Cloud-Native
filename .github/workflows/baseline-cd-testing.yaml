@@ -99,8 +99,8 @@ jobs:
 
   deploy:
     name: AWS-Deploy
-    # needs:
-    #   - ecr-push
+    needs:
+      - ecr-push
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: baseline
