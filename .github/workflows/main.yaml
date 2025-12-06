@@ -8,16 +8,7 @@ on:
             - "feature-baseline-testing"
 
 jobs:
-    unit_test:
-        name: Unit Test
-        uses: ./.github/workflows/job_unit_test.yaml
-        with:
-            app: fastapi
-            app_path: app/fastapi
+    ci_check:
+        name: Integrated Check
+        uses: ./.github/workflows/job_ci_check.yaml
 
-    lint_check:
-        needs: unit_test
-        name: Terraform Lint Check
-        uses: ./.github/workflows/job_lint_check.yaml
-        with:
-            tf_path: aws/sol_baseline

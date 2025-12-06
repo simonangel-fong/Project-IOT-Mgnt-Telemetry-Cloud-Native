@@ -1,22 +1,7 @@
-name: Unit Tests & Infra Lint
+name: Unit Tests & Terraform Lint
 
 on:
-  workflow_dispatch:
-  # push dev
-  push:
-    branches:
-      - "feature-*"
-    paths:
-      - "aws/**"
-      - "app/**"
-      - ".github/workflows/dev-ci-check.yml"
-  # pull master
-  pull_request:
-    branches:
-      - "master"
-      - "*-testing"
-    paths:
-      - "sol_**"
+  workflow_call:
 
 # read only
 permissions:
@@ -24,7 +9,7 @@ permissions:
 
 # multiple trigger
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref_name }}
+  group: ci-check-${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true # Cancel older runs
 
 jobs:
