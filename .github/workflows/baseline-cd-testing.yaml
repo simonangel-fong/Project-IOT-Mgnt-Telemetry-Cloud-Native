@@ -271,21 +271,24 @@ jobs:
         run: |
           set -euo pipefail
 
-          for i in $(seq 1 $WAIT_SEC); do
+          ATTEMPT=120
+          URL_STATUS=0
+
+          for i in $(seq 1 $ATTEMPT); do
             
             echo "[$i] Try URL: $BASE_URL ..."
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $BASE_URL)
 
             if [ "$HTTP_CODE" -eq 307 ]; then
               echo "URL success."
-              SUCCESS=1
+              URL_STATUS=1
               break
             fi
             echo "[$i] Retry..."
             sleep 1
           done
 
-          if [ $SUCCESS -eq 1 ]; then
+          if [ $URL_STATUS -eq 0 ]; then
             exit 0
           fi
 
@@ -404,7 +407,7 @@ jobs:
           secure: true
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT }} (${{ vars.ENV }})"
+          subject: "Test Report - ${{ github.workflow }}: ${{ vars.PROJECT }} (${{ vars.ENV }})"
           to: ${{ secrets.EMAIL_USERNAME }}
           from: ${{ secrets.EMAIL_USERNAME }}
           html_body: |
