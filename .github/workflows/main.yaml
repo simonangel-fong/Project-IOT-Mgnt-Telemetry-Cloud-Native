@@ -1,0 +1,12 @@
+name: Call a reusable workflow
+
+on:
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    call-workflow-passing-data:
+        uses: ./github/workflows/components/test.yaml@main
+        with:
+            config-path: .github/labeler.yml
