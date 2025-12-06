@@ -1,0 +1,149 @@
+# aws_ecs_svc_fastapi.tf
+
+# #################################
+# Variable
+# #################################
+locals {
+  svc_fastapi_log_group_name = "/ecs/task/${var.project}-${var.env}-fastapi"
+  debug                      = var.env == "prod" ? false : true
+  ecr_fastapi                = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.project}-fastapi"
+  app_pgdb_host              = aws_db_instance.postgres.address
+  app_pgdb_db                = aws_db_instance.postgres.db_name
+  app_pgdb_user              = aws_db_instance.postgres.username
+  app_pgdb_pwd               = aws_db_instance.postgres.password
+  pool_size                  = 10
+  max_overflow               = 5
+}
+
+# #################################
+# IAM: ECS Task Execution Role
+# #################################
+# assume role
+resource "aws_iam_role" "ecs_task_execution_role_fastapi" {
+  name               = "${var.project}-${var.env}-task-execution-role-fastapi"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_ecs.json
+
+  tags = {
+    Project = var.project
+    Role    = "ecs-task-execution-role-fastapi"
+  }
+}
+
+# policy attachment: exec role
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_fastapi" {
+  role       = aws_iam_role.ecs_task_execution_role_fastapi.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# #################################
+# IAM: ECS Task Role
+# #################################
+resource "aws_iam_role" "ecs_task_role_fastapi" {
+  name               = "${var.project}-${var.env}-task-role-fastapi"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_ecs.json
+}
+
+# ##############################
+# Security Group
+# ##############################
+resource "aws_security_group" "fastapi" {
+  name        = "${var.project}-${var.env}-sg-fastapi"
+  description = "App security group"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description     = "Allow load balancer to ingress"
+    from_port       = 8000
+    to_port         = 8000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id] # limit source: alb
+  }
+
+  # Egress to vpc only
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+
+  tags = {
+    Name = "${var.project}-${var.env}-sg-fastapi"
+  }
+}
+
+# #################################
+# ECS: Task Definition
+# #################################
+resource "aws_ecs_task_definition" "ecs_task_fastapi" {
+  family                   = "${var.project}-${var.env}-task-fastapi"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = 1024
+  memory                   = 2048
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role_fastapi.arn
+  task_role_arn            = aws_iam_role.ecs_task_role_fastapi.arn
+
+  # method: json file
+  # container_definitions = file("./container/fastapi.json")
+
+  # method: template file
+  container_definitions = templatefile("${path.module}/container/fastapi.tftpl", {
+    image         = local.ecr_fastapi
+    awslogs_group = local.svc_fastapi_log_group_name
+    region        = var.aws_region
+    project       = var.project
+    env           = var.env
+    debug         = local.debug
+    pgdb_host     = local.app_pgdb_host
+    pgdb_db       = local.app_pgdb_db
+    pgdb_user     = local.app_pgdb_user
+    pgdb_pwd      = local.app_pgdb_pwd
+    pool_size     = local.pool_size
+    max_overflow  = local.max_overflow
+  })
+
+  tags = {
+    Name = "${var.project}-${var.env}-task-fastapi"
+  }
+}
+
+# #################################
+# ECS: Service
+# #################################
+resource "aws_ecs_service" "ecs_svc_fastapi" {
+  name    = "${var.project}-${var.env}-service-fastapi"
+  cluster = aws_ecs_cluster.ecs_cluster.id
+
+  # task
+  task_definition  = aws_ecs_task_definition.ecs_task_fastapi.arn
+  desired_count    = 1
+  launch_type      = "FARGATE"
+  platform_version = "LATEST"
+
+  # network
+  network_configuration {
+    security_groups  = [aws_security_group.fastapi.id]
+    subnets          = [for subnet in aws_subnet.private : subnet.id]
+    assign_public_ip = false # disable public ip
+  }
+
+  # lb
+  load_balancer {
+    target_group_arn = aws_alb_target_group.fastapi_svc.arn
+    container_name   = "fastapi"
+    container_port   = 8000
+  }
+
+  tags = {
+    Name = "${var.project}-${var.env}-service-fastapi"
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.log_group_fastapi,
+    aws_vpc_endpoint.ecr_api,
+    aws_vpc_endpoint.ecr_dkr,
+    aws_vpc_endpoint.s3,
+  ]
+}
