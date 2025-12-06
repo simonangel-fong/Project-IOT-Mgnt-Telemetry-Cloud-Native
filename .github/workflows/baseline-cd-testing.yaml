@@ -269,7 +269,25 @@ jobs:
 
       - name: Wait for DNS
         run: |
-          sleep 600
+          set -euo pipefail
+
+          for i in $(seq 1 $WAIT_SEC); do
+            
+            echo "[$i] Try URL: $BASE_URL ..."
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $BASE_URL)
+
+            if [ "$HTTP_CODE" -eq 307 ]; then
+              echo "URL success."
+              SUCCESS=1
+              break
+            fi
+            echo "[$i] Retry..."
+            sleep 1
+          done
+
+          if [ $SUCCESS -eq 1 ]; then
+            exit 0
+          fi
 
       - name: Setup K6
         uses: grafana/setup-k6-action@v1
@@ -364,7 +382,7 @@ jobs:
     needs:
       - testing-smoke
       - testing-performance
-    if: ${{ needs.testing-smoke.result == 'success' }}
+    if: always()
     runs-on: ubuntu-latest
 
     steps:
