@@ -253,48 +253,48 @@ jobs:
     outputs:
       BASE_URL: ${{ steps.output.outputs.BASE_URL }}
 
-  # testing-smoke:
-  #   name: Smoke Testing
-  #   needs: deploy
-  #   runs-on: ubuntu-latest
-  #   environment: baseline
-  #   env:
-  #     # BASE_URL: ${{ needs.deploy.outputs.BASE_URL }}
-  #     BASE_URL: https://iot-baseline.arguswatcher.net
-  #     K6_REPORT: k6/report/baseline_cicd_smoke.html
-  #     K6_SCRIPT: k6/script/test_smoke.js
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  testing-smoke:
+    name: Smoke Testing
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: baseline
+    env:
+      # BASE_URL: ${{ needs.deploy.outputs.BASE_URL }}
+      BASE_URL: https://iot-baseline.arguswatcher.net
+      K6_REPORT: k6/report/baseline_cicd_smoke.html
+      K6_SCRIPT: k6/script/test_smoke.js
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Wait for DNS
-  #       run: |
-  #         sleep 600
+      - name: Wait for DNS
+        run: |
+          sleep 600
 
-  #     - name: Setup K6
-  #       uses: grafana/setup-k6-action@v1
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
 
-  #     - name: Smoke Testing
-  #       id: testing-smoke
-  #       uses: grafana/run-k6-action@v1
-  #       env:
-  #         K6_WEB_DASHBOARD: "true"
-  #         K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
-  #       with:
-  #         debug: true
-  #         fail-fast: true
-  #         flags: --env BASE_URL=${{env.BASE_URL}}
-  #         path: |
-  #           ${{ env.K6_SCRIPT }}
+      - name: Smoke Testing
+        id: testing-smoke
+        uses: grafana/run-k6-action@v1
+        env:
+          K6_WEB_DASHBOARD: "true"
+          K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
+        with:
+          debug: true
+          fail-fast: true
+          flags: --env BASE_URL=${{env.BASE_URL}}
+          path: |
+            ${{ env.K6_SCRIPT }}
 
-  #     - name: Upload smoke report artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: "k6-report-smoke-${{ vars.ENV }}"
-  #         path: |
-  #           ${{ env.K6_REPORT }}
-  #         retention-days: 7
+      - name: Upload smoke report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "k6-report-smoke-${{ vars.ENV }}"
+          path: |
+            ${{ env.K6_REPORT }}
+          retention-days: 7
 
   # testing-performance:
   #   name: Performance Testing - ${{ matrix.test_name }}
