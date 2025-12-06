@@ -11,4 +11,5 @@ jobs:
     ci_check:
         name: Integrated Check
         uses: ./.github/workflows/job_ci_check.yaml
-
+        with:
+            env: "baseline"

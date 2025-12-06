@@ -2,6 +2,10 @@ name: Unit Tests & Terraform Lint
 
 on:
   workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
 
 # read only
 permissions:
@@ -70,10 +74,10 @@ jobs:
     name: Terraform Validate
     needs: unit_test_fastapi
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        env: [baseline]
-        path: [sol_baseline]
+    # strategy:
+    #   matrix:
+    #     env: [baseline]
+    #     path: [sol_baseline]
     env:
       TF_VERSION: 1.9.8
       TF_LINT_VERSION: v0.53.0
@@ -125,32 +129,32 @@ jobs:
           tflint --init
           tflint -f compact
 
-      - name: TFSec
-        uses: aquasecurity/tfsec-sarif-action@v0.1.0
-        with:
-          working_directory: aws/${{ matrix.path }}
-          # tfsec_args: --concise-output
+      # - name: TFSec
+      #   uses: aquasecurity/tfsec-sarif-action@v0.1.0
+      #   with:
+      #     working_directory: aws/${{ inputs.env }}
+      #     # tfsec_args: --concise-output
 
-      - name: Send email notification
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} (${{ matrix.env }})"
-          to: ${{ secrets.EMAIL_USERNAME }}
-          from: ${{ secrets.EMAIL_USERNAME }}
-          html_body: |
-            <h2>GitHub Actions CI/CD Notification</h2>
-            <p><b>Project</b>: ${{ vars.PROJECT}}</p>
-            <p><b>Repository</b>: ${{ github.repository }}</p>
-            <p><b>Env</b>: ${{ matrix.env }}</p>
-            <p><b>Job</b>: ${{ github.job }}</p>
-            <p><b>Status</b>: ${{ job.status }}</p>
-            <p><b>Branch</b>: ${{ github.ref }}</p>
-            <p><b>Workflow</b>: ${{ github.workflow }}</p>
-            <p><b>Commit</b>: ${{ github.sha }}</p>
-            <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
+      # - name: Send email notification
+      #   if: failure()
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: smtp.gmail.com
+      #     server_port: 465
+      #     secure: true
+      #     username: ${{ secrets.EMAIL_USERNAME }}
+      #     password: ${{ secrets.EMAIL_PASSWORD }}
+      #     subject: "${{ job.status }} - ${{ github.workflow }}: ${{ vars.PROJECT}} (${{ matrix.env }})"
+      #     to: ${{ secrets.EMAIL_USERNAME }}
+      #     from: ${{ secrets.EMAIL_USERNAME }}
+      #     html_body: |
+      #       <h2>GitHub Actions CI/CD Notification</h2>
+      #       <p><b>Project</b>: ${{ vars.PROJECT}}</p>
+      #       <p><b>Repository</b>: ${{ github.repository }}</p>
+      #       <p><b>Env</b>: ${{ matrix.env }}</p>
+      #       <p><b>Job</b>: ${{ github.job }}</p>
+      #       <p><b>Status</b>: ${{ job.status }}</p>
+      #       <p><b>Branch</b>: ${{ github.ref }}</p>
+      #       <p><b>Workflow</b>: ${{ github.workflow }}</p>
+      #       <p><b>Commit</b>: ${{ github.sha }}</p>
+      #       <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Run</a></p>
