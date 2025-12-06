@@ -11,6 +11,6 @@ jobs:
         permissions:
             contents: read
             pull-requests: write
-        uses: ./.github/workflows/test.yaml
+        uses: ./.github/workflows/components/test.yaml
         with:
             config-path: .github/labeler.yml
