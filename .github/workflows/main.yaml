@@ -9,23 +9,11 @@ jobs:
         name: Baseline-Destroy
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        environment: baseline
-        env:
-            TF_DIR: aws/sol_${{vars.ENV}}
-            TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
-            TF_VAR_aws_region: ${{ vars.AWS_REGION }}
-            TF_VAR_env: ${{ vars.ENV }}
-            TF_VAR_db_name: ${{ secrets.DB_NAME }}
-            TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
-            TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
-            TF_VAR_db_app_pwd: ${{ secrets.DB_APP_PWD }}
-            TF_VAR_db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
-            TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
-            TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
 
             - name: output
-              run: |
-                  echo "test"
+              uses: ./components/unit_test.yaml@main
+              with:
+                  config-path: ./config
