@@ -1,3 +1,4 @@
+# .github/workflow/main.yaml
 on:
     workflow_dispatch:
     push:
@@ -5,15 +6,7 @@ on:
             - "feature-baseline-testing"
 
 jobs:
-    destroy:
-        name: test main
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-
-            - name: test reusable workflow
-              uses: ./.github/workflows/job_unit_test.yaml@feature-baseline-testing
-              with:
-                  test-string: "main parameter"
+    test_reusable:
+        uses: ./.github/workflows/job_test.yaml
+        with:
+            param: "main parameter"

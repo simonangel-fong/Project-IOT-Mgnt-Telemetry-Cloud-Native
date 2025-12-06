@@ -1,7 +1,8 @@
+# .github/workflow/job_test.yaml
 on:
     workflow_call:
         inputs:
-            test-string:
+            param:
                 required: true
                 type: string
 
@@ -14,4 +15,4 @@ jobs:
 
             - name: show passed param
               run: |
-                  echo ${{ inputs.test-string }}
+                  echo ${{ inputs.param }}
