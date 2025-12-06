@@ -16,6 +16,7 @@ jobs:
             app_path: app/fastapi
 
     lint_check:
+        needs: unit_test
         name: Terraform Lint Check
         uses: ./.github/workflows/job_lint_check.yaml
         with:
