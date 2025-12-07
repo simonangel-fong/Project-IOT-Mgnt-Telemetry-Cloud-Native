@@ -23,13 +23,15 @@ jobs:
             matrix:
                 image:
                     - image_name: fastapi
+                    #   aws_region: ${{ vars.AWS_REGION }}
                       dir_dockerfile: app/fastapi
                     - image_name: flyway
+                    #   aws_region: ${{ vars.AWS_REGION }}
                       dir_dockerfile: app/flyway
         uses: ./.github/workflows/job_ecr_push.yaml
         with:
             image_name: ${{ matrix.image.image_name }}
-            aws_region: ${{ matrix.image.aws_region }}
+            # aws_region: ${{ matrix.image.aws_region }}
             dir_dockerfile: ${{ matrix.image.dir_dockerfile }}
         secrets:
             aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
