@@ -24,7 +24,7 @@ on:
             db_password:
                 description: "Database password"
             db_app_pwd:
-                description: "App password"
+                description: "App user password"
             db_readonly_pwd:
                 description: "Readonly user password"
             cf_api_token:

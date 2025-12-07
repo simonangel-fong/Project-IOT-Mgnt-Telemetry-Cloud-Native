@@ -45,6 +45,7 @@ jobs:
 
     deploy:
         name: Deploy AWS Infra
+        needs: ecr_push
         uses: ./.github/workflows/job_aws_deploy.yaml
         strategy:
             fail-fast: false
