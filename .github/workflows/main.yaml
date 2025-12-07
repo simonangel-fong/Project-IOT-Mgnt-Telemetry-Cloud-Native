@@ -29,8 +29,9 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                subject: [test01, test02]
-                html_body: ["<p>test01</p>", "<p>test02</p>"]
+                email:
+                    - subject: [test01, test02]
+                    - html_body: ["<p>test01</p>", "<p>test02</p>"]
         with:
-            subject: ${{matrix.subject}}
-            html_body: ${{matrix.html_body}}
+            subject: ${{matrix.email.subject}}
+            html_body: ${{matrix.email.html_body}}
