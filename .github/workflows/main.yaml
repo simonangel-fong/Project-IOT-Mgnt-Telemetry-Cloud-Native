@@ -8,9 +8,9 @@ on:
             - "feature-baseline-testing"
 
 # multiple trigger
-concurrency:
-    group: ci-check-${{ github.workflow }}-${{ github.ref_name }}
-    cancel-in-progress: true # Cancel older runs
+# concurrency:
+#     group: ci-check-${{ github.workflow }}-${{ github.ref_name }}
+#     cancel-in-progress: true # Cancel older runs
 
 jobs:
     # unit_test:
