@@ -1,0 +1,70 @@
+# .github/workflows/job_test_performance.yaml
+name: Performance Testing
+
+on:
+    workflow_call:
+        inputs:
+            base_url:
+                description: "The base url"
+                required: true
+                type: string
+            env:
+                description: "Environment"
+                type: string
+                default: ca-central-1
+
+jobs:
+    testing-performance:
+        name: Performance Testing ${{ inputs.env }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            max-parallel: 1
+            matrix:
+                include:
+                    - id: read
+                      test_name: Read
+                      script: k6/script/test_hp_read.js
+                      report: k6/report/baseline_cicd_read.html
+
+                    - id: write
+                      test_name: Write
+                      script: k6/script/test_hp_write.js
+                      report: k6/report/baseline_cicd_write.html
+
+                    - id: mixed
+                      test_name: Mixed
+                      script: k6/script/test_hp_mixed.js
+                      report: k6/report/baseline_cicd_mixed.html
+
+        env:
+            BASE_URL: ${{ inputs.base_url }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup K6
+              uses: grafana/setup-k6-action@v1
+
+            - name: ${{ matrix.test_name }} Testing
+              id: testing
+              uses: grafana/run-k6-action@v1
+              env:
+                  K6_WEB_DASHBOARD: "true"
+                  K6_WEB_DASHBOARD_EXPORT: "${{ matrix.report }}"
+              with:
+                  debug: true
+                  fail-fast: true
+                  flags: --env BASE_URL=${{ env.BASE_URL }}
+                  path: |
+                      ${{ matrix.script }}
+
+            - name: Upload report artifact
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: "k6-report-${{ matrix.id }}-${{ inputs.env }}"
+                  path: |
+                      ${{ matrix.report }}
+                  retention-days: 7
