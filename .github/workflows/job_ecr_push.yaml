@@ -8,10 +8,6 @@ on:
         description: "Image Name"
         required: true
         type: string
-      dir_dockerfile:
-        description: "Dockerfile path"
-        required: true
-        type: string
       aws_region:
         description: "AWS Region"
         type: string
@@ -29,7 +25,7 @@ jobs:
     name: ECR Push(${{ inputs.image_name }})
     runs-on: ubuntu-latest
     env:
-      DIR_DOCKFILE: ${{ inputs.dir_dockerfile }} # dockfile path
+      DIR_DOCKFILE: app/${{ inputs.image_name }}
       AWS_REGION: ${{ inputs.aws_region }}
       ECR_REPOSITORY: "${{ secrets.aws_account_id }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{ inputs.image_name }}"
     steps:

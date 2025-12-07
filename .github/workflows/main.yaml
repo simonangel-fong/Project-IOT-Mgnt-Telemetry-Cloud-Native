@@ -13,41 +13,35 @@ on:
 #     cancel-in-progress: true # Cancel older runs
 
 jobs:
-    # unit_test:
-    # name: Unit Test
-    # uses: ./.github/workflows/job_unit_test.yaml
-    # with:
-    # dir_app: "app/fastapi"
+    unit_test:
+        name: Unit Test
+        uses: ./.github/workflows/job_unit_test.yaml
+        with:
+            dir_app: "app/fastapi"
 
-    # ecr_push:
-    #     name: ECR Push
-    #     needs: unit_test
-    #     permissions:
-    #         contents: read
-    #         id-token: write # OIDC
-    #     strategy:
-    #         fail-fast: false
-    #         matrix:
-    #             image:
-    #                 - image_name: fastapi
-    #                   #   aws_region: ${{ vars.AWS_REGION }}
-    #                   dir_dockerfile: app/fastapi
-    #                 - image_name: flyway
-    #                   #   aws_region: ${{ vars.AWS_REGION }}
-    #                   dir_dockerfile: app/flyway
-    #     uses: ./.github/workflows/job_ecr_push.yaml
-    #     with:
-    #         image_name: ${{ matrix.image.image_name }}
-    #         dir_dockerfile: ${{ matrix.image.dir_dockerfile }}
-    #     secrets:
-    #         aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
-    #         aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+    ecr_push:
+        name: ECR Push
+        needs: unit_test
+        permissions:
+            contents: read
+            id-token: write # OIDC
+        strategy:
+            fail-fast: false
+            matrix:
+                image:
+                    - image_name: fastapi
+                    - image_name: flyway
+        uses: ./.github/workflows/job_ecr_push.yaml
+        with:
+            image_name: ${{ matrix.image.image_name }}
+            aws_region: ${{ vars.AWS_REGION }}
+        secrets:
+            aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
+            aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
 
     lint-check:
         name: Terraform Lint Check
-        # needs:
-        # - unit_test
-        # - ecr_push
+        needs: ecr_push
         strategy:
             fail-fast: false
             matrix:
@@ -115,8 +109,7 @@ jobs:
 
     destroy:
         name: Destroy Resources
-        needs:
-            - performance_testing
+        needs: performance_testing
         uses: ./.github/workflows/job_destroy.yaml
         permissions:
             contents: read
