@@ -50,7 +50,7 @@ jobs:
             fail-fast: false
             matrix:
                 solution:
-                    - env: [baseline, tune]
+                    - env: [baseline]
         with:
             project: ${{ vars.PROJECT}}
             env: ${{ matrix.solution.env }}
