@@ -8,6 +8,10 @@ on:
                 type: string
                 required: true
 
+# permission: read only
+permissions:
+    contents: read
+
 jobs:
     unit_test:
         name: Unit Test

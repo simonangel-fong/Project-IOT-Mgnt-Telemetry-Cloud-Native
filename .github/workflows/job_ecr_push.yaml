@@ -24,6 +24,10 @@ on:
         description: "AWS Account ID"
         required: true
 
+permissions:
+  contents: read
+  id-token: write # OIDC
+
 jobs:
   ecr-push:
     name: ECR Push(${{ inputs.image_name }})
