@@ -109,8 +109,13 @@ jobs:
 
     destroy:
         name: Destroy Resources
-        needs: performance_testing
-        if: always()
+        needs:
+            - performance_testing
+            - deploy
+        if: >
+            always() && 
+            (needs.deploy.result == 'success' || needs.deploy.result == 'failure') && 
+            (needs.performance_testing.result == 'success' || needs.performance_testing.result == 'failure' || needs.performance_testing.result == 'cancelled')
         uses: ./.github/workflows/job_destroy.yaml
         permissions:
             contents: read
