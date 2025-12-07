@@ -8,13 +8,15 @@ on:
             - "feature-baseline-testing"
 
 jobs:
-    # ci_check:
-    #     name: Integrated Check
-    #     uses: ./.github/workflows/job_ci_check.yaml
+    unit_test:
+        name: Unit Test
+        uses: ./.github/workflows/job_unit_test.yaml
+        with:
+            dir_app: "app/fastapi"
 
     ecr_push:
         name: ECR Push
-        # needs: ci_check
+        needs: unit_test
         permissions:
             id-token: write # OIDC
             contents: read
@@ -23,10 +25,10 @@ jobs:
             matrix:
                 image:
                     - image_name: fastapi
-                    #   aws_region: ${{ vars.AWS_REGION }}
+                      #   aws_region: ${{ vars.AWS_REGION }}
                       dir_dockerfile: app/fastapi
                     - image_name: flyway
-                    #   aws_region: ${{ vars.AWS_REGION }}
+                      #   aws_region: ${{ vars.AWS_REGION }}
                       dir_dockerfile: app/flyway
         uses: ./.github/workflows/job_ecr_push.yaml
         with:
