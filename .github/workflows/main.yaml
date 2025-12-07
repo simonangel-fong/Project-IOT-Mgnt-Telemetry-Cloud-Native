@@ -12,28 +12,44 @@ jobs:
     #     name: Integrated Check
     #     uses: ./.github/workflows/job_ci_check.yaml
 
-    # ecr_push:
-    #     name: ECR Push
-    #     needs: ci_check
-    #     permissions:
-    #         id-token: write # OIDC
-    #         contents: read
-    #     uses: ./.github/workflows/job_ecr.yaml
-
-    notification:
-        name: Send Notification Email
-        uses: ./.github/workflows/job_email.yaml
-        secrets:
-            email_username: ${{ secrets.EMAIL_USERNAME }}
-            email_password: ${{ secrets.EMAIL_PASSWORD }}
+    ecr_push:
+        name: ECR Push
+        # needs: ci_check
+        permissions:
+            id-token: write # OIDC
+            contents: read
         strategy:
             fail-fast: false
             matrix:
-                email:
-                    - subject: test01
-                      html_body: "<p>test01</p>"
-                    - subject: test02
-                      html_body: "<p>test02</p>"
+                image:
+                    - image_name: fastapi
+                      aws_region: ${{ vars.AWS_REGION }}
+                      dir_dockerfile: app/fastapi
+                      ecr_repo: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-fastapi"
+        uses: ./.github/workflows/job_ecr_push.yaml
         with:
-            subject: ${{matrix.email.subject}}
-            html_body: ${{matrix.email.html_body}}
+            image_name: ${{ matrix.image.image_name }}
+            aws_region: ${{ matrix.image.aws_region }}
+            dir_dockerfile: ${{ matrix.image.dir_dockerfile }}
+            ecr_repo: ${{ matrix.image.ecr_repo }}
+        secrets:
+            aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
+
+    # notification:
+    #     name: Send Notification Email
+    #     uses: ./.github/workflows/job_email.yaml
+    #     secrets:
+    #         email_username: ${{ secrets.EMAIL_USERNAME }}
+    #         email_password: ${{ secrets.EMAIL_PASSWORD }}
+    #     strategy:
+    #         fail-fast: false
+    #         matrix:
+    #             email:
+    #                 - subject: test01
+    #                   html_body: "<p>test01</p>"
+    #                 - subject: test02
+    #                   html_body: "<p>test02</p>"
+    #     with:
+    #         subject: ${{matrix.email.subject}}
+    #         html_body: ${{matrix.email.html_body}}
+#
