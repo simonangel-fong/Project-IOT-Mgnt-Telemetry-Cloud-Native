@@ -2,17 +2,17 @@
 # ###############################
 # ACM Certificate
 # ###############################
-provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1" # Required for CloudFront ACM
-}
+# provider "aws" {
+#   alias  = "us_east_1"
+#   region = "us-east-1" # Required for CloudFront ACM
+# }
 
-data "aws_acm_certificate" "cert" {
-  domain      = "*.${var.domain_name}"
-  provider    = aws.us_east_1
-  types       = ["AMAZON_ISSUED"]
-  most_recent = true
-}
+# data "aws_acm_certificate" "cert" {
+#   domain      = "*.${var.domain_name}"
+#   provider    = aws.us_east_1
+#   types       = ["AMAZON_ISSUED"]
+#   most_recent = true
+# }
 
 
 
