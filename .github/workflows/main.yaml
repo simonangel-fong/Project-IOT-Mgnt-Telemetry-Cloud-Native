@@ -13,58 +13,58 @@ on:
 #     cancel-in-progress: true # Cancel older runs
 
 jobs:
-    # unit_test:
-    #     name: Unit Test
-    #     uses: ./.github/workflows/job_unit_test.yaml
-    #     with:
-    #         dir_app: "app/fastapi"
+    unit_test:
+        name: Unit Test
+        uses: ./.github/workflows/job_unit_test.yaml
+        with:
+            dir_app: "app/fastapi"
 
-    # ecr_push:
-    #     name: ECR Push
-    #     needs: unit_test
-    #     permissions:
-    #         contents: read
-    #         id-token: write # OIDC
-    #     strategy:
-    #         fail-fast: false
-    #         matrix:
-    #             image:
-    #                 - image_name: fastapi
-    #                   #   aws_region: ${{ vars.AWS_REGION }}
-    #                   dir_dockerfile: app/fastapi
-    #                 - image_name: flyway
-    #                   #   aws_region: ${{ vars.AWS_REGION }}
-    #                   dir_dockerfile: app/flyway
-    #     uses: ./.github/workflows/job_ecr_push.yaml
-    #     with:
-    #         image_name: ${{ matrix.image.image_name }}
-    #         dir_dockerfile: ${{ matrix.image.dir_dockerfile }}
-    #     secrets:
-    #         aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
-    #         aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
-
-    deploy:
-        name: Deploy AWS Infra
-        uses: ./.github/workflows/job_aws_deploy.yaml
+    ecr_push:
+        name: ECR Push
+        needs: unit_test
+        permissions:
+            contents: read
+            id-token: write # OIDC
         strategy:
             fail-fast: false
             matrix:
-                solution:
-                    - env: [baseline]
+                image:
+                    - image_name: fastapi
+                      #   aws_region: ${{ vars.AWS_REGION }}
+                      dir_dockerfile: app/fastapi
+                    - image_name: flyway
+                      #   aws_region: ${{ vars.AWS_REGION }}
+                      dir_dockerfile: app/flyway
+        uses: ./.github/workflows/job_ecr_push.yaml
         with:
-            project: ${{ vars.PROJECT}}
-            env: ${{ matrix.solution.env }}
-            aws_region: ${{ vars.AWS_REGION }}
+            image_name: ${{ matrix.image.image_name }}
+            dir_dockerfile: ${{ matrix.image.dir_dockerfile }}
         secrets:
-            db_name: ${{ secrets.DB_NAME }}
-            db_username: ${{ secrets.DB_USERNAME }}
-            db_password: ${{ secrets.DB_PASSWORD }}
-            db_app_pwd: ${{ secrets.DB_APP_PWD }}
-            db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
-            cf_api_token: ${{ secrets.CF_API_TOKEN }}
-            cf_zone_id: ${{ secrets.CF_ZONE_ID }}
             aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
-            aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
+            aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+    # deploy:
+    #     name: Deploy AWS Infra
+    #     uses: ./.github/workflows/job_aws_deploy.yaml
+    #     strategy:
+    #         fail-fast: false
+    #         matrix:
+    #             solution:
+    #                 - env: [baseline]
+    #     with:
+    #         project: ${{ vars.PROJECT}}
+    #         env: ${{ matrix.solution.env }}
+    #         aws_region: ${{ vars.AWS_REGION }}
+    #     secrets:
+    #         db_name: ${{ secrets.DB_NAME }}
+    #         db_username: ${{ secrets.DB_USERNAME }}
+    #         db_password: ${{ secrets.DB_PASSWORD }}
+    #         db_app_pwd: ${{ secrets.DB_APP_PWD }}
+    #         db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
+    #         cf_api_token: ${{ secrets.CF_API_TOKEN }}
+    #         cf_zone_id: ${{ secrets.CF_ZONE_ID }}
+    #         aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
+    #         aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
 
     # notification:
     #     name: Send Notification Email
