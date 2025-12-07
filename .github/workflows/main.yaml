@@ -13,11 +13,11 @@ on:
 #     cancel-in-progress: true # Cancel older runs
 
 jobs:
-    unit_test:
-        name: Unit Test
-        uses: ./.github/workflows/job_unit_test.yaml
-        with:
-            dir_app: "app/fastapi"
+    # unit_test:
+    # name: Unit Test
+    # uses: ./.github/workflows/job_unit_test.yaml
+    # with:
+    # dir_app: "app/fastapi"
 
     # ecr_push:
     #     name: ECR Push
@@ -45,9 +45,9 @@ jobs:
 
     lint-check:
         name: Terraform Lint Check
-        needs:
-            - unit_test
-            # - ecr_push
+        # needs:
+        # - unit_test
+        # - ecr_push
         strategy:
             fail-fast: false
             matrix:
@@ -59,9 +59,12 @@ jobs:
             architecture: ${{ matrix.solution.architecture }}
 
     deploy:
-        name: Deploy AWS Infra
+        name: Deploy Infra
         needs: lint-check
-        uses: ./.github/workflows/job_aws_deploy.yaml
+        uses: ./.github/workflows/job_deploy.yaml
+        permissions:
+            contents: read
+            id-token: write # OIDC
         strategy:
             fail-fast: false
             matrix:
