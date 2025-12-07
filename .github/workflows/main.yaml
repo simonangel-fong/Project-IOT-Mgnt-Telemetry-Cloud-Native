@@ -47,9 +47,10 @@ jobs:
         name: Terraform Lint Check
         needs: ecr_push
         strategy:
+            fail-fast: false
             matrix:
                 solution:
-                    - dir_tf: [baseline]
+                    - dir_tf: baseline
         uses: ./.github/workflows/job_lint_check.yaml
         with:
             dir_tf: ${{ matrix.solution.dir_tf }}
