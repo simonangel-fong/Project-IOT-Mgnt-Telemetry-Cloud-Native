@@ -81,23 +81,23 @@ All architectures are evaluated using the same workload profiles and metrics to 
 
 ### Comparison Table
 
-| Solution ID  | Test Profile | p95 Latency (ms) | Error Rate (%) | Max Sustainable RPS | RDS CPU Max (%) | ECS CPU Max (%) | SLO Status | Notes |
-| ------------ | ------------ | ---------------- | -------------- | ------------------- | --------------- | --------------- | ---------- | ----- |
-| Sol-Baseline | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| Sol-Baseline | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| Sol-Baseline | Mixed        |                  |                |                     |                 |                 |            |       |
-| Sol-Tune     | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| Sol-Tune     | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| Sol-Tune     | Mixed        |                  |                |                     |                 |                 |            |       |
-| Sol-Scale    | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| Sol-Scale    | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| Sol-Scale    | Mixed        |                  |                |                     |                 |                 |            |       |
-| Sol-Cache    | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| Sol-Cache    | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| Sol-Cache    | Mixed        |                  |                |                     |                 |                 |            |       |
-| Sol-Queue    | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| Sol-Queue    | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| Sol-Queue    | Mixed        |                  |                |                     |                 |                 |            |       |
+| Solution ID | Test Profile | p95 Latency (ms) | Error Rate (%) | Max Sustainable RPS | RDS CPU Max (%) | ECS CPU Max (%) | SLO Status | Notes |
+| ----------- | ------------ | ---------------- | -------------- | ------------------- | --------------- | --------------- | ---------- | ----- |
+| `baseline`  | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| `baseline`  | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| `baseline`  | Mixed        |                  |                |                     |                 |                 |            |       |
+| `tune`      | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| `tune`      | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| `tune`      | Mixed        |                  |                |                     |                 |                 |            |       |
+| `scale`     | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| `scale`     | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| `scale`     | Mixed        |                  |                |                     |                 |                 |            |       |
+| `cache`     | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| `cache`     | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| `cache`     | Mixed        |                  |                |                     |                 |                 |            |       |
+| `queue`     | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| `queue`     | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| `queue`     | Mixed        |                  |                |                     |                 |                 |            |       |
 
 ---
 
