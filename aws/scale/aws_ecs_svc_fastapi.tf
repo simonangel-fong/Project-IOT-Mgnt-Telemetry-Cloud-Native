@@ -11,8 +11,9 @@ locals {
   app_pgdb_db                = aws_db_instance.postgres.db_name
   app_pgdb_user              = aws_db_instance.postgres.username
   app_pgdb_pwd               = aws_db_instance.postgres.password
-  pool_size                  = 20
-  max_overflow               = 10
+  pool_size                  = var.task_fastapi_pool_size
+  max_overflow               = var.task_fastapi_max_overflow
+  worker                     = var.task_fastapi_worker
 }
 
 # #################################
@@ -102,6 +103,7 @@ resource "aws_ecs_task_definition" "ecs_task_fastapi" {
     pgdb_pwd      = local.app_pgdb_pwd
     pool_size     = local.pool_size
     max_overflow  = local.max_overflow
+    worker        = local.worker
   })
 
   tags = {
@@ -118,7 +120,7 @@ resource "aws_ecs_service" "ecs_svc_fastapi" {
 
   # task
   task_definition  = aws_ecs_task_definition.ecs_task_fastapi.arn
-  desired_count    = 1
+  desired_count    = var.svc_fastapi_desired_count
   launch_type      = "FARGATE"
   platform_version = "LATEST"
 

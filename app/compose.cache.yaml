@@ -65,15 +65,15 @@ services:
       postgres:
         condition: service_healthy
 
-  redis:
-    container_name: redis
-    image: redis:7
-    restart: unless-stopped
-    networks:
-      # - public_network
-      - private_network
-    ports:
-      - "6379:6379"
+  # redis:
+  #   container_name: redis
+  #   image: redis:7
+  #   restart: unless-stopped
+  #   networks:
+  #     # - public_network
+  #     - private_network
+  #   ports:
+  #     - "6379:6379"
 
   fastapi01:
     container_name: fastapi01

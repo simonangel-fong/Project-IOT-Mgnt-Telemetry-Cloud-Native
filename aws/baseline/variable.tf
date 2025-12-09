@@ -31,6 +31,29 @@ variable "vpc_cidr" {
 }
 
 # ##############################
+# AWS ECS
+# ##############################
+variable "svc_fastapi_desired_count" {
+  type    = number
+  default = 1
+}
+
+variable "task_fastapi_pool_size" {
+  type    = number
+  default = 5 # default: 5
+}
+
+variable "task_fastapi_max_overflow" {
+  type    = number
+  default = 10 # default: 10
+}
+
+variable "task_fastapi_worker" {
+  type    = number
+  default = 2 # default: 2 cpu
+}
+
+# ##############################
 # AWS RDS
 # ##############################
 variable "db_name" {

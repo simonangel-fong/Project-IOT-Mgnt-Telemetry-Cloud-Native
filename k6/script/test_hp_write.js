@@ -62,7 +62,7 @@ export const options = {
   scenarios: {
     hp_write_telemetry: {
       executor: "ramping-arrival-rate",
-      startRate: RATE_START, // initial RPS
+      startRate: 0, // initial RPS
       timeUnit: "1s", // RPS-based
 
       preAllocatedVUs: VU, // initial VU pool
