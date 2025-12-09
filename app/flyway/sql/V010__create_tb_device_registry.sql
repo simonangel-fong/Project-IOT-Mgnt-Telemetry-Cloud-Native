@@ -24,4 +24,7 @@ BEFORE UPDATE ON app.device_registry
 FOR EACH ROW
 EXECUTE FUNCTION app.fn_set_updated_at();
 
+CREATE INDEX IF NOT EXISTS idx_device_registry_device_uuid
+    ON app.device_registry (device_uuid);
+
 RESET ROLE;

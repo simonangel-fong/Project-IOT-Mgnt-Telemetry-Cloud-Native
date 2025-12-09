@@ -78,6 +78,12 @@ async def home() -> dict:
             "user": settings.postgres.user,
         }
 
+        response["redis"] = {
+            "host": settings.redis.host,
+            "port": settings.redis.port,
+            "db_name": settings.redis.db,
+        }
+
         response["cors"] = settings.cors_list
 
         response["tuning"] = {

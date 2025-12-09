@@ -35,6 +35,32 @@ class PostgresSettings(BaseModel):
 
 
 # ==============================
+# Redis
+# ==============================
+class RedisSettings(BaseModel):
+    """Redis configuration."""
+
+    host: str = "redis"
+    port: int = 6379
+    db: int = 0
+    password: str | None = None
+
+    @property
+    def url(self) -> str:
+        """
+        Redis connection URL.
+
+        Example:
+            redis://:password@host:6379/0
+            redis://host:6379/0
+        """
+        if self.password:
+            pwd = quote_plus(self.password)
+            return f"redis://:{pwd}@{self.host}:{self.port}/{self.db}"
+        return f"redis://{self.host}:{self.port}/{self.db}"
+
+
+# ==============================
 # Application Settings
 # ==============================
 class Settings(BaseSettings):
@@ -66,6 +92,7 @@ class Settings(BaseSettings):
 
     # Nested config
     postgres: PostgresSettings = PostgresSettings()
+    redis: RedisSettings = RedisSettings()
 
     # Pydantic Settings config
     model_config = SettingsConfigDict(
@@ -82,7 +109,10 @@ class Settings(BaseSettings):
         """Postgres connection URL."""
         return self.postgres.url
 
-
+    @property
+    def redis_url(self) -> str:
+        """Redis connection URL."""
+        return self.redis.url
 
     @property
     def cors_list(self) -> list[str]:

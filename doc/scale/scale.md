@@ -1,8 +1,8 @@
-# Project: IOT Mgnt Telemetry Cloud Native - Scale
+# Project: IOT Mgnt Telemetry Cloud Native - scale
 
 [Back](../../README.md)
 
-- [Project: IOT Mgnt Telemetry Cloud Native - Scale](#project-iot-mgnt-telemetry-cloud-native---scale)
+- [Project: IOT Mgnt Telemetry Cloud Native - scale](#project-iot-mgnt-telemetry-cloud-native---scale)
   - [Local - Testing](#local---testing)
   - [AWS](#aws)
   - [Remote Testing](#remote-testing)
