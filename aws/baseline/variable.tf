@@ -33,9 +33,29 @@ variable "vpc_cidr" {
 # ##############################
 # AWS ECS
 # ##############################
+variable "svc_fastapi_farget_cpu" {
+  type    = number
+  default = 2048
+}
+
+variable "svc_fastapi_farget_memory" {
+  type    = number
+  default = 4096
+}
+
 variable "svc_fastapi_desired_count" {
   type    = number
-  default = 1
+  default = 2
+}
+
+variable "svc_fastapi_min_capacity" {
+  type    = number
+  default = 2
+}
+
+variable "svc_fastapi_max_capacity" {
+  type    = number
+  default = 20
 }
 
 variable "task_fastapi_pool_size" {
@@ -56,6 +76,16 @@ variable "task_fastapi_worker" {
 # ##############################
 # AWS RDS
 # ##############################
+variable "instance_class" {
+  type    = string
+  default = "db.t4g.medium"
+}
+
+variable "rds_max_connection" {
+  type    = number
+  default = 400
+}
+
 variable "db_name" {
   type = string
 }

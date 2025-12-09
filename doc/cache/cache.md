@@ -42,7 +42,7 @@ terraform fmt && terraform validate
 
 terraform apply -auto-approve
 
-aws ecs run-task --cluster iot-mgnt-telemetry-cache-cluster --task-definition iot-mgnt-telemetry-cache-task-flyway --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[subnet-05eabbefed5ea9683,subnet-0ac0c20da21edab0c,subnet-0b0d7e4c3543d316a],securityGroups=[sg-02b877099d96956a0]}"
+aws ecs run-task --cluster iot-mgnt-telemetry-scale-cluster --task-definition iot-mgnt-telemetry-scale-task-flyway --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[subnet-,subnet-,subnet-],securityGroups=[sg-]}"
 
 terraform destroy -auto-approve
 
@@ -52,14 +52,14 @@ terraform destroy -auto-approve
 
 ```sh
 # smoke
-docker run --rm --name test_smoke -p 5665:5665 -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_smoke.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
+docker run --rm --name cache_aws_smoke -p 5665:5665 -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_smoke.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
 
 # read heavy
-docker run --rm --name test_hp_read -p 5665:5665 -e SOLUTION_ID="cache" -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_read.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run --out json=/report/cache_aws_read.json /script/test_hp_read.js
+docker run --rm --name cache_aws_read -p 5665:5665 -e SOLUTION_ID="cache" -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_read.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
 
 # write heavy
-docker run --rm --name test_hp_write -p 5665:5665 -e SOLUTION_ID="cache" -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_write.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
+docker run --rm --name cache_aws_write -p 5665:5665 -e SOLUTION_ID="cache" -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_write.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
 
 # mixed
-docker run --rm --name test_hp_mixed -p 5665:5665 -e SOLUTION_ID="cache" -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_mixed.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_mixed.js
+docker run --rm --name cache_aws_mixed -p 5665:5665 -e SOLUTION_ID="cache" -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_mixed.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_mixed.js
 ```

@@ -14,6 +14,8 @@ locals {
   pool_size                  = var.task_fastapi_pool_size
   max_overflow               = var.task_fastapi_max_overflow
   worker                     = var.task_fastapi_worker
+  cpu                        = var.svc_fastapi_farget_cpu
+  memory                     = var.svc_fastapi_farget_memory
 }
 
 # #################################
@@ -81,8 +83,8 @@ resource "aws_ecs_task_definition" "ecs_task_fastapi" {
   family                   = "${var.project}-${var.env}-task-fastapi"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = 1024
-  memory                   = 2048
+  cpu                      = var.svc_fastapi_farget_cpu
+  memory                   = var.svc_fastapi_farget_memory
   execution_role_arn       = aws_iam_role.ecs_task_execution_role_fastapi.arn
   task_role_arn            = aws_iam_role.ecs_task_role_fastapi.arn
 
@@ -92,6 +94,8 @@ resource "aws_ecs_task_definition" "ecs_task_fastapi" {
   # method: template file
   container_definitions = templatefile("${path.module}/container/fastapi.tftpl", {
     image         = local.ecr_fastapi
+    cpu           = local.cpu
+    memory        = local.memory
     awslogs_group = local.svc_fastapi_log_group_name
     region        = var.aws_region
     project       = var.project
