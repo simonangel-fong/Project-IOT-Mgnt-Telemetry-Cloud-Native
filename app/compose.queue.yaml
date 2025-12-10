@@ -17,8 +17,8 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://localhost:9092,CONTROLLER://localhost:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka_broker:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
@@ -29,42 +29,43 @@ services:
       KAFKA_NUM_PARTITIONS: 3
     networks:
       - private_network
+      - public_network
     ports:
-      - "9092:9092" # Port for local machine connection
+      - "9092:9092"
 
-  kafka-worker:
-    container_name: kafka_worker
-    build:
-      context: ./worker/
-      dockerfile: Dockerfile
-    command: python processor.py # Assumes your consumer logic is in processor.py
-    environment:
-      # Kafka Connection
-      KAFKA__HOST: kafka_broker
-      KAFKA__PORT: 9092
-      # Postgres Connection
-      POSTGRES__HOST: postgres
-      POSTGRES__DB: app_db
-      POSTGRES__PORT: 5432
-      POSTGRES__USER: app_user # Assuming app_user for the worker service
-      POSTGRES__PASSWORD: test123
-    networks:
-      - private_network
-    depends_on:
-      kafka_broker:
-        condition: service_started # Needs Kafka to consume messages
-      postgres:
-        condition: service_healthy # Needs DB to write results
-      flyway:
-        condition: service_completed_successfully # Needs migrations to be done
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 512M
-        reservations:
-          cpus: "0.25"
-          memory: 128M
+  # kafka-worker:
+  #   container_name: kafka_worker
+  #   build:
+  #     context: ./worker/
+  #     dockerfile: Dockerfile
+  #   command: python processor.py # Assumes your consumer logic is in processor.py
+  #   environment:
+  #     # Kafka Connection
+  #     KAFKA__HOST: kafka_broker
+  #     KAFKA__PORT: 9092
+  #     # Postgres Connection
+  #     POSTGRES__HOST: postgres
+  #     POSTGRES__DB: app_db
+  #     POSTGRES__PORT: 5432
+  #     POSTGRES__USER: app_user # Assuming app_user for the worker service
+  #     POSTGRES__PASSWORD: test123
+  #   networks:
+  #     - private_network
+  #   depends_on:
+  #     kafka_broker:
+  #       condition: service_started # Needs Kafka to consume messages
+  #     postgres:
+  #       condition: service_healthy # Needs DB to write results
+  #     flyway:
+  #       condition: service_completed_successfully # Needs migrations to be done
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: "1"
+  #         memory: 512M
+  #       reservations:
+  #         cpus: "0.25"
+  #         memory: 128M
 
   postgres:
     container_name: postgres
@@ -76,7 +77,7 @@ services:
     volumes:
       - ./pgdb/config:/config
     networks:
-      # - public_network
+      - public_network
       - private_network
     ports:
       - "5432:5432"
@@ -121,11 +122,11 @@ services:
   fastapi:
     container_name: fastapi
     build:
-      context: ./fastapi/
+      context: ./fastapi_kafka/
       dockerfile: Dockerfile
     environment:
       APP_NAME: iot-mgnt-telemetry
-      ENV: baseline
+      ENV: queue
       DEBUG: true
       POSTGRES__HOST: postgres
       POSTGRES__DB: app_db
@@ -163,7 +164,7 @@ services:
     container_name: nginx
     image: nginx:latest
     volumes:
-      - ./nginx/config/baseline.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/config/queue.conf:/etc/nginx/conf.d/default.conf
     networks:
       - public_network
       - private_network

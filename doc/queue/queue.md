@@ -16,16 +16,16 @@ docker compose -f app/compose.queue.yaml down -v
 docker compose -f app/compose.queue.yaml up -d --build
 
 # smoke
-docker run --rm --name test_smoke --net=cache_public_network -p 5665:5665 -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_local_smoke.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
+docker run --rm --name queue_local_smoke --net=queue_public_network -p 5665:5665 -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_smoke.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
 
 # read heavy
-docker run --rm --name cache_local_read --net=cache_public_network -p 5665:5665 -e SOLUTION_ID="Sol-cache" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_local_read.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
+docker run --rm --name queue_local_read --net=queue_public_network -p 5665:5665 -e SOLUTION_ID="Sol-queue" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_read.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
 
 # write heavy
-docker run --rm --name cache_local_write --net=cache_public_network -p 5665:5665 -e SOLUTION_ID="Sol-cache" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_local_write.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
+docker run --rm --name queue_local_write --net=queue_public_network -p 5665:5665 -e SOLUTION_ID="Sol-queue" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_write.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
 
 # mixed
-docker run --rm --name cache_local_mixed --net=cache_public_network -p 5665:5665 -e SOLUTION_ID="Sol-cache" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_local_mixed.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_mixed.js
+docker run --rm --name queue_local_mixed --net=queue_public_network -p 5665:5665 -e SOLUTION_ID="Sol-queue" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_mixed.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_mixed.js
 
 ```
 
@@ -34,7 +34,7 @@ docker run --rm --name cache_local_mixed --net=cache_public_network -p 5665:5665
 ## AWS
 
 ```sh
-cd aws/cache
+cd aws/queue
 
 terraform init -backend-config=backend.config
 
@@ -52,14 +52,14 @@ terraform destroy -auto-approve
 
 ```sh
 # smoke
-docker run --rm --name cache_aws_smoke -p 5665:5665 -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_smoke.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
+docker run --rm --name queue_aws_smoke -p 5665:5665 -e BASE_URL="https://iot-queue.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_aws_smoke.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
 
 # read heavy
-docker run --rm --name cache_aws_read -p 5665:5665 -e SOLUTION_ID="cache" -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_read.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
+docker run --rm --name queue_aws_read -p 5665:5665 -e SOLUTION_ID="queue" -e BASE_URL="https://iot-queue.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_aws_read.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
 
 # write heavy
-docker run --rm --name cache_aws_write -p 5665:5665 -e SOLUTION_ID="cache" -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_write.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
+docker run --rm --name queue_aws_write -p 5665:5665 -e SOLUTION_ID="queue" -e BASE_URL="https://iot-queue.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_aws_write.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
 
 # mixed
-docker run --rm --name cache_aws_mixed -p 5665:5665 -e SOLUTION_ID="cache" -e BASE_URL="https://iot-cache.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/cache_aws_mixed.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_mixed.js
+docker run --rm --name queue_aws_mixed -p 5665:5665 -e SOLUTION_ID="queue" -e BASE_URL="https://iot-queue.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_aws_mixed.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_mixed.js
 ```

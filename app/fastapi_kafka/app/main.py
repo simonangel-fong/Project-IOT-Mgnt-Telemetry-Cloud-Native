@@ -1,19 +1,33 @@
 # app/main.py
 from __future__ import annotations
-import os
+
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 # cors
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
-from .routers import health, device, telemetry
+from .mq import init_kafka_producer, close_kafka_producer
+from .routers import home, health
+# from .routers import health, device, telemetry
 from .config.logging import setup_logging
 
 setup_logging()
 
-HOSTNAME = os.getenv("HOSTNAME", "my_host")
+
 API_PREFIX = "/api"
 settings = get_settings()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        await init_kafka_producer()
+    except KafkaConnectionError as exc:
+        logger.exception("Kafka initialization failed during startup", exc_info=exc)
+    yield
+    # Shutdown
+    await close_kafka_producer()
 
 app = FastAPI(
     title="IoT Device Management API",
@@ -24,6 +38,7 @@ app = FastAPI(
         "and API keys, while administrative endpoints are intended for internal "
         "operations and tooling."
     ),
+    lifespan=lifespan,
 )
 
 # ====================
@@ -39,68 +54,16 @@ app.add_middleware(
 
 
 # ====================
-# Root endpoint
-# ====================
-@app.get(
-    f"{API_PREFIX}/",
-    tags=["root"],
-    summary="Service status",
-    description=(
-        "Return basic information about the Device Management API service. "
-    ),
-)
-async def home() -> dict:
-    """
-    Return basic service metadata and status.
-    """
-    print(settings.cors_list)
-    response: dict = {
-        "app": settings.app_name,
-        "status": "ok",
-        "environment": settings.env,
-        "debug": settings.debug,
-        "docs": {
-            "openapi": "/openapi.json",
-            "swagger_ui": "/docs",
-            "redoc": "/redoc",
-        },
-    }
-
-    if settings.debug:
-        response["fastapi"] = {
-            "fastapi_host": HOSTNAME,
-        }
-
-        response["postgres"] = {
-            "host": settings.postgres.host,
-            "port": settings.postgres.port,
-            "db_name": settings.postgres.db,
-            "user": settings.postgres.user,
-        }
-
-        response["redis"] = {
-            "host": settings.redis.host,
-            "port": settings.redis.port,
-            "db_name": settings.redis.db,
-        }
-
-        response["cors"] = settings.cors_list
-
-        response["tuning"] = {
-            "pool_size": settings.pool_size,
-            "max_overflow": settings.max_overflow,
-        }
-
-    return response
-
-# ====================
 # Routers
 # ====================
+# Home
+app.include_router(home.router, prefix=API_PREFIX)
+
 # Health check & readiness probes
 app.include_router(health.router, prefix=API_PREFIX)
 
 # Administrative device registry endpoints (UUID-based lookups)
-app.include_router(device.router, prefix=API_PREFIX)
+# app.include_router(device.router, prefix=API_PREFIX)
 
 # Device-facing telemetry ingestion and listing endpoints
-app.include_router(telemetry.router, prefix=API_PREFIX)
+# app.include_router(telemetry.router, prefix=API_PREFIX)

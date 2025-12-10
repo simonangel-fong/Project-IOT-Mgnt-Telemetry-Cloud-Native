@@ -7,6 +7,7 @@ import json
 import logging
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
+from fastapi.concurrency import run_in_threadpool
 
 from fastapi import (
     APIRouter,
@@ -18,6 +19,7 @@ from fastapi import (
     Query,
     status,
 )
+
 from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,7 +32,10 @@ from ..schemas import (
     TelemetryCountItem,
     TelemetryLatestItem,
 )
-from fastapi.concurrency import run_in_threadpool
+
+from aiokafka import AIOKafkaProducer
+from ..mq import get_kafka_producer, get_kafka_topics
+
 
 router = APIRouter(
     prefix="/telemetry",
@@ -370,15 +375,13 @@ async def create_telemetry_for_device(
     payload: TelemetryCreate = Body(
         description="Telemetry payload containing coordinates and optional device timestamp.",
     ),
-    # db: AsyncSession = Depends(get_db),
-    producer: KafkaProducer = Depends(get_kafka_producer),
+    producer: AIOKafkaProducer = Depends(get_kafka_producer),
 ) -> TelemetryItem:
     """
     Ingest a single telemetry event for the authenticated device.
 
     Kafka-first design:
-    - Validates and enriches the telemetry payload (adds system_time_utc, default
-      device_time).
+    - Enriches the telemetry payload (adds system_time_utc, default device_time).
     - Publishes the event to Kafka for asynchronous processing.
     - Returns the enriched telemetry item to the caller.
     """
@@ -386,7 +389,8 @@ async def create_telemetry_for_device(
     now_utc = datetime.now(timezone.utc)
     device_time = payload.device_time or now_utc
 
-    telemetry = TelemetryEvent(
+    # Canonical event shape used both for Kafka and response
+    item = TelemetryItem(
         device_uuid=device.device_uuid,
         x_coord=payload.x_coord,
         y_coord=payload.y_coord,
@@ -394,59 +398,59 @@ async def create_telemetry_for_device(
         system_time_utc=now_utc,
     )
 
-    # Kafka message
-    message_key = str(device.device_uuid).encode("utf-8")
-    message_value = item.model_dump_json().encode("utf-8")
+    topics = get_kafka_topics()
 
+    message_key = str(device.device_uuid)
+    message_value = item.model_dump(mode="json")
 
-    from ..mq import get_kafka_producer 
-
-    # commit db
     try:
-        future = await run_in_threadpool(
-            kafka_producer.send,
-            settings.kafka.topic_telemetry_ingest,  # e.g. "telemetry_ingest"
+        # Wait for Kafka to confirm the message (leader + replicas if acks="all")
+        await producer.send_and_wait(
+            topics.telemetry_ingest,
             key=message_key,
             value=message_value,
         )
-    except SQLAlchemyError as exc:
-        await db.rollback()
+    except Exception as exc:
         logger.exception(
-            "Database error while storing telemetry",
+            "Failed to publish telemetry event to Kafka",
             extra={"device_uuid": str(device.device_uuid)},
         )
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to store telemetry.",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Failed to enqueue telemetry event.",
         ) from exc
 
     logger.debug(
-        "Telemetry stored successfully",
+        "Telemetry event enqueued to Kafka successfully",
         extra={
             "device_uuid": str(device.device_uuid),
-            "system_time_utc": telemetry.system_time_utc.isoformat(),
+            "system_time_utc": item.system_time_utc.isoformat(),
         },
     )
 
-    # Convert ORM
-    item = TelemetryItem.model_validate(telemetry)
-
-    # Cache in Redis
+    # Update Redis with latest + rolling recent list
     latest_key = f"telemetry:latest:{device.device_uuid}"
     recent_list_key = f"telemetry:recent:{device.device_uuid}"
 
     try:
-        # Store latest telemetry
+        # Store latest telemetry snapshot
         await redis_client.set(
             latest_key,
             item.model_dump_json(),
-            ex=TELEMETRY_CACHE_TTL_SECONDS,  # TTL
+            ex=TELEMETRY_CACHE_TTL_SECONDS,
         )
 
-        # rolling list of recent events
         await redis_client.lpush(recent_list_key, item.model_dump_json())
-        # keep most recent 100
         await redis_client.ltrim(recent_list_key, 0, 99)
+
+        logger.debug(
+            "Telemetry cached in Redis",
+            extra={
+                "device_uuid": str(device.device_uuid),
+                "latest_key": latest_key,
+                "recent_list_key": recent_list_key,
+            },
+        )
     except Exception:
         logger.warning(
             "Failed to write telemetry to Redis cache",

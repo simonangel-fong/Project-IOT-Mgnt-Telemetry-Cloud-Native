@@ -1,3 +1,4 @@
+# config/setting.py
 from __future__ import annotations
 
 from functools import lru_cache
@@ -113,6 +114,12 @@ class Settings(BaseSettings):
         default=10,
         alias="MAX_OVERFLOW",
         description="The additional connections when the pool_size is reached.",
+    )
+
+    workers: int = Field(
+        default=1,
+        alias="WORKER",
+        description="The number of uvicorn workers.",
     )
 
     # Nested config

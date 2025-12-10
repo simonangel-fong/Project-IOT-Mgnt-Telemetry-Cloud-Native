@@ -1,14 +1,16 @@
 # app/routers/health.py
 import logging
 from fastapi import APIRouter, Depends
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from kafka import KafkaError
+from aiokafka import AIOKafkaProducer
 
 from ..config import get_settings
 from ..db import get_db, redis_client
-from ..mq.kafka import get_kafka_producer
+from ..mq import get_kafka_producer, get_kafka_topics
+
 
 router = APIRouter(prefix="/health", tags=["health"])
 
@@ -66,6 +68,51 @@ async def health_redis() -> JSONResponse:
             status_code=503,
             content={
                 "redis": "unreachable",
+                "detail": detail,
+            },
+        )
+
+
+@router.get("/kafka", summary="Kafka health check")
+async def health_kafka(
+    producer: AIOKafkaProducer = Depends(get_kafka_producer),
+) -> JSONResponse:
+    """
+    Check if Kafka is reachable and the telemetry ingest topic has partitions.
+
+    This is a lightweight readiness-style check:
+    - Uses producer.metadata to look up partitions for the ingest topic.
+    - If metadata is missing or empty, report unhealthy.
+    """
+    topics = get_kafka_topics()
+
+    try:
+        # Ask Kafka for partition metadata for the ingest topic.
+        # For AIOKafkaProducer, partitions_for(...) is an async method.
+        partitions = await producer.partitions_for(topics.telemetry_ingest)
+
+        if not partitions:
+            raise RuntimeError(
+                f"No partitions available for topic '{topics.telemetry_ingest}'"
+            )
+
+        return JSONResponse(
+            {
+                "kafka": "reachable",
+                "topic": topics.telemetry_ingest,
+                "partitions": sorted(list(partitions)),
+                "bootstrap_servers": settings.kafka_bootstrap_servers,
+            }
+        )
+
+    except Exception as exc:
+        logger.exception("Kafka health check failed")
+        detail: str | None = str(exc) if settings.debug else None
+        return JSONResponse(
+            status_code=503,
+            content={
+                "kafka": "unreachable",
+                "topic": topics.telemetry_ingest,
                 "detail": detail,
             },
         )
