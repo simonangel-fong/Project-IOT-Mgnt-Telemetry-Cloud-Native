@@ -105,6 +105,7 @@ All architectures are evaluated using the same workload profiles and metrics to 
 - [Baseline](./doc/baseline/baseline.md)
 - [Scale](./doc/scale/scale.md)
 - [Cache](./doc/cache/cache.md)
+- [Queue](./doc/queue/queue.md)
 
 - SLO
 

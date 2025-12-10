@@ -23,7 +23,9 @@ python -m venv .venv
 .venv\Scripts\activate.bat
 
 python.exe -m pip install --upgrade pip
-pip install fastapi "uvicorn[standard]" "SQLAlchemy[asyncio]" asyncpg pydantic python-dotenv pydantic-settings pytest pytest-asyncio httpx redis
+pip install fastapi "uvicorn[standard]" "SQLAlchemy[asyncio]" asyncpg pydantic python-dotenv pydantic-settings pytest pytest-asyncio httpx redis kafka
+
+pip freeze > requirements.txt
 
 uvicorn app.main:app --reload
 ```
