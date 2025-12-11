@@ -10,23 +10,28 @@ import { getTelemetryLatest, postTelemetry } from "./target_url.js";
 const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
 
 // Tag to distinguish solution variants
-const SOLUTION_ID = __ENV.SOLUTION_ID || "Sol-Baseline";
+const SOLUTION_ID = __ENV.SOLUTION_ID || "baseline";
 const PROFILE = "mixed"; // Mixed profile
 
-// -------- Write (POST) parameters --------
-const W_RATE_START = parseNumberEnv("W_RATE_START", 50); // initial write RPS
-const W_RATE_TARGET = parseNumberEnv("W_RATE_TARGET", 500); // peak write RPS
-const W_STAGE_RAMP = parseNumberEnv("W_STAGE_RAMP", 1); // minutes per write ramp stage
-const W_STAGE_PEAK = parseNumberEnv("W_STAGE_PEAK", 2); // minutes to hold peak write RPS
+// read-write ratio: read/write
+const RATIO = __ENV.RATIO || 1;
 
+// -------- Read (GET) parameters --------
+const RATE_READ_START = parseNumberEnv("RATE_READ_START", 50); // initial write RPS
+const RATE_READ_TARGET = parseNumberEnv("RATE_READ_TARGET", 500); // peak write RPS
+
+// -------- Write (POST) parameters --------
+const RATE_WRITE_START = RATE_READ_START * RATIO; // initial write RPS
+const RATE_WRITE_TARGET = RATE_READ_TARGET * RATIO; // peak write RPS
+
+// -------- Stage --------
+const STAGE_START = parseNumberEnv("STAGE_START", 1); // minutes per ramp stage
+const STAGE_RAMP = parseNumberEnv("STAGE_RAMP", 10); // minutes per ramp stage
+const STAGE_PEAK = parseNumberEnv("STAGE_PEAK", 2); // minutes to hold peak RPS
+
+// -------- VU --------
 const W_VU = parseNumberEnv("W_VU", 50); // pre-allocated VUs for write
 const W_MAX_VU = parseNumberEnv("W_MAX_VU", 200); // max VUs for write scenario
-
-// -------- Background Read (GET) parameters --------
-const R_RATE_START = parseNumberEnv("R_RATE_START", 50);
-const R_RATE_TARGET = parseNumberEnv("R_RATE_TARGET", 500); // background read RPS
-const R_STAGE_RAMP = parseNumberEnv("R_STAGE_RAMP", 1); // minutes per read ramp stage
-const R_STAGE_PEAK = parseNumberEnv("R_STAGE_PEAK", 2); // minutes to hold peak read RPS
 
 const R_VU = parseNumberEnv("R_VU", 50); // pre-allocated VUs for read
 const R_MAX_VU = parseNumberEnv("R_MAX_VU", 200); // max VUs for read scenario
@@ -74,45 +79,6 @@ export const options = {
 
   scenarios: {
     // ==========================
-    // Write (POST)
-    // ==========================
-    hp_write_telemetry: {
-      executor: "ramping-arrival-rate",
-      startRate: 0,
-      timeUnit: "1s",
-
-      preAllocatedVUs: W_VU,
-      maxVUs: W_MAX_VU,
-
-      stages: [
-        // Warm-up at start rate
-        { duration: `${W_STAGE_RAMP}m`, target: W_RATE_START },
-        // Ramp up to target
-        {
-          duration: `${W_STAGE_RAMP}m`,
-          target: Math.round(W_RATE_TARGET * 0.25),
-        },
-        {
-          duration: `${W_STAGE_RAMP}m`,
-          target: Math.round(W_RATE_TARGET * 0.5),
-        },
-        {
-          duration: `${W_STAGE_RAMP}m`,
-          target: Math.round(W_RATE_TARGET * 0.75),
-        },
-        { duration: `${W_STAGE_RAMP}m`, target: W_RATE_TARGET },
-        // Hold the peak RPS
-        { duration: `${W_STAGE_PEAK}m`, target: W_RATE_TARGET },
-      ],
-
-      gracefulStop: "60s",
-      exec: "hp_write_telemetry",
-      tags: {
-        role: "write",
-      },
-    },
-
-    // ==========================
     // Read (GET)
     // ==========================
     hp_read_telemetry: {
@@ -124,20 +90,41 @@ export const options = {
       maxVUs: R_MAX_VU,
 
       stages: [
-        { duration: `${R_STAGE_RAMP}m`, target: R_RATE_START },
-        {
-          duration: `${R_STAGE_RAMP * 3}m`,
-          target: Math.round(R_RATE_TARGET * 0.5),
-        },
-        { duration: `${R_STAGE_RAMP}m`, target: R_RATE_TARGET },
-        // Hold constant background read load
-        { duration: `${R_STAGE_PEAK}m`, target: R_RATE_TARGET },
+        { duration: `${STAGE_START}m`, target: RATE_READ_START },
+        { duration: `${STAGE_RAMP}m`, target: RATE_READ_TARGET },
+        { duration: `${STAGE_PEAK}m`, target: RATE_READ_TARGET },
+        { duration: `1m`, target: 0 },
       ],
 
       gracefulStop: "60s",
       exec: "hp_read_telemetry",
       tags: {
         role: "read",
+      },
+    },
+
+    // ==========================
+    // Write (POST)
+    // ==========================
+    hp_write_telemetry: {
+      executor: "ramping-arrival-rate",
+      startRate: 0,
+      timeUnit: "1s",
+
+      preAllocatedVUs: W_VU,
+      maxVUs: W_MAX_VU,
+
+      stages: [
+        { duration: `${STAGE_START}m`, target: RATE_WRITE_START },
+        { duration: `${STAGE_RAMP}m`, target: RATE_WRITE_TARGET },
+        { duration: `${STAGE_PEAK}m`, target: RATE_WRITE_TARGET },
+        { duration: `1m`, target: 0 },
+      ],
+
+      gracefulStop: "60s",
+      exec: "hp_write_telemetry",
+      tags: {
+        role: "write",
       },
     },
   },

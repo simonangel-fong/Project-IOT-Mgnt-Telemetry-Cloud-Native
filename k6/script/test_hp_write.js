@@ -10,7 +10,7 @@ import { postTelemetry } from "./target_url.js";
 const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
 
 // Tag to distinguish solution variants
-const SOLUTION_ID = __ENV.SOLUTION_ID || "Sol-Baseline"; // e.g. Sol-Baseline / Sol-ECS / Sol-Redis
+const SOLUTION_ID = __ENV.SOLUTION_ID || "baseline"; // e.g. Sol-Baseline / Sol-ECS / Sol-Redis
 const PROFILE = "write-heavy";
 
 // High-performance write test parameters
