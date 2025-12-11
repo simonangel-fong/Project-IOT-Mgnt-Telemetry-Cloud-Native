@@ -1,6 +1,6 @@
 # app/main.py
 from __future__ import annotations
-
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 # cors
@@ -8,12 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .mq import init_kafka_producer, close_kafka_producer
-from .routers import home, health
+from .routers import home, health, device, telemetry
 # from .routers import health, device, telemetry
 from .config.logging import setup_logging
 
 setup_logging()
-
+logger = logging.getLogger(__name__)
 
 API_PREFIX = "/api"
 settings = get_settings()
@@ -24,7 +24,8 @@ async def lifespan(app: FastAPI):
     try:
         await init_kafka_producer()
     except KafkaConnectionError as exc:
-        logger.exception("Kafka initialization failed during startup", exc_info=exc)
+        logger.exception(
+            "Kafka initialization failed during startup", exc_info=exc)
     yield
     # Shutdown
     await close_kafka_producer()
@@ -63,7 +64,7 @@ app.include_router(home.router, prefix=API_PREFIX)
 app.include_router(health.router, prefix=API_PREFIX)
 
 # Administrative device registry endpoints (UUID-based lookups)
-# app.include_router(device.router, prefix=API_PREFIX)
+app.include_router(device.router, prefix=API_PREFIX)
 
 # Device-facing telemetry ingestion and listing endpoints
-# app.include_router(telemetry.router, prefix=API_PREFIX)
+app.include_router(telemetry.router, prefix=API_PREFIX)

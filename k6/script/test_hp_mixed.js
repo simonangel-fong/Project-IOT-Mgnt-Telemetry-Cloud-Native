@@ -16,7 +16,7 @@ const PROFILE = "mixed"; // Mixed profile
 // -------- Write (POST) parameters --------
 const W_RATE_START = parseNumberEnv("W_RATE_START", 50); // initial write RPS
 const W_RATE_TARGET = parseNumberEnv("W_RATE_TARGET", 500); // peak write RPS
-const W_STAGE_RAMP = parseNumberEnv("W_STAGE_RAMP", 2); // minutes per write ramp stage
+const W_STAGE_RAMP = parseNumberEnv("W_STAGE_RAMP", 1); // minutes per write ramp stage
 const W_STAGE_PEAK = parseNumberEnv("W_STAGE_PEAK", 2); // minutes to hold peak write RPS
 
 const W_VU = parseNumberEnv("W_VU", 50); // pre-allocated VUs for write
@@ -25,7 +25,7 @@ const W_MAX_VU = parseNumberEnv("W_MAX_VU", 200); // max VUs for write scenario
 // -------- Background Read (GET) parameters --------
 const R_RATE_START = parseNumberEnv("R_RATE_START", 50);
 const R_RATE_TARGET = parseNumberEnv("R_RATE_TARGET", 500); // background read RPS
-const R_STAGE_RAMP = parseNumberEnv("R_STAGE_RAMP", 2); // minutes per read ramp stage
+const R_STAGE_RAMP = parseNumberEnv("R_STAGE_RAMP", 1); // minutes per read ramp stage
 const R_STAGE_PEAK = parseNumberEnv("R_STAGE_PEAK", 2); // minutes to hold peak read RPS
 
 const R_VU = parseNumberEnv("R_VU", 50); // pre-allocated VUs for read

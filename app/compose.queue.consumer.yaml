@@ -1,0 +1,43 @@
+services:
+  kafka_consumer01:
+    container_name: kafka_consumer01
+    build:
+      context: ./kafka/
+      dockerfile: Dockerfile
+    # command: ["python", "-m", "app.main"]
+    environment:
+      POSTGRES__HOST: postgres
+      POSTGRES__DB: app_db
+      POSTGRES__PORT: 5432
+      POSTGRES__USER: app_user
+      POSTGRES__PASSWORD: test123
+      KAFKA__HOST: kafka_broker
+      KAFKA__PORT: 9092
+    networks:
+      - private_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka_broker:
+        condition: service_healthy
+  kafka_consumer02:
+    container_name: kafka_consumer02
+    build:
+      context: ./kafka/
+      dockerfile: Dockerfile
+    # command: ["python", "-m", "app.main"]
+    environment:
+      POSTGRES__HOST: postgres
+      POSTGRES__DB: app_db
+      POSTGRES__PORT: 5432
+      POSTGRES__USER: app_user
+      POSTGRES__PASSWORD: test123
+      KAFKA__HOST: kafka_broker
+      KAFKA__PORT: 9092
+    networks:
+      - private_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka_broker:
+        condition: service_healthy

@@ -12,20 +12,21 @@
 ## Local - Testing
 
 ```sh
-docker compose -f app/compose.queue.yaml down -v
-docker compose -f app/compose.queue.yaml up -d --build
+docker compose -f app/compose.queue.yaml down -v && docker compose -f app/compose.queue.yaml up -d --build
 
 # smoke
-docker run --rm --name queue_local_smoke --net=queue_public_network -p 5665:5665 -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_smoke.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
+docker run --rm --name queue_local_smoke --net=queue_public_network -p 5665:5665 -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_smoke.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
 
 # read heavy
-docker run --rm --name queue_local_read --net=queue_public_network -p 5665:5665 -e SOLUTION_ID="Sol-queue" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_read.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
+docker run --rm --name queue_local_read --net=queue_public_network -p 5665:5665 -e SOLUTION_ID="queue" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_read.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
 
 # write heavy
-docker run --rm --name queue_local_write --net=queue_public_network -p 5665:5665 -e SOLUTION_ID="Sol-queue" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_write.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
+docker run --rm --name queue_local_write --net=queue_public_network -p 5665:5665 -e SOLUTION_ID="queue" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_write.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
 
 # mixed
 docker run --rm --name queue_local_mixed --net=queue_public_network -p 5665:5665 -e SOLUTION_ID="Sol-queue" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/queue_local_mixed.html -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_mixed.js
+
+python k6/pgdb_write_check.py
 
 ```
 

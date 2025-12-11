@@ -1,5 +1,9 @@
 name: queue
 
+include:
+  - compose.queue.fastapi.yaml
+  - compose.queue.consumer.yaml
+
 volumes:
   pgdata:
 
@@ -12,8 +16,8 @@ networks:
 
 services:
   kafka_broker:
-    image: apache/kafka:latest
     container_name: kafka_broker
+    image: apache/kafka:latest
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -32,40 +36,12 @@ services:
       - public_network
     ports:
       - "9092:9092"
-
-  # kafka-worker:
-  #   container_name: kafka_worker
-  #   build:
-  #     context: ./worker/
-  #     dockerfile: Dockerfile
-  #   command: python processor.py # Assumes your consumer logic is in processor.py
-  #   environment:
-  #     # Kafka Connection
-  #     KAFKA__HOST: kafka_broker
-  #     KAFKA__PORT: 9092
-  #     # Postgres Connection
-  #     POSTGRES__HOST: postgres
-  #     POSTGRES__DB: app_db
-  #     POSTGRES__PORT: 5432
-  #     POSTGRES__USER: app_user # Assuming app_user for the worker service
-  #     POSTGRES__PASSWORD: test123
-  #   networks:
-  #     - private_network
-  #   depends_on:
-  #     kafka_broker:
-  #       condition: service_started # Needs Kafka to consume messages
-  #     postgres:
-  #       condition: service_healthy # Needs DB to write results
-  #     flyway:
-  #       condition: service_completed_successfully # Needs migrations to be done
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: "1"
-  #         memory: 512M
-  #       reservations:
-  #         cpus: "0.25"
-  #         memory: 128M
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   postgres:
     container_name: postgres
@@ -81,6 +57,7 @@ services:
       - private_network
     ports:
       - "5432:5432"
+    command: ["postgres", "-c", "config_file=/config/cache.conf"]
     healthcheck:
       test:
         [
@@ -119,46 +96,15 @@ services:
       postgres:
         condition: service_healthy
 
-  fastapi:
-    container_name: fastapi
-    build:
-      context: ./fastapi_kafka/
-      dockerfile: Dockerfile
-    environment:
-      APP_NAME: iot-mgnt-telemetry
-      ENV: queue
-      DEBUG: true
-      POSTGRES__HOST: postgres
-      POSTGRES__DB: app_db
-      POSTGRES__PORT: 5432
-      POSTGRES__USER: app_user
-      POSTGRES__PASSWORD: test123
-      KAFKA__HOST: kafka_broker
-      KAFKA__PORT: 9092
+  redis:
+    container_name: redis
+    image: redis:7
+    restart: unless-stopped
     networks:
       # - public_network
       - private_network
     ports:
-      - 8000:8000
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    depends_on:
-      postgres:
-        condition: service_healthy
-      flyway:
-        condition: service_completed_successfully
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 512M
-        reservations:
-          cpus: "1"
-          memory: 256M
+      - "6379:6379"
 
   nginx:
     container_name: nginx
@@ -175,5 +121,5 @@ services:
         condition: service_healthy
       flyway:
         condition: service_completed_successfully
-      fastapi:
-        condition: service_healthy
+      # fastapi01:
+      #   condition: service_healthy
