@@ -21,6 +21,23 @@ resource "aws_security_group" "kafka" {
   description = "Kafka security group"
   vpc_id      = aws_vpc.main.id
 
+  # ingress rule
+  ingress {
+    description     = "Allow FastAPI ECS tasks to connect to Kafka over TLS"
+    from_port       = 9098
+    to_port         = 9098
+    protocol        = "tcp"
+    security_groups = [aws_security_group.fastapi.id]
+  }
+
+  # Allow all egress
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = {
     Name = local.msk_sg_name
   }
@@ -79,7 +96,14 @@ resource "aws_msk_cluster" "kafka" {
   encryption_info {
     encryption_in_transit {
       client_broker = "TLS"
-      in_cluster    = true
+      # client_broker = "PLAINTEXT"
+      in_cluster = true
+    }
+  }
+
+  client_authentication {
+    sasl {
+      iam = true
     }
   }
 

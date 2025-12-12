@@ -23,7 +23,7 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     try:
         await init_kafka_producer()
-    except KafkaConnectionError as exc:
+    except Exception as exc:
         logger.exception(
             "Kafka initialization failed during startup", exc_info=exc)
     yield

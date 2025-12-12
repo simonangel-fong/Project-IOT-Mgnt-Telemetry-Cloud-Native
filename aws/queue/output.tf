@@ -2,15 +2,15 @@ output "dns_url" {
   value = "https://${cloudflare_record.dns_record.hostname}"
 }
 
-output "redis_primary_endpoint" {
-  description = "Primary endpoint for Redis"
-  value       = aws_elasticache_replication_group.redis.primary_endpoint_address
-}
+# output "redis_primary_endpoint" {
+#   description = "Primary endpoint for Redis"
+#   value       = aws_elasticache_replication_group.redis.primary_endpoint_address
+# }
 
-output "redis_port" {
-  description = "Port for Redis"
-  value       = aws_elasticache_replication_group.redis.port
-}
+# output "redis_port" {
+#   description = "Port for Redis"
+#   value       = aws_elasticache_replication_group.redis.port
+# }
 
 output "flyway_init_cmd" {
   value = <<EOF
@@ -27,7 +27,7 @@ output "flyway_init_cmd" {
 
 }
 
-output "msk_bootstrap_brokers_tls" {
-  description = "Bootstrap broker string for TLS"
-  value       = aws_msk_cluster.kafka.bootstrap_brokers_tls
-}
+# output "msk_bootstrap_brokers_tls" {
+#   description = "Bootstrap broker string for TLS"
+#   value       = aws_msk_cluster.kafka.bootstrap_brokers_tls
+# }

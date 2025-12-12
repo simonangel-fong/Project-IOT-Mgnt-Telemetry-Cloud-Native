@@ -45,7 +45,7 @@ variable "svc_fastapi_farget_memory" {
 
 variable "svc_fastapi_desired_count" {
   type    = number
-  default = 3
+  default = 1
 }
 
 variable "svc_fastapi_min_capacity" {

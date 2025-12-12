@@ -78,7 +78,7 @@ async def run_consumer() -> None:
     await consumer.start()
     logger.info(
         "Telemetry consumer started. topic=%s, bootstrap_servers=%s",
-        settings.kafka.kafka_topic_telemetry
+        settings.kafka.topic_telemetry
         if hasattr(settings, "kafka") and hasattr(settings.kafka, "kafka_topic_telemetry")
         else getattr(settings, "kafka_topic_telemetry", "telemetry_ingest"),
         getattr(settings, "kafka_bootstrap_servers", "unknown"),

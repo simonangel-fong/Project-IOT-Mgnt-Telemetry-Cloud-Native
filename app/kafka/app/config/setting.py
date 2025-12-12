@@ -16,24 +16,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class KafkaSettings(BaseModel):
     """Kafka configuration."""
 
-    host: str = "broker"
-    port: int = 9092
+    bootstrap_servers: str = "broker:9092"
     topic_telemetry: str = "telemetry_ingest"
     group_id: str = "telemetry-writer"
 
     # topic names
     topic_telemetry_ingest: str = "telemetry_ingest"
     topic_telemetry_dlq: str = "telemetry_dlq"
-
-    @property
-    def bootstrap_servers(self) -> str:
-        """
-        Kafka bootstrap servers string.
-
-        Example:
-            broker:9092
-        """
-        return f"{self.host}:{self.port}"
 
 
 # ==============================

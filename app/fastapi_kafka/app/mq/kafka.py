@@ -2,16 +2,46 @@
 from __future__ import annotations
 
 import json
+import ssl
 from typing import Any, Optional
 
 from aiokafka import AIOKafkaProducer
+from aws_msk_iam_sasl_signer import MSKAuthTokenProvider
 
 from ..config import get_settings
 
 _settings = get_settings()
 
+
+class MSKTokenProvider():
+    def token(self):
+        token, _ = MSKAuthTokenProvider.generate_auth_token('ca-central-1')
+        return token
+
+
+tp = MSKTokenProvider()
+
 # Internal global producer instance: shared by the whole app
 _producer: Optional[AIOKafkaProducer] = None
+
+
+def _get_kafka_security_kwargs() -> dict[str, Any]:
+    """
+    Return security-related kwargs for AIOKafkaProducer based on environment.
+    - Local Docker: PLAINTEXT
+    - AWS MSK (TLS only): SSL + ssl_context
+    """
+    if _settings.env in ("queue", "staging", "prod"):
+        ctx = ssl.create_default_context()
+        return {
+            "security_protocol": "SSL",
+            "ssl_context": ctx,
+        }
+    else:
+        # Local dev (docker-compose)
+        return {
+            "security_protocol": "PLAINTEXT",
+        }
 
 
 def _serialize_value(value: Any) -> bytes:
@@ -56,6 +86,9 @@ async def init_kafka_producer() -> None:
         key_serializer=_serialize_key,
         acks="all",
         linger_ms=5,
+        sasl_mechanism='OAUTHBEARER',
+        sasl_oauth_token_provider=tp,
+        ssl_context=ssl.create_default_context(),
         # enable_idempotence=True,
     )
     await _producer.start()

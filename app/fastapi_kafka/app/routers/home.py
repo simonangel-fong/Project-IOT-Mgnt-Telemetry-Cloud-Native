@@ -65,8 +65,7 @@ async def home() -> dict:
         }
 
         response["mq"] = {
-            "host": settings.kafka.host,
-            "port": settings.kafka.port,
+            "bootstrap_servers": settings.kafka.bootstrap_servers,
             "client_id": settings.kafka.client_id
         }
 

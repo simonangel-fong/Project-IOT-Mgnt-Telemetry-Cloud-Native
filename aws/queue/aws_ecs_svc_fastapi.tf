@@ -46,6 +46,61 @@ resource "aws_iam_role" "ecs_task_role_fastapi" {
   assume_role_policy = data.aws_iam_policy_document.assume_role_ecs.json
 }
 
+# #################################
+# IAM: ECS with MSK
+# #################################
+data "aws_iam_policy_document" "fastapi_msk" {
+  statement {
+    sid    = "KafkaClusterConnectAndDescribe"
+    effect = "Allow"
+    actions = [
+      "kafka-cluster:Connect",
+      "kafka-cluster:DescribeCluster",
+      "kafka-cluster:DescribeClusterDynamicConfiguration",
+    ]
+    resources = [
+      aws_msk_cluster.kafka.arn
+    ]
+  }
+
+  statement {
+    sid    = "KafkaTopicAccess"
+    effect = "Allow"
+    actions = [
+      "kafka-cluster:DescribeTopic",
+      "kafka-cluster:DescribeTopicDynamicConfiguration",
+      "kafka-cluster:WriteData",
+      "kafka-cluster:ReadData",
+    ]
+    resources = [
+      "${aws_msk_cluster.kafka.arn}/*"
+    ]
+  }
+
+  statement {
+    sid    = "KafkaGroupAccess"
+    effect = "Allow"
+    actions = [
+      "kafka-cluster:DescribeGroup",
+      "kafka-cluster:AlterGroup",
+    ]
+    resources = [
+      "${aws_msk_cluster.kafka.arn}/*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "fastapi_msk" {
+  name   = "${var.project}-${var.env}-fastapi-msk"
+  policy = data.aws_iam_policy_document.fastapi_msk.json
+}
+
+resource "aws_iam_role_policy_attachment" "fastapi_msk" {
+  role       = aws_iam_role.ecs_task_role_fastapi.name
+  policy_arn = aws_iam_policy.fastapi_msk.arn
+}
+
+
 # ##############################
 # Security Group
 # ##############################
@@ -70,7 +125,6 @@ resource "aws_security_group" "fastapi" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-
   tags = {
     Name = "${var.project}-${var.env}-sg-fastapi"
   }
@@ -93,24 +147,24 @@ resource "aws_ecs_task_definition" "ecs_task_fastapi" {
 
   # method: template file
   container_definitions = templatefile("${path.module}/container/fastapi.tftpl", {
-    image         = local.ecr_fastapi
-    cpu           = local.cpu
-    memory        = local.memory
-    awslogs_group = local.svc_fastapi_log_group_name
-    region        = var.aws_region
-    project       = var.project
-    env           = var.env
-    debug         = local.debug
-    pgdb_host     = local.app_pgdb_host
-    pgdb_db       = local.app_pgdb_db
-    pgdb_user     = local.app_pgdb_user
-    pgdb_pwd      = local.app_pgdb_pwd
-    pool_size     = local.pool_size
-    max_overflow  = local.max_overflow
-    worker        = local.worker
-    redis_host    = aws_elasticache_replication_group.redis.primary_endpoint_address
-    redis_port    = aws_elasticache_replication_group.redis.port
-    kafka_host    = aws_msk_cluster.kafka.bootstrap_brokers_tls
+    image           = local.ecr_fastapi
+    cpu             = local.cpu
+    memory          = local.memory
+    awslogs_group   = local.svc_fastapi_log_group_name
+    region          = var.aws_region
+    project         = var.project
+    env             = var.env
+    debug           = local.debug
+    pgdb_host       = local.app_pgdb_host
+    pgdb_db         = local.app_pgdb_db
+    pgdb_user       = local.app_pgdb_user
+    pgdb_pwd        = local.app_pgdb_pwd
+    pool_size       = local.pool_size
+    max_overflow    = local.max_overflow
+    worker          = local.worker
+    redis_host      = aws_elasticache_replication_group.redis.primary_endpoint_address
+    redis_port      = aws_elasticache_replication_group.redis.port
+    kafka_bootstrap = aws_msk_cluster.kafka.bootstrap_brokers_sasl_iam
   })
 
   tags = {
