@@ -1,7 +1,7 @@
 # #################################
 # IAM: ECS Assume policy
 # #################################
-data "aws_iam_policy_document" "ecs_task_assume_role" {
+data "aws_iam_policy_document" "assume_role_ecs" {
   statement {
     effect = "Allow"
     principals {

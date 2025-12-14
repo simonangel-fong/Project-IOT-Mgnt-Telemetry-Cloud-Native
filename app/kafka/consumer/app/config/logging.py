@@ -6,7 +6,7 @@ import logging.config
 # from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
-from .setting import get_settings
+from .settings import get_settings
 
 settings = get_settings()
 

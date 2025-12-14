@@ -50,7 +50,7 @@ variable "svc_fastapi_farget_memory" {
 
 variable "svc_fastapi_desired_count" {
   type    = number
-  default = 2
+  default = 5
 }
 
 variable "svc_fastapi_min_capacity" {
@@ -143,6 +143,11 @@ variable "kafka_volume_size" {
 variable "kafka_broker_count" {
   type    = number
   default = 3
+}
+
+variable "kafka_topic" {
+  type    = string
+  default = "telemetry"
 }
 
 # ##############################

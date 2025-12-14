@@ -1,9 +1,7 @@
-# mq/__init__.py
-from .kafka import init_producer, close_producer, get_producer, send_and_wait
+from .kafka_producer import init_producer, close_producer, get_producer
 
 __all__ = [
     "init_producer",
-    "get_producer",
     "close_producer",
-    "send_and_wait",
+    "get_producer"
 ]

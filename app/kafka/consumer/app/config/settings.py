@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import List, Literal
 from urllib.parse import quote_plus
 
 from pydantic import BaseModel, Field
@@ -16,13 +16,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class KafkaSettings(BaseModel):
     """Kafka configuration."""
 
-    bootstrap_servers: str = "broker:9092"
-    topic_telemetry: str = "telemetry_ingest"
-    group_id: str = "telemetry-writer"
+    bootstrap_servers: str = Field(default="broker:9092")
+    client_id: str = Field(default="iot-mgnt-telemetry")
 
-    # topic names
-    topic_telemetry_ingest: str = "telemetry_ingest"
-    topic_telemetry_dlq: str = "telemetry_dlq"
+    # consumer settings
+    group_id: str = Field(default="telemetry-consumer")
+    auto_offset_reset: Literal["earliest", "latest",
+                               "none"] = Field(default="earliest")
+    enable_auto_commit: bool = Field(default=True)
+
+    # topic(s)
+    topic: str = Field(default="telemetry")
+    topics: List[str] = Field(default_factory=list)
 
 
 # ==============================
@@ -82,39 +87,7 @@ class RedisSettings(BaseModel):
 class Settings(BaseSettings):
     """Application settings."""
 
-    # General
-    app_name: str = "Iot management telemetry"
-    cors: str = Field(
-        default="http://localhost,http://localhost:8000,http://localhost:8080",
-        alias="CORS",
-        description="Comma-separated list of allowed CORS origins",
-    )
-    debug: bool = True
-    env: str = "dev"
-    # env: Literal["dev", "staging", "prod"] = "dev"
-
-    # performance tuning
-    pool_size: int = Field(
-        default=5,
-        alias="POOL_SIZE",
-        description="The largest number of connections that will be kept persistently in the pool.",
-    )
-
-    max_overflow: int = Field(
-        default=10,
-        alias="MAX_OVERFLOW",
-        description="The additional connections when the pool_size is reached.",
-    )
-
-    workers: int = Field(
-        default=1,
-        alias="WORKER",
-        description="The number of uvicorn workers.",
-    )
-
-    # Nested config
-    postgres: PostgresSettings = PostgresSettings()
-    redis: RedisSettings = RedisSettings()
+    aws_region: str = "ca-central-1"
     kafka: KafkaSettings = KafkaSettings()
 
     # Pydantic Settings config
@@ -126,7 +99,12 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",    # POSTGRES__HOST -> settings.postgres.host
     )
 
-    # Convenience properties
+    # Nested config
+    postgres: PostgresSettings = PostgresSettings()
+    redis: RedisSettings = RedisSettings()
+    kafka: KafkaSettings = KafkaSettings()
+
+    # Properties
     @property
     def postgres_url(self) -> str:
         """Postgres connection URL."""
@@ -143,13 +121,9 @@ class Settings(BaseSettings):
         return self.kafka.bootstrap_servers
 
     @property
-    def cors_list(self) -> list[str]:
-        """Parsed list of CORS origins from the comma-separated string."""
-        return [
-            origin.strip()
-            for origin in self.cors.split(",")
-            if origin.strip()
-        ]
+    def kafka_topics(self) -> list[str]:
+        """Use kafka.topics if provided, else fall back to single kafka.topic."""
+        return self.kafka.topics or [self.kafka.topic]
 
 
 # ==============================

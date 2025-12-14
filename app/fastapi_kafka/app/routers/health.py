@@ -1,18 +1,16 @@
 # app/routers/health.py
 import logging
 
+from aiokafka import AIOKafkaProducer
 from fastapi import APIRouter, Depends
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
-
 from ..config import get_settings
 from ..db import get_db, redis_client
-from ..mq.kafka import get_producer 
+from ..mq import get_producer
 
 router = APIRouter(prefix="/health", tags=["health"])
 logger = logging.getLogger(__name__)
@@ -60,21 +58,18 @@ async def health_redis() -> JSONResponse:
 
 @router.get("/kafka", summary="Kafka health check")
 async def health_kafka(
-    producer: KafkaProducer = Depends(get_producer),
+    producer: AIOKafkaProducer = Depends(get_producer),
 ) -> JSONResponse:
     """
-    Lightweight Kafka readiness check for kafka-python:
-
-    - Ensures producer can fetch topic partitions via metadata.
-    - This does not guarantee produce success, but catches common DNS/SG/auth failures.
+    Kafka readiness check for MSK (aiokafka + IAM)
     """
-    topic = settings.kafka.topic_id
-
-    async def _get_partitions():
-        return await run_in_threadpool(producer.partitions_for, topic)
+    topic = settings.kafka.topic
 
     try:
-        partitions = await _get_partitions()
+        # Ensure metadata is loaded
+        await producer.client.force_metadata_update()
+
+        partitions = producer.client.cluster.partitions_for_topic(topic)
 
         if not partitions:
             raise RuntimeError(f"No partitions available for topic '{topic}'")
@@ -88,7 +83,7 @@ async def health_kafka(
             }
         )
 
-    except (KafkaError, Exception) as exc:
+    except Exception as exc:
         logger.exception("Kafka health check failed")
         return JSONResponse(
             status_code=503,

@@ -9,7 +9,7 @@ locals {
 # assume role
 resource "aws_iam_role" "ecs_task_execution_role_flyway" {
   name               = "${var.project}-${var.env}-execution-role-flyway"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
+  assume_role_policy = data.aws_iam_policy_document.assume_role_ecs.json
 }
 
 # policy attachment: exec role
@@ -23,7 +23,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_flyway
 # #################################
 resource "aws_iam_role" "ecs_task_role_flyway" {
   name               = "${var.project}-${var.env}-task-role-flyway"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
+  assume_role_policy = data.aws_iam_policy_document.assume_role_ecs.json
 }
 
 # ##############################

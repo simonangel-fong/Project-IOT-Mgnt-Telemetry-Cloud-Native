@@ -6,9 +6,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .config import get_settings
-from .config.logging import setup_logging
-from .mq.kafka import init_producer, close_producer
+from .config import get_settings, setup_logging
+from .mq import init_producer, close_producer
 from .routers import home, health, device, telemetry
 
 setup_logging()
@@ -20,27 +19,9 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    App startup/shutdown lifecycle.
-    - Start Kafka producer at startup (best effort or fail-fast: choose behavior below)
-    """
-    global KAFKA_READY
-
-    try:
-        await init_producer()
-        logger.info("Kafka producer initialized successfully.")
-    except Exception:
-        logger.exception("Kafka initialization failed during startup.")
-
-    try:
-        yield
-    finally:
-        # Always attempt clean shutdown
-        try:
-            await close_producer()
-            logger.info("Kafka producer closed.")
-        except Exception:
-            logger.exception("Kafka shutdown failed.")
+    await init_producer()
+    yield
+    await close_producer()
 
 
 app = FastAPI(

@@ -1,0 +1,40 @@
+[
+  {
+    "name": "consumer",
+    "image": "${image}",
+
+    "cpu": ${cpu},
+    "memory": ${memory},
+    "essential": true,
+
+    "environment": [
+      { "name": "APP_NAME", "value": "${project}" },
+      { "name": "ENV", "value": "${env}" },
+      { "name": "DEBUG", "value": "${debug}" },
+      { "name": "AWS_REGION", "value": "${region}" },
+      { "name": "KAFKA__BOOTSTRAP_SERVERS", "value": "${kafka_bootstrap}" }
+    ],
+
+    "portMappings": [
+      {
+        "name": "consumer",
+        "containerPort": 8000,
+        "protocol": "tcp"
+      }
+    ],
+
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-create-group": "true",
+        "awslogs-group": "${awslogs_group}",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "ecs",
+        "awslogs-datetime-format": "%Y-%m-%dT%H:%M:%S.%f%z"
+      }
+    },
+
+    "stopTimeout": 30,
+    "readonlyRootFilesystem": false
+  }
+]

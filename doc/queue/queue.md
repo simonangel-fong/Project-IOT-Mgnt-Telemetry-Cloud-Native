@@ -8,6 +8,7 @@
   - [Remote Testing](#remote-testing)
   - [Kafka](#kafka)
     - [Init](#init)
+    - [Consumer](#consumer)
 
 ---
 
@@ -83,6 +84,19 @@ docker tag kafka_init 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-t
 # push to docker
 docker push 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry:kafka-init
 
+```
 
+---
+
+### Consumer
+
+
+```sh
+# Push
+docker build -t kafka_consumer app/kafka/consumer
+# tag
+docker tag kafka_consumer 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry:kafka-consumer
+# push to docker
+docker push 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry:kafka-consumer
 
 ```

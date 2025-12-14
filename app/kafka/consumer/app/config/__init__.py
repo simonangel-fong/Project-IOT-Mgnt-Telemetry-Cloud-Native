@@ -1,7 +1,5 @@
-# app/config/__init__.py
-from .setting import get_settings, Settings
+from .settings import get_settings
 
 __all__ = [
-    "get_settings",
-    "Settings"
+    "get_settings"
 ]

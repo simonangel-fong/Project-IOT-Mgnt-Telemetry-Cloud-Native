@@ -1,6 +1,7 @@
-# app/db/__init__.py
-from .postgres import async_session_maker
+from .presgres import get_db
+from .redis import redis_client
 
 __all__ = [
-    "async_session_maker",
+    "get_db",
+    "redis_client",
 ]

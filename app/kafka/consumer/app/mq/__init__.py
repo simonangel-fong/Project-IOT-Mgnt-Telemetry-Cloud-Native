@@ -1,8 +1,7 @@
-# mq/__init__.py
-from .kafka import create_consumer
-# from .topic import get_kafka_topics
+from .kafka_consumer import init_consumer, close_consumer, get_consumer
 
 __all__ = [
-    "create_consumer",
-    # "get_kafka_topics",
+    "init_consumer",
+    "close_consumer",
+    "get_consumer"
 ]

@@ -7,7 +7,6 @@ import json
 import logging
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
-from fastapi.concurrency import run_in_threadpool
 
 from fastapi import (
     APIRouter,
@@ -33,10 +32,11 @@ from ..schemas import (
     TelemetryLatestItem,
 )
 
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
-from ..mq import get_producer, send_and_wait
+from ..mq import get_producer
 from ..config import get_settings
+
+from aiokafka import AIOKafkaProducer
+from aiokafka.errors import KafkaError
 
 settings = get_settings()
 
@@ -360,17 +360,9 @@ async def list_telemetry_for_device(
 # ============================================================
 # POST /telemetry/{device_uuid}
 # ============================================================
-
 @router.post(
     "/{device_uuid}",
     summary="Ingest telemetry for a device",
-    description=(
-        "Ingest a single telemetry event for a specific device identified by its UUID. "
-        "The device must authenticate using the `X-API-Key` header. The server assigns "
-        "`system_time_utc` based on the current time in UTC. The device may optionally "
-        "include `device_time` to represent its own clock value; if omitted, it will "
-        "be set to the server ingestion time."
-    ),
     response_model=TelemetryItem,
     status_code=status.HTTP_201_CREATED,
 )
@@ -379,7 +371,7 @@ async def create_telemetry_for_device(
     payload: TelemetryCreate = Body(
         description="Telemetry payload containing coordinates and optional device timestamp.",
     ),
-    producer: KafkaProducer = Depends(get_producer),
+    producer: AIOKafkaProducer = Depends(get_producer),
 ) -> TelemetryItem:
     now_utc = datetime.now(timezone.utc)
     device_time = payload.device_time or now_utc
@@ -392,21 +384,27 @@ async def create_telemetry_for_device(
         system_time_utc=now_utc,
     )
 
-    topic = settings.kafka.topic_id
-    message_key = str(device.device_uuid)
-    message_value = item.model_dump(mode="json")
+    topic = settings.kafka.topic
 
-    # ---- Kafka publish (block in thread; return 503 on failure) ----
+    key = str(device.device_uuid).encode("utf-8")
+    value = item.model_dump(mode="json")
+
+    # ---- Kafka publish ----
     try:
-        await send_and_wait(
-            topic=topic,
-            key=message_key,
-            value=message_value,
-            timeout=10.0,
+        # send_and_wait returns RecordMetadata;
+        md = await producer.send_and_wait(topic, value=value, key=key)
+        logger.info(
+            "Telemetry enqueued",
+            # extra={
+            #     "device_uuid": str(device.device_uuid),
+            #     "topic": topic,
+            #     "partition": md.partition,
+            #     "offset": md.offset,
+            # },
         )
     except KafkaError as exc:
         logger.exception(
-            "Failed to publish telemetry event to Kafka",
+            "Kafka publish failed",
             extra={"device_uuid": str(device.device_uuid), "topic": topic},
         )
         raise HTTPException(
@@ -414,7 +412,6 @@ async def create_telemetry_for_device(
             detail="Failed to enqueue telemetry event.",
         ) from exc
     except Exception as exc:
-        # catch-all (network/DNS/etc). keep separate so you can see unexpected errors.
         logger.exception(
             "Unexpected error while publishing to Kafka",
             extra={"device_uuid": str(device.device_uuid), "topic": topic},
@@ -424,12 +421,7 @@ async def create_telemetry_for_device(
             detail="Failed to enqueue telemetry event.",
         ) from exc
 
-    logger.info(
-        "Telemetry event enqueued to Kafka",
-        extra={"device_uuid": str(device.device_uuid), "topic": topic},
-    )
-
-    # ---- Redis cache (best-effort) ----
+    # ---- Redis cache ----
     latest_key = f"telemetry:latest:{device.device_uuid}"
     recent_list_key = f"telemetry:recent:{device.device_uuid}"
     item_json = item.model_dump_json()
