@@ -75,7 +75,6 @@ data "aws_iam_policy_document" "consumer_msk" {
   }
 }
 
-
 resource "aws_iam_policy" "consumer_msk" {
   name   = "${var.project}-${var.env}-consumer-msk"
   policy = data.aws_iam_policy_document.consumer_msk.json
@@ -107,16 +106,6 @@ resource "aws_security_group" "consumer" {
   }
 }
 
-resource "aws_security_group_rule" "consumer_to_msk" {
-  type                     = "ingress"
-  security_group_id        = aws_security_group.kafka.id
-  from_port                = 9098
-  to_port                  = 9098
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.consumer.id
-  description              = "Allow ECS consumer to reach MSK SASL/IAM"
-}
-
 # #################################
 # CloudWatch: log group
 # #################################
@@ -126,7 +115,7 @@ resource "aws_cloudwatch_log_group" "log_group_consumer" {
   kms_key_id        = aws_kms_key.cloudwatch_log.arn
 
   tags = {
-    Name = "${var.project}-${var.env}-log-group-consumer"
+    Name = local.svc_consumer_log_group_name
   }
 }
 
@@ -144,16 +133,21 @@ resource "aws_ecs_task_definition" "ecs_task_consumer" {
   task_role_arn      = aws_iam_role.consumer_task_role.arn
 
   container_definitions = templatefile("${path.module}/container/kafka_consumer.tftpl", {
-    image           = local.ecr_consumer
-    cpu             = 512
-    memory          = 1024
-    awslogs_group   = local.svc_consumer_log_group_name
-    region          = var.aws_region
-    project         = var.project
-    env             = var.env
-    debug           = var.debug
-    kafka_bootstrap = aws_msk_cluster.kafka.bootstrap_brokers_sasl_iam
-    # kafka_bootstrap   = aws_msk_serverless_cluster.kafka.bootstrap_brokers_sasl_iam
+    image             = local.ecr_consumer
+    cpu               = 512
+    memory            = 1024
+    awslogs_group     = local.svc_consumer_log_group_name
+    region            = var.aws_region
+    project           = var.project
+    env               = var.env
+    debug             = var.debug
+    pgdb_host         = local.app_pgdb_host
+    pgdb_db           = local.app_pgdb_db
+    pgdb_user         = local.app_pgdb_user
+    pgdb_pwd          = local.app_pgdb_pwd
+    pool_size         = local.pool_size
+    max_overflow      = local.max_overflow
+    kafka_bootstrap   = aws_msk_cluster.kafka.bootstrap_brokers_sasl_iam
     consumer_group_id = local.consumer_group_id
   })
 
@@ -170,14 +164,14 @@ resource "aws_ecs_service" "ecs_svc_consumer" {
   cluster = aws_ecs_cluster.ecs_cluster.id
 
   task_definition  = aws_ecs_task_definition.ecs_task_consumer.arn
-  desired_count    = 1
+  desired_count    = 2
   launch_type      = "FARGATE"
   platform_version = "LATEST"
 
   network_configuration {
     security_groups  = [aws_security_group.consumer.id]
-    subnets          = [for subnet in aws_subnet.public : subnet.id]
-    assign_public_ip = true
+    subnets          = [for subnet in aws_subnet.private : subnet.id]
+    assign_public_ip = false
   }
 
   tags = {
@@ -187,6 +181,53 @@ resource "aws_ecs_service" "ecs_svc_consumer" {
   depends_on = [
     aws_cloudwatch_log_group.log_group_consumer,
   ]
+}
+
+
+# #################################
+# Service: Scaling policy
+# #################################
+resource "aws_appautoscaling_target" "scaling_target_kafka_consumer" {
+  service_namespace  = "ecs"
+  resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.ecs_svc_consumer.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  min_capacity       = 1
+  max_capacity       = 10
+}
+
+# scaling policy: cpu
+resource "aws_appautoscaling_policy" "scaling_cpu_kafka_consumer" {
+  name               = "${var.project}-scale-cpu-kafka-consumer"
+  resource_id        = aws_appautoscaling_target.scaling_target_kafka_consumer.resource_id
+  scalable_dimension = aws_appautoscaling_target.scaling_target_kafka_consumer.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.scaling_target_kafka_consumer.service_namespace
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value       = 60 # cpu%
+    scale_in_cooldown  = 30
+    scale_out_cooldown = 30
+  }
+}
+
+resource "aws_appautoscaling_policy" "scaling_memory_kafka_consumer" {
+  name               = "${var.project}-scale-memory-kafka-consumer"
+  resource_id        = aws_appautoscaling_target.scaling_target_kafka_consumer.resource_id
+  scalable_dimension = aws_appautoscaling_target.scaling_target_kafka_consumer.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.scaling_target_kafka_consumer.service_namespace
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    target_value       = 40
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
 }
 
 

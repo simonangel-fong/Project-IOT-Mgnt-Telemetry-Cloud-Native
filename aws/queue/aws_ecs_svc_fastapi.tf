@@ -193,48 +193,48 @@ resource "aws_ecs_service" "ecs_svc_fastapi" {
   ]
 }
 
-# # #################################
-# # Service: Scaling policy
-# # #################################
-# resource "aws_appautoscaling_target" "scaling_target_fastapi" {
-#   service_namespace  = "ecs"
-#   resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.ecs_svc_fastapi.name}"
-#   scalable_dimension = "ecs:service:DesiredCount"
-#   min_capacity       = var.svc_fastapi_min_capacity
-#   max_capacity       = var.svc_fastapi_max_capacity
-# }
+# #################################
+# Service: Scaling policy
+# #################################
+resource "aws_appautoscaling_target" "scaling_target_fastapi" {
+  service_namespace  = "ecs"
+  resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.ecs_svc_fastapi.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  min_capacity       = var.svc_fastapi_min_capacity
+  max_capacity       = var.svc_fastapi_max_capacity
+}
 
-# # scaling policy: cpu
-# resource "aws_appautoscaling_policy" "scaling_cpu_fastapi" {
-#   name               = "${var.project}-scale-cpu-fastapi"
-#   resource_id        = aws_appautoscaling_target.scaling_target_fastapi.resource_id
-#   scalable_dimension = aws_appautoscaling_target.scaling_target_fastapi.scalable_dimension
-#   service_namespace  = aws_appautoscaling_target.scaling_target_fastapi.service_namespace
-#   policy_type        = "TargetTrackingScaling"
+# scaling policy: cpu
+resource "aws_appautoscaling_policy" "scaling_cpu_fastapi" {
+  name               = "${var.project}-scale-cpu-fastapi"
+  resource_id        = aws_appautoscaling_target.scaling_target_fastapi.resource_id
+  scalable_dimension = aws_appautoscaling_target.scaling_target_fastapi.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.scaling_target_fastapi.service_namespace
+  policy_type        = "TargetTrackingScaling"
 
-#   target_tracking_scaling_policy_configuration {
-#     predefined_metric_specification {
-#       predefined_metric_type = "ECSServiceAverageCPUUtilization"
-#     }
-#     target_value       = 60 # cpu%
-#     scale_in_cooldown  = 30
-#     scale_out_cooldown = 30
-#   }
-# }
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value       = 60 # cpu%
+    scale_in_cooldown  = 30
+    scale_out_cooldown = 30
+  }
+}
 
-# resource "aws_appautoscaling_policy" "scaling_memory_fastapi" {
-#   name               = "${var.project}-scale-memory-fastapi"
-#   resource_id        = aws_appautoscaling_target.scaling_target_fastapi.resource_id
-#   scalable_dimension = aws_appautoscaling_target.scaling_target_fastapi.scalable_dimension
-#   service_namespace  = aws_appautoscaling_target.scaling_target_fastapi.service_namespace
-#   policy_type        = "TargetTrackingScaling"
+resource "aws_appautoscaling_policy" "scaling_memory_fastapi" {
+  name               = "${var.project}-scale-memory-fastapi"
+  resource_id        = aws_appautoscaling_target.scaling_target_fastapi.resource_id
+  scalable_dimension = aws_appautoscaling_target.scaling_target_fastapi.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.scaling_target_fastapi.service_namespace
+  policy_type        = "TargetTrackingScaling"
 
-#   target_tracking_scaling_policy_configuration {
-#     predefined_metric_specification {
-#       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
-#     }
-#     target_value       = 40
-#     scale_in_cooldown  = 60
-#     scale_out_cooldown = 60
-#   }
-# }
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    target_value       = 40
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
+}

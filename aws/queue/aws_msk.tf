@@ -21,16 +21,6 @@ resource "aws_security_group" "kafka" {
   description = "Kafka security group"
   vpc_id      = aws_vpc.main.id
 
-  # ingress rule
-  ingress {
-    description     = "Allow FastAPI ECS tasks to connect to Kafka over TLS"
-    from_port       = 9098
-    to_port         = 9098
-    protocol        = "tcp"
-    security_groups = [aws_security_group.fastapi.id]
-  }
-
-  # Allow all egress
   egress {
     from_port   = 0
     to_port     = 0
@@ -41,6 +31,26 @@ resource "aws_security_group" "kafka" {
   tags = {
     Name = local.msk_sg_name
   }
+}
+
+resource "aws_security_group_rule" "fastapi_to_msk" {
+  type                     = "ingress"
+  security_group_id        = aws_security_group.kafka.id
+  from_port                = 9098
+  to_port                  = 9098
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.fastapi.id
+  description              = "Allow FastAPI ECS tasks to reach MSK SASL/IAM"
+}
+
+resource "aws_security_group_rule" "consumer_to_msk" {
+  type                     = "ingress"
+  security_group_id        = aws_security_group.kafka.id
+  from_port                = 9098
+  to_port                  = 9098
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.consumer.id
+  description              = "Allow Consumer ECS tasks to reach MSK SASL/IAM"
 }
 
 # ##############################

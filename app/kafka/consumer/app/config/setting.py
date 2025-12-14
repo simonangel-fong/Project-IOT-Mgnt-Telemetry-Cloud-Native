@@ -88,7 +88,21 @@ class Settings(BaseSettings):
     """Application settings."""
 
     aws_region: str = "ca-central-1"
+    debug: bool = True
     kafka: KafkaSettings = KafkaSettings()
+
+    # performance tuning
+    pool_size: int = Field(
+        default=5,
+        alias="POOL_SIZE",
+        description="The largest number of connections that will be kept persistently in the pool.",
+    )
+
+    max_overflow: int = Field(
+        default=10,
+        alias="MAX_OVERFLOW",
+        description="The additional connections when the pool_size is reached.",
+    )
 
     # Pydantic Settings config
     model_config = SettingsConfigDict(
