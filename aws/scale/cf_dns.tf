@@ -11,7 +11,3 @@ resource "cloudflare_record" "dns_record" {
   ttl     = 1
   proxied = true
 }
-
-output "dns_url" {
-  value = "https://${cloudflare_record.dns_record.hostname}"
-}

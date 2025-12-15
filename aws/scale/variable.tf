@@ -63,11 +63,11 @@ variable "svc_param" {
       image_suffix  = "fastapi-baseline"
       cpu           = 2048
       memory        = 4096
-      count_desired = 1
-      count_min     = 1
-      count_max     = 1
+      count_desired = 6
+      count_min     = 4
+      count_max     = 10
       container_env = {
-        pool_size    = 5
+        pool_size    = 20
         max_overflow = 10
         worker       = 1
       }

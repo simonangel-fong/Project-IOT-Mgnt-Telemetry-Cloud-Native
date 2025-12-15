@@ -56,15 +56,15 @@ terraform destroy -auto-approve
 
 ```sh
 # smoke
-docker run --rm --name tune_aws_smoke -p 5665:5665 -e BASE_URL="https://iot-tune.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/tune_aws_smoke.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
+docker run --rm --name tune_aws_smoke -p 5666:5665 -e BASE_URL="https://iot-tune.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/tune_aws_smoke.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
 
 # read heavy
-docker run --rm --name tune_aws_read -p 5665:5665 -e SOLUTION_ID="tune" -e BASE_URL="https://iot-tune.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/tune_aws_read.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
+docker run --rm --name tune_aws_read -p 5666:5665 -e SOLUTION_ID="tune" -e BASE_URL="https://iot-tune.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/tune_aws_read.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
 
 # write heavy
-docker run --rm --name tune_aws_write -p 5665:5665 -e SOLUTION_ID="tune" -e BASE_URL="https://iot-tune.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/tune_aws_write.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
+docker run --rm --name tune_aws_write -p 5666:5665 -e SOLUTION_ID="tune" -e BASE_URL="https://iot-tune.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/tune_aws_write.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
 
 # mixed
-docker run --rm --name tune_aws_mixed -p 5665:5665 -e SOLUTION_ID="tune" -e BASE_URL="https://iot-tune.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/tune_aws_mixed.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_mixed.js
+docker run --rm --name tune_aws_mixed -p 5666:5665 -e SOLUTION_ID="tune" -e BASE_URL="https://iot-tune.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/tune_aws_mixed.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_mixed.js
 
 ```

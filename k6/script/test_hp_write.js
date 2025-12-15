@@ -12,6 +12,7 @@ const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
 // Tag to distinguish solution variants
 const SOLUTION_ID = __ENV.SOLUTION_ID || "baseline"; // e.g. Sol-Baseline / Sol-ECS / Sol-Redis
 const PROFILE = "write-heavy";
+const ABORT_ON_FAIL = true;
 
 // High-performance write test parameters
 const RATE_START = parseNumberEnv("RATE_START", 50); // initial RPS
@@ -48,7 +49,7 @@ export const options = {
     "http_req_failed{scenario:hp_write_telemetry}": [
       {
         threshold: "rate<0.01", // Failure rate < 1%
-        abortOnFail: false,
+        abortOnFail: ABORT_ON_FAIL,
         // delayAbortEval: "10s",
       },
     ],
@@ -57,7 +58,7 @@ export const options = {
     "http_req_duration{scenario:hp_write_telemetry,endpoint:telemetry_post}": [
       {
         threshold: "p(99)<300", // 99% of requests < 300ms
-        abortOnFail: false, // abort when 1st failure
+        abortOnFail: ABORT_ON_FAIL, // abort when 1st failure
         // delayAbortEval: "10s",
       },
       { threshold: "p(90)<1000" },

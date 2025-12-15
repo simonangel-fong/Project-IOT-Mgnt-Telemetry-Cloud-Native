@@ -12,6 +12,7 @@ const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
 // Tag to distinguish solution variants
 const SOLUTION_ID = __ENV.SOLUTION_ID || "baseline";
 const PROFILE = "mixed"; // Mixed profile
+const ABORT_ON_FAIL = true;
 
 // read-write ratio: read/write
 const RATIO = __ENV.RATIO || 1;
@@ -26,15 +27,15 @@ const RATE_WRITE_TARGET = RATE_READ_TARGET * RATIO; // peak write RPS
 
 // -------- Stage --------
 const STAGE_START = parseNumberEnv("STAGE_START", 1); // minutes per ramp stage
-const STAGE_RAMP = parseNumberEnv("STAGE_RAMP", 10); // minutes per ramp stage
+const STAGE_RAMP = parseNumberEnv("STAGE_RAMP", 5); // minutes per ramp stage
 const STAGE_PEAK = parseNumberEnv("STAGE_PEAK", 2); // minutes to hold peak RPS
 
 // -------- VU --------
-const W_VU = parseNumberEnv("W_VU", 50); // pre-allocated VUs for write
-const W_MAX_VU = parseNumberEnv("W_MAX_VU", 100); // max VUs for write scenario
+const W_VU = parseNumberEnv("W_VU", 10); // pre-allocated VUs for write
+const W_MAX_VU = parseNumberEnv("W_MAX_VU", 50); // max VUs for write scenario
 
-const R_VU = parseNumberEnv("R_VU", 50); // pre-allocated VUs for read
-const R_MAX_VU = parseNumberEnv("R_MAX_VU", 100); // max VUs for read scenario
+const R_VU = parseNumberEnv("R_VU", 10); // pre-allocated VUs for read
+const R_MAX_VU = parseNumberEnv("R_MAX_VU", 50); // max VUs for read scenario
 
 // ==============================
 // k6 options
@@ -55,14 +56,14 @@ export const options = {
     "http_req_failed{scenario:hp_write_telemetry}": [
       {
         threshold: "rate<0.01", // Failure rate < 1%
-        abortOnFail: false,
+        abortOnFail: ABORT_ON_FAIL,
         // delayAbortEval: "10s",
       },
     ],
     "http_req_failed{scenario:hp_read_telemetry}": [
       {
         threshold: "rate<0.01", // Failure rate < 1%
-        abortOnFail: false,
+        abortOnFail: ABORT_ON_FAIL,
         // delayAbortEval: "10s",
       },
     ],
@@ -70,7 +71,7 @@ export const options = {
     "http_req_duration{scenario:hp_write_telemetry,endpoint:telemetry_post}": [
       {
         threshold: "p(99)<300", // 99% of requests < 300ms
-        abortOnFail: false, // abort when 1st failure
+        abortOnFail: ABORT_ON_FAIL, // abort when 1st failure
         // delayAbortEval: "10s",
       },
       { threshold: "p(90)<1000" },
@@ -81,7 +82,7 @@ export const options = {
       [
         {
           threshold: "p(99)<300", // 99% of requests < 300ms
-          abortOnFail: false, // abort when 1st failure
+          abortOnFail: ABORT_ON_FAIL, // abort when 1st failure
           // delayAbortEval: "10s",
         },
         { threshold: "p(90)<1000" },
