@@ -43,6 +43,11 @@ locals {
   ecr_repo = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.project}"
 }
 
+variable "scale_cpu" {
+  type    = number
+  default = 40
+}
+
 variable "kafka_topic" {
   type    = string
   default = "telemetry"
@@ -64,20 +69,20 @@ variable "svc_param" {
       cpu           = 2048
       memory        = 4096
       count_desired = 6
-      count_min     = 1
+      count_min     = 5
       count_max     = 10
       container_env = {
-        pool_size    = 20
+        pool_size    = 30
         max_overflow = 10
         worker       = 2
       }
     },
     kafka_consumer_svc = {
       image_suffix  = "kafka-consumer"
-      cpu           = 512
-      memory        = 1024
-      count_desired = 1
-      count_min     = 1
+      cpu           = 1024
+      memory        = 2048
+      count_desired = 3
+      count_min     = 2
       count_max     = 10
       container_env = {
         pool_size    = 20

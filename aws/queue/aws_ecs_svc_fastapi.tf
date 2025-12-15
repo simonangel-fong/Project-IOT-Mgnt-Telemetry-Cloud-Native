@@ -20,6 +20,7 @@ locals {
   fastapi_env_pgdb_user    = aws_db_instance.postgres.username
   fastapi_env_pgdb_pwd     = aws_db_instance.postgres.password
   fastapi_env_kafka_topic  = var.kafka_topic
+  fastapi_scale_cpu        = var.scale_cpu
 }
 
 # #################################
@@ -221,7 +222,7 @@ resource "aws_appautoscaling_policy" "scaling_cpu_fastapi" {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
-    target_value       = 35 # cpu%
+    target_value       = local.fastapi_scale_cpu # cpu%
     scale_in_cooldown  = 30
     scale_out_cooldown = 30
   }

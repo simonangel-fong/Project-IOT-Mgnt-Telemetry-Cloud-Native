@@ -20,6 +20,7 @@ locals {
   kafka_consumer_env_pgdb_pwd       = aws_db_instance.postgres.password
   kafka_consumer_env_kafka_topic    = var.kafka_topic
   kafka_consumer_env_kafka_group_id = var.svc_param.kafka_consumer_svc.container_env["group_id"]
+  kafka_consumer_scale_cpu          = var.scale_cpu
 }
 
 # #################################
@@ -220,7 +221,7 @@ resource "aws_appautoscaling_policy" "scaling_cpu_kafka_consumer" {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
-    target_value       = 50 # cpu%
+    target_value       = local.kafka_consumer_scale_cpu # cpu%
     scale_in_cooldown  = 30
     scale_out_cooldown = 30
   }
