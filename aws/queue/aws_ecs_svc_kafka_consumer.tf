@@ -4,9 +4,22 @@
 # Variable
 # #################################
 locals {
-  svc_consumer_log_group_name = "/ecs/task/${var.project}-${var.env}-kafka-consumer"
-  ecr_consumer                = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.project}:kafka-consumer"
-  consumer_group_id           = "telemetry-consumer" # consumer group name
+  kafka_consumer_log_id             = "/ecs/task/${var.project}-${var.env}-kafka-consumer"
+  kafka_consumer_ecr                = "${local.ecr_repo}:${var.svc_param.kafka_consumer_svc.image_suffix}"
+  kafka_consumer_cpu                = var.svc_param.kafka_consumer_svc.cpu
+  kafka_consumer_memory             = var.svc_param.kafka_consumer_svc.memory
+  kafka_consumer_desired            = var.svc_param.kafka_consumer_svc.count_desired
+  kafka_consumer_min                = var.svc_param.kafka_consumer_svc.count_min
+  kafka_consumer_max                = var.svc_param.kafka_consumer_svc.count_max
+  kafka_consumer_env_pool_size      = var.svc_param.kafka_consumer_svc.container_env["pool_size"]
+  kafka_consumer_env_max_overflow   = var.svc_param.kafka_consumer_svc.container_env["max_overflow"]
+  kafka_consumer_env_worker         = var.svc_param.kafka_consumer_svc.container_env["worker"]
+  kafka_consumer_env_pgdb_host      = aws_db_instance.postgres.address
+  kafka_consumer_env_pgdb_db        = aws_db_instance.postgres.db_name
+  kafka_consumer_env_pgdb_user      = aws_db_instance.postgres.username
+  kafka_consumer_env_pgdb_pwd       = aws_db_instance.postgres.password
+  kafka_consumer_env_kafka_topic    = var.kafka_topic
+  kafka_consumer_env_kafka_group_id = var.svc_param.kafka_consumer_svc.container_env["group_id"]
 }
 
 # #################################
@@ -70,7 +83,7 @@ data "aws_iam_policy_document" "consumer_msk" {
       "kafka-cluster:AlterGroup",
     ]
     resources = [
-      "arn:aws:kafka:${var.aws_region}:${data.aws_caller_identity.current.account_id}:group/${aws_msk_cluster.kafka.cluster_name}/${aws_msk_cluster.kafka.cluster_uuid}/${local.consumer_group_id}"
+      "arn:aws:kafka:${var.aws_region}:${data.aws_caller_identity.current.account_id}:group/${aws_msk_cluster.kafka.cluster_name}/${aws_msk_cluster.kafka.cluster_uuid}/${local.kafka_consumer_env_kafka_group_id}"
     ]
   }
 }
@@ -110,12 +123,12 @@ resource "aws_security_group" "consumer" {
 # CloudWatch: log group
 # #################################
 resource "aws_cloudwatch_log_group" "log_group_consumer" {
-  name              = local.svc_consumer_log_group_name
+  name              = local.kafka_consumer_log_id
   retention_in_days = 7
   kms_key_id        = aws_kms_key.cloudwatch_log.arn
 
   tags = {
-    Name = local.svc_consumer_log_group_name
+    Name = local.kafka_consumer_log_id
   }
 }
 
@@ -126,29 +139,30 @@ resource "aws_ecs_task_definition" "ecs_task_consumer" {
   family                   = "${var.project}-${var.env}-task-consumer"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = 512
-  memory                   = 1024
+  cpu                      = local.kafka_consumer_cpu
+  memory                   = local.kafka_consumer_memory
 
   execution_role_arn = aws_iam_role.consumer_task_execution_role.arn
   task_role_arn      = aws_iam_role.consumer_task_role.arn
 
   container_definitions = templatefile("${path.module}/container/kafka_consumer.tftpl", {
-    image             = local.ecr_consumer
-    cpu               = 512
-    memory            = 1024
-    awslogs_group     = local.svc_consumer_log_group_name
-    region            = var.aws_region
-    project           = var.project
-    env               = var.env
-    debug             = var.debug
-    pgdb_host         = local.app_pgdb_host
-    pgdb_db           = local.app_pgdb_db
-    pgdb_user         = local.app_pgdb_user
-    pgdb_pwd          = local.app_pgdb_pwd
-    pool_size         = local.pool_size
-    max_overflow      = local.max_overflow
-    kafka_bootstrap   = aws_msk_cluster.kafka.bootstrap_brokers_sasl_iam
-    consumer_group_id = local.consumer_group_id
+    image           = local.kafka_consumer_ecr
+    cpu             = local.kafka_consumer_cpu
+    memory          = local.kafka_consumer_memory
+    awslogs_group   = local.kafka_consumer_log_id
+    region          = var.aws_region
+    project         = var.project
+    env             = var.env
+    debug           = var.debug
+    pgdb_host       = local.kafka_consumer_env_pgdb_host
+    pgdb_db         = local.kafka_consumer_env_pgdb_db
+    pgdb_user       = local.kafka_consumer_env_pgdb_user
+    pgdb_pwd        = local.kafka_consumer_env_pgdb_pwd
+    pool_size       = local.kafka_consumer_env_pool_size
+    max_overflow    = local.kafka_consumer_env_max_overflow
+    kafka_bootstrap = aws_msk_cluster.kafka.bootstrap_brokers_sasl_iam
+    kafka_group_id  = local.kafka_consumer_env_kafka_group_id
+    kafka_topic     = local.kafka_consumer_env_kafka_topic
   })
 
   tags = {
@@ -164,7 +178,7 @@ resource "aws_ecs_service" "ecs_svc_consumer" {
   cluster = aws_ecs_cluster.ecs_cluster.id
 
   task_definition  = aws_ecs_task_definition.ecs_task_consumer.arn
-  desired_count    = 2
+  desired_count    = local.kafka_consumer_desired
   launch_type      = "FARGATE"
   platform_version = "LATEST"
 
@@ -183,7 +197,6 @@ resource "aws_ecs_service" "ecs_svc_consumer" {
   ]
 }
 
-
 # #################################
 # Service: Scaling policy
 # #################################
@@ -191,8 +204,8 @@ resource "aws_appautoscaling_target" "scaling_target_kafka_consumer" {
   service_namespace  = "ecs"
   resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.ecs_svc_consumer.name}"
   scalable_dimension = "ecs:service:DesiredCount"
-  min_capacity       = 1
-  max_capacity       = 10
+  min_capacity       = local.kafka_consumer_min
+  max_capacity       = local.kafka_consumer_max
 }
 
 # scaling policy: cpu
@@ -207,7 +220,7 @@ resource "aws_appautoscaling_policy" "scaling_cpu_kafka_consumer" {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
-    target_value       = 60 # cpu%
+    target_value       = 50 # cpu%
     scale_in_cooldown  = 30
     scale_out_cooldown = 30
   }

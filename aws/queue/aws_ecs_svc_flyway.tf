@@ -1,6 +1,17 @@
 # aws_ecs_svc_flyway.tf
+
+# #################################
+# Variable
+# #################################
 locals {
-  ecr_flyway = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.project}:flyway"
+  flyway_log_id        = "/ecs/task/${var.project}-${var.env}-flyway"
+  flyway_ecr           = "${local.ecr_repo}:${var.task_param.flyway.image_suffix}"
+  flyway_env_pgdb_host = aws_db_instance.postgres.address
+  flyway_env_pgdb_db   = aws_db_instance.postgres.db_name
+  flyway_env_pgdb_user = aws_db_instance.postgres.username
+  flyway_env_pgdb_pwd  = aws_db_instance.postgres.password
+  flyway_appuser_pwd   = var.db_app_pwd
+  flyway_readonly_pwd  = var.db_readonly_pwd
 }
 
 # #################################
@@ -62,18 +73,16 @@ resource "aws_ecs_task_definition" "flyway" {
   task_role_arn            = aws_iam_role.ecs_task_role_flyway.arn
 
   container_definitions = templatefile("${path.module}/container/flyway.tftpl", {
-    image         = local.ecr_flyway
-    awslogs_group = aws_cloudwatch_log_group.flyway.name
-    region        = var.aws_region
-
-    pghost     = aws_db_instance.postgres.address
-    pgport     = 5432
-    pgdatabase = aws_db_instance.postgres.db_name
-    pguser     = aws_db_instance.postgres.username
-    pgpwd      = aws_db_instance.postgres.password
-
-    app_user_password     = var.db_app_pwd
-    app_readonly_password = var.db_readonly_pwd
+    image                 = local.flyway_ecr
+    awslogs_group         = local.flyway_log_id
+    region                = var.aws_region
+    pghost                = local.flyway_env_pgdb_host
+    pgport                = 5432
+    pgdatabase            = local.flyway_env_pgdb_db
+    pguser                = local.flyway_env_pgdb_user
+    pgpwd                 = local.flyway_env_pgdb_pwd
+    app_user_password     = local.flyway_appuser_pwd
+    app_readonly_password = local.flyway_readonly_pwd
   })
 
   tags = {
@@ -86,14 +95,13 @@ resource "aws_ecs_task_definition" "flyway" {
   ]
 }
 
-# output "flyway_task_param" {
-#   description = "Parameters to run the Flyway ECS task for RDS initialization"
-#   value = {
-#     cluster         = aws_ecs_cluster.ecs_cluster.name
-#     task_definition = aws_ecs_task_definition.flyway.arn
-#     launch_type     = "FARGATE"
-#     subnets         = [for s in aws_subnet.private : s.id]
-#     security_groups = [aws_security_group.flyway.id]
-#   }
-# }
+resource "aws_cloudwatch_log_group" "flyway" {
+  name              = local.flyway_log_id
+  retention_in_days = 7
 
+  kms_key_id = aws_kms_key.cloudwatch_log.arn
+
+  tags = {
+    Name = local.flyway_log_id
+  }
+}

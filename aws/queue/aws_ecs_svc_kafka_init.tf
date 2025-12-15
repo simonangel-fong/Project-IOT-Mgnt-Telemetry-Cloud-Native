@@ -1,9 +1,16 @@
 # aws_ecs_svc_kafka_init.tf
 
+
+# #################################
+# Variable
+# #################################
 locals {
-  ecr_msk_init         = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.project}:kafka-init"
-  kafka_log_group_name = "/ecs/task/${var.project}-${var.env}-task-kafka-init"
-  topic                = var.kafka_topic
+  kafka_init_log_id              = "/ecs/task/${var.project}-${var.env}-kafka-init"
+  kafka_init_ecr                 = "${local.ecr_repo}:${var.task_param.kafka_init.image_suffix}"
+  kafka_init_cpu                 = var.task_param.kafka_init.cpu
+  kafka_init_memory              = var.task_param.kafka_init.memory
+  kafka_init_env_kafka_bootstrap = aws_msk_cluster.kafka.bootstrap_brokers_sasl_iam
+  kafka_init_env_topic           = var.kafka_topic # topic
 }
 
 # #################################
@@ -113,9 +120,13 @@ resource "aws_security_group_rule" "kafka_init" {
 # CloudWatch: log group
 # #################################
 resource "aws_cloudwatch_log_group" "kafka_init" {
-  name              = local.kafka_log_group_name
+  name              = local.kafka_init_log_id
   retention_in_days = 7
   kms_key_id        = aws_kms_key.cloudwatch_log.arn
+
+  tags = {
+    Name = local.kafka_init_log_id
+  }
 }
 
 # #################################
@@ -125,8 +136,8 @@ resource "aws_ecs_task_definition" "kafka_init" {
   family                   = "${var.project}-${var.env}-kafka-init"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = 256
-  memory                   = 512
+  cpu                      = local.kafka_init_cpu
+  memory                   = local.kafka_init_memory
 
   execution_role_arn = aws_iam_role.kafka_init_execution_role.arn
   task_role_arn      = aws_iam_role.kafka_init_task_role.arn
@@ -134,12 +145,12 @@ resource "aws_ecs_task_definition" "kafka_init" {
   container_definitions = jsonencode([
     {
       name      = "kafka-init"
-      image     = local.ecr_msk_init
+      image     = local.kafka_init_ecr
       essential = true
 
       environment = [
-        { name = "BOOTSTRAP_SERVERS", value = aws_msk_cluster.kafka.bootstrap_brokers_sasl_iam },
-        { name = "TOPIC_NAME", value = local.topic },
+        { name = "BOOTSTRAP_SERVERS", value = local.kafka_init_env_kafka_bootstrap },
+        { name = "TOPIC_NAME", value = local.kafka_init_env_topic },
         { name = "PARTITIONS", value = "3" },
         { name = "REPLICATION_FACTOR", value = "3" }
       ]
@@ -147,7 +158,7 @@ resource "aws_ecs_task_definition" "kafka_init" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = local.kafka_log_group_name
+          awslogs-group         = local.kafka_init_log_id
           awslogs-region        = var.aws_region
           awslogs-stream-prefix = "ecs"
         }

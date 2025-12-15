@@ -114,5 +114,13 @@ All architectures are evaluated using the same workload profiles and metrics to 
   - throughput: ~1000 req/s
 
 - (pool size, worker) = (15, 1); 50ms
+
   - each connection can be used how many times: 1s/50ms = 20
   - total pool size per second: 15 \* 20 = 300
+
+- debug
+
+```sh
+terraform destroy -auto-approve -target=aws_ecs_service.ecs_svc_consumer
+terraform apply -auto-approve -target=aws_ecs_service.ecs_svc_consumer
+```

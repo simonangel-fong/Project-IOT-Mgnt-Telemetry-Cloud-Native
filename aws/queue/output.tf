@@ -18,8 +18,7 @@ EOF
 }
 
 output "kafka_init_cmd" {
-  description = "Run this command ONCE to create Kafka topics"
-  value       = <<EOF
+  value = <<EOF
 
 aws ecs run-task
   --launch-type "FARGATE"
