@@ -4,18 +4,22 @@
 # Variable
 # #################################
 locals {
-  svc_fastapi_log_group_name = "/ecs/task/${var.project}-${var.env}-fastapi"
-  debug                      = var.env == "prod" ? false : true
-  ecr_fastapi                = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.project}-fastapi"
-  app_pgdb_host              = aws_db_instance.postgres.address
-  app_pgdb_db                = aws_db_instance.postgres.db_name
-  app_pgdb_user              = aws_db_instance.postgres.username
-  app_pgdb_pwd               = aws_db_instance.postgres.password
-  pool_size                  = var.task_fastapi_pool_size
-  max_overflow               = var.task_fastapi_max_overflow
-  worker                     = var.task_fastapi_worker
-  cpu                        = var.svc_fastapi_farget_cpu
-  memory                     = var.svc_fastapi_farget_memory
+  fastapi_log_id           = "/ecs/task/${var.project}-${var.env}-fastapi"
+  fastapi_app_debug        = var.debug
+  fastapi_ecr              = "${local.ecr_repo}:${var.svc_param.fastapi_svc.image_suffix}"
+  fastapi_cpu              = var.svc_param.fastapi_svc.cpu
+  fastapi_memory           = var.svc_param.fastapi_svc.memory
+  fastapi_count_desired    = var.svc_param.fastapi_svc.count_desired
+  fastapi_count_min        = var.svc_param.fastapi_svc.count_min
+  fastapi_count_max        = var.svc_param.fastapi_svc.count_max
+  fastapi_env_pool_size    = var.svc_param.fastapi_svc.container_env["pool_size"]
+  fastapi_env_max_overflow = var.svc_param.fastapi_svc.container_env["max_overflow"]
+  fastapi_env_worker       = var.svc_param.fastapi_svc.container_env["worker"]
+  fastapi_env_pgdb_host    = aws_db_instance.postgres.address
+  fastapi_env_pgdb_db      = aws_db_instance.postgres.db_name
+  fastapi_env_pgdb_user    = aws_db_instance.postgres.username
+  fastapi_env_pgdb_pwd     = aws_db_instance.postgres.password
+  fastapi_scale_cpu        = var.threshold_cpu
 }
 
 # #################################
@@ -83,8 +87,8 @@ resource "aws_ecs_task_definition" "ecs_task_fastapi" {
   family                   = "${var.project}-${var.env}-task-fastapi"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = var.svc_fastapi_farget_cpu
-  memory                   = var.svc_fastapi_farget_memory
+  cpu                      = local.fastapi_cpu
+  memory                   = local.fastapi_memory
   execution_role_arn       = aws_iam_role.ecs_task_execution_role_fastapi.arn
   task_role_arn            = aws_iam_role.ecs_task_role_fastapi.arn
 
@@ -93,24 +97,23 @@ resource "aws_ecs_task_definition" "ecs_task_fastapi" {
 
   # method: template file
   container_definitions = templatefile("${path.module}/container/fastapi.tftpl", {
-    image         = local.ecr_fastapi
-    cpu           = local.cpu
-    memory        = local.memory
-    awslogs_group = local.svc_fastapi_log_group_name
+    image         = local.fastapi_ecr
+    cpu           = local.fastapi_cpu
+    memory        = local.fastapi_memory
+    awslogs_group = local.fastapi_log_id
     region        = var.aws_region
     project       = var.project
     env           = var.env
-    debug         = local.debug
-    pgdb_host     = local.app_pgdb_host
-    pgdb_db       = local.app_pgdb_db
-    pgdb_user     = local.app_pgdb_user
-    pgdb_pwd      = local.app_pgdb_pwd
-    pool_size     = local.pool_size
-    max_overflow  = local.max_overflow
-    worker        = local.worker
+    debug         = local.fastapi_app_debug
+    pgdb_host     = local.fastapi_env_pgdb_host
+    pgdb_db       = local.fastapi_env_pgdb_db
+    pgdb_user     = local.fastapi_env_pgdb_user
+    pgdb_pwd      = local.fastapi_env_pgdb_pwd
+    pool_size     = local.fastapi_env_pool_size
+    max_overflow  = local.fastapi_env_max_overflow
+    worker        = local.fastapi_env_worker
     redis_host    = aws_elasticache_replication_group.redis.primary_endpoint_address
     redis_port    = aws_elasticache_replication_group.redis.port
-
   })
 
   tags = {
@@ -127,7 +130,7 @@ resource "aws_ecs_service" "ecs_svc_fastapi" {
 
   # task
   task_definition  = aws_ecs_task_definition.ecs_task_fastapi.arn
-  desired_count    = var.svc_fastapi_desired_count
+  desired_count    = local.fastapi_count_desired
   launch_type      = "FARGATE"
   platform_version = "LATEST"
 
@@ -164,8 +167,8 @@ resource "aws_appautoscaling_target" "scaling_target_fastapi" {
   service_namespace  = "ecs"
   resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.ecs_svc_fastapi.name}"
   scalable_dimension = "ecs:service:DesiredCount"
-  min_capacity       = var.svc_fastapi_min_capacity
-  max_capacity       = var.svc_fastapi_max_capacity
+  min_capacity       = local.fastapi_count_min
+  max_capacity       = local.fastapi_count_max
 }
 
 # scaling policy: cpu
@@ -180,7 +183,7 @@ resource "aws_appautoscaling_policy" "scaling_cpu_fastapi" {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
-    target_value       = 40 # cpu%
+    target_value       = local.fastapi_scale_cpu # cpu%
     scale_in_cooldown  = 30
     scale_out_cooldown = 30
   }
@@ -201,4 +204,39 @@ resource "aws_appautoscaling_policy" "scaling_memory_fastapi" {
     scale_in_cooldown  = 60
     scale_out_cooldown = 60
   }
+}
+
+
+# #################################
+# CloudWatch: log group
+# #################################
+resource "aws_cloudwatch_log_group" "log_group_fastapi" {
+  name              = local.fastapi_log_id
+  retention_in_days = 7
+  kms_key_id        = aws_kms_key.cloudwatch_log.arn
+
+  tags = {
+    Name = local.fastapi_log_id
+  }
+}
+
+# #################################
+# Monitoring: cup alarm
+# #################################
+resource "aws_cloudwatch_metric_alarm" "ecs_fastapi_high_cpu" {
+  alarm_name          = "${var.project}-${var.env}-ecs-fastapi-high-cpu"
+  namespace           = "AWS/ECS"
+  metric_name         = "CPUUtilization"
+  comparison_operator = "GreaterThanThreshold"
+  statistic           = "Average"
+  threshold           = 50
+  period              = 60 # period in seconds
+  evaluation_periods  = 2  # number of periods to compare with threshold.  
+
+  dimensions = {
+    ClusterName = aws_ecs_cluster.ecs_cluster.name
+    ServiceName = aws_ecs_service.ecs_svc_fastapi.name
+  }
+
+  alarm_description = "High CPU on ECS FastAPI service"
 }

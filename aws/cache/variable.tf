@@ -11,6 +11,11 @@ variable "env" {
   default = "cache"
 }
 
+variable "debug" {
+  type    = bool
+  default = true
+}
+
 # ##############################
 # AWS
 # ##############################
@@ -29,48 +34,61 @@ variable "vpc_cidr" {
   type    = string
   default = "10.0.0.0/16"
 }
-
 # ##############################
 # AWS ECS
 # ##############################
-variable "svc_fastapi_farget_cpu" {
-  type    = number
-  default = 2048
+locals {
+  ecr_repo = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.project}"
 }
 
-variable "svc_fastapi_farget_memory" {
+variable "threshold_cpu" {
   type    = number
-  default = 4096
+  default = 40
 }
 
-variable "svc_fastapi_desired_count" {
-  type    = number
-  default = 5
+variable "svc_param" {
+  type = map(object({
+    image_suffix  = string
+    cpu           = number
+    memory        = number
+    count_desired = number
+    count_min     = number
+    count_max     = number
+    container_env = map(any)
+  }))
+  default = {
+    fastapi_svc = {
+      image_suffix  = "fastapi-baseline"
+      cpu           = 2048
+      memory        = 4096
+      count_desired = 6
+      count_min     = 4
+      count_max     = 10
+      container_env = {
+        pool_size    = 20
+        max_overflow = 10
+        worker       = 1
+      }
+    }
+  }
 }
 
-variable "svc_fastapi_min_capacity" {
-  type    = number
-  default = 5
-}
-
-variable "svc_fastapi_max_capacity" {
-  type    = number
-  default = 20
-}
-
-variable "task_fastapi_pool_size" {
-  type    = number
-  default = 20 # default: 5
-}
-
-variable "task_fastapi_max_overflow" {
-  type    = number
-  default = 10 # default: 10
-}
-
-variable "task_fastapi_worker" {
-  type    = number
-  default = 2 # default: 2 cpu
+variable "task_param" {
+  type = map(object({
+    image_suffix  = string
+    cpu           = number
+    memory        = number
+    container_env = map(any)
+    })
+  )
+  default = {
+    flyway = {
+      image_suffix  = "flyway"
+      cpu           = 512
+      memory        = 1024
+      container_env = {}
+    }
+  }
 }
 
 # ##############################
