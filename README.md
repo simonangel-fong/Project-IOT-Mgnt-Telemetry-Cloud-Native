@@ -103,6 +103,7 @@ All architectures are evaluated using the same workload profiles and metrics to 
 
 - [App Development](./doc/app_dev/app_dev.md)
 - [Baseline](./doc/baseline/baseline.md)
+- [Tune](./doc/tune/tune.md)
 - [Scale](./doc/scale/scale.md)
 - [Cache](./doc/cache/cache.md)
 - [Queue](./doc/queue/queue.md)

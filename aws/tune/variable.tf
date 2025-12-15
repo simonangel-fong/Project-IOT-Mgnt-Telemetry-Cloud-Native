@@ -8,7 +8,7 @@ variable "project" {
 
 variable "env" {
   type    = string
-  default = "baseline"
+  default = "tune"
 }
 
 variable "debug" {

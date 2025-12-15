@@ -31,10 +31,10 @@ const STAGE_PEAK = parseNumberEnv("STAGE_PEAK", 2); // minutes to hold peak RPS
 
 // -------- VU --------
 const W_VU = parseNumberEnv("W_VU", 50); // pre-allocated VUs for write
-const W_MAX_VU = parseNumberEnv("W_MAX_VU", 200); // max VUs for write scenario
+const W_MAX_VU = parseNumberEnv("W_MAX_VU", 100); // max VUs for write scenario
 
 const R_VU = parseNumberEnv("R_VU", 50); // pre-allocated VUs for read
-const R_MAX_VU = parseNumberEnv("R_MAX_VU", 200); // max VUs for read scenario
+const R_MAX_VU = parseNumberEnv("R_MAX_VU", 100); // max VUs for read scenario
 
 // ==============================
 // k6 options
@@ -54,27 +54,38 @@ export const options = {
     // Overall failure rates
     "http_req_failed{scenario:hp_write_telemetry}": [
       {
-        threshold: "rate<0.01", // SLO
-        abortOnFail: true, // abort when 1st failure
-        delayAbortEval: "10s", // delay to collect degraded system data
+        threshold: "rate<0.01", // Failure rate < 1%
+        abortOnFail: false,
+        // delayAbortEval: "10s",
       },
     ],
     "http_req_failed{scenario:hp_read_telemetry}": [
       {
-        threshold: "rate<0.01", // SLO
-        abortOnFail: true, // abort when 1st failure
-        delayAbortEval: "10s", // delay to collect degraded system data
+        threshold: "rate<0.01", // Failure rate < 1%
+        abortOnFail: false,
+        // delayAbortEval: "10s",
       },
     ],
     // Write performance (POST /telemetry)
     "http_req_duration{scenario:hp_write_telemetry,endpoint:telemetry_post}": [
-      { threshold: "p(95)<300" },
-      { threshold: "p(99)<1000" },
+      {
+        threshold: "p(99)<300", // 99% of requests < 300ms
+        abortOnFail: false, // abort when 1st failure
+        // delayAbortEval: "10s",
+      },
+      { threshold: "p(90)<1000" },
     ],
 
     // Read performance (GET /telemetry/latest)
     "http_req_duration{scenario:hp_read_telemetry,endpoint:telemetry_get_latest}":
-      [{ threshold: "p(95)<300" }, { threshold: "p(99)<1000" }],
+      [
+        {
+          threshold: "p(99)<300", // 99% of requests < 300ms
+          abortOnFail: false, // abort when 1st failure
+          // delayAbortEval: "10s",
+        },
+        { threshold: "p(90)<1000" },
+      ],
   },
 
   scenarios: {

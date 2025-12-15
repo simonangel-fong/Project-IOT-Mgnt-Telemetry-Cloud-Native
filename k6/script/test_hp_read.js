@@ -17,12 +17,12 @@ const PROFILE = "read-heavy";
 const RATE_START = parseNumberEnv("RATE_START", 50); // initial RPS
 const RATE_TARGET = parseNumberEnv("RATE_TARGET", 1000); // peak RPS
 const STAGE_START = parseNumberEnv("STAGE_START", 1); // minutes per start stage
-const STAGE_RAMP = parseNumberEnv("STAGE_RAMP", 10); // minutes per ramp stage
+const STAGE_RAMP = parseNumberEnv("STAGE_RAMP", 5); // minutes per ramp stage
 const STAGE_PEAK = parseNumberEnv("STAGE_PEAK", 2); // minutes to hold peak
 
 // VU pool
 const VU = parseNumberEnv("VU", 50); // pre-allocated VUs
-const MAX_VU = parseNumberEnv("MAX_VU", 200); // max VUs
+const MAX_VU = parseNumberEnv("MAX_VU", 100); // max VUs
 
 // ==============================
 // k6 options
@@ -39,16 +39,16 @@ export const options = {
 
   // SLO:
   // "rate<0.01": Less than 1% of requests return an error.
-  // "p(95)<300": 95% of requests have a response time below 300ms.
-  // "p(99)<1000": 99% of requests have a response time below 1000ms.
+  // "p(99)<300": 99% of requests have a response time below 300ms.
+  // "p(90)<1000": 90% of requests have a response time below 1000ms.
 
   thresholds: {
     // Overall failure rate
     "http_req_failed{scenario:hp_read_telemetry}": [
       {
-        threshold: "rate<0.01", // SLO
-        abortOnFail: true, // abort when 1st failure
-        delayAbortEval: "10s", // delay to collect degraded system data
+        threshold: "rate<0.01", // Failure rate < 1%
+        abortOnFail: false,
+        // delayAbortEval: "10s",
       },
     ],
 
@@ -56,11 +56,11 @@ export const options = {
     "http_req_duration{scenario:hp_read_telemetry,endpoint:telemetry_get_latest}":
       [
         {
-          threshold: "p(95)<300",
-          // abortOnFail: true, // abort when 1st failure
-          // delayAbortEval: "10s", // delay to collect degraded system data
+          threshold: "p(99)<300", // 99% of requests < 300ms
+          abortOnFail: false, // abort when 1st failure
+          // delayAbortEval: "10s",
         },
-        { threshold: "p(99)<1000" },
+        { threshold: "p(90)<1000" },
       ],
   },
 
