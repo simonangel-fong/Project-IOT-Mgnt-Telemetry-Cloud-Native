@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
 from urllib.parse import quote_plus
 
 from pydantic import BaseModel, Field
@@ -35,47 +34,44 @@ class PostgresSettings(BaseModel):
 
 
 # ==============================
-# Redis
-# ==============================
-class RedisSettings(BaseModel):
-    """Redis configuration."""
-
-    host: str = "redis"
-    port: int = 6379
-    db: int = 0
-    password: str | None = None
-
-    @property
-    def url(self) -> str:
-        """
-        Redis connection URL.
-
-        Example:
-            redis://:password@host:6379/0
-            redis://host:6379/0
-        """
-        if self.password:
-            pwd = quote_plus(self.password)
-            return f"redis://:{pwd}@{self.host}:{self.port}/{self.db}"
-        return f"redis://{self.host}:{self.port}/{self.db}"
-
-
-# ==============================
 # Application Settings
 # ==============================
 class Settings(BaseSettings):
     """Application settings."""
 
+    # Pydantic Settings config
+    model_config = SettingsConfigDict(
+        # project root .env
+        env_file=str(Path(__file__).resolve().parent.parent.parent / ".env"),
+        env_file_encoding="utf-8",
+        extra="ignore",               # ignore unknown env vars
+        env_nested_delimiter="__",    # POSTGRES__HOST -> settings.postgres.host
+    )
+
     # General
-    app_name: str = "Iot management telemetry"
+    project: str = Field(
+        default="iot mgnt telemetry",
+        alias="PROJECT",
+        description="The project name",
+    )
+
+    env: str = Field(
+        default="dev",
+        alias="ENV",
+        description="The environment name",
+    )
+
+    debug: bool = Field(
+        default=True,
+        alias="DEBUG",
+        description="Whether it is debug mode",
+    )
+
     cors: str = Field(
         default="http://localhost,http://localhost:8000,http://localhost:8080",
         alias="CORS",
         description="Comma-separated list of allowed CORS origins",
     )
-    debug: bool = True
-    env: str = "dev"
-    # env: Literal["dev", "staging", "prod"] = "dev"
 
     # performance tuning
     pool_size: int = Field(
@@ -92,27 +88,12 @@ class Settings(BaseSettings):
 
     # Nested config
     postgres: PostgresSettings = PostgresSettings()
-    redis: RedisSettings = RedisSettings()
 
-    # Pydantic Settings config
-    model_config = SettingsConfigDict(
-        # project root .env
-        env_file=str(Path(__file__).resolve().parent.parent.parent / ".env"),
-        env_file_encoding="utf-8",
-        extra="ignore",               # ignore unknown env vars
-        env_nested_delimiter="__",    # POSTGRES__HOST -> settings.postgres.host
-    )
-
-    # Convenience properties
+    # properties
     @property
     def postgres_url(self) -> str:
         """Postgres connection URL."""
         return self.postgres.url
-
-    @property
-    def redis_url(self) -> str:
-        """Redis connection URL."""
-        return self.redis.url
 
     @property
     def cors_list(self) -> list[str]:

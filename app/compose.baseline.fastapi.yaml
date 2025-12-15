@@ -2,13 +2,13 @@ services:
   fastapi01:
     container_name: fastapi01
     build:
-      context: ./fastapi/
+      context: ./fastapi_baseline/
       dockerfile: Dockerfile
     env_file:
       - .baseline.env
     environment:
-      APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      PROJECT: "${PROJECT:-iot-mgnt-telemetry}"
+      ENV: "${ENV:-baseline}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"
@@ -17,8 +17,6 @@ services:
       POSTGRES__PORT: "${POSTGRES__PORT:-5432}"
       POSTGRES__USER: "${POSTGRES__USER:-app_user}"
       POSTGRES__PASSWORD: "${POSTGRES__PASSWORD:-test123}"
-      KAFKA__HOST: "${KAFKA__HOST:-kafka_broker}"
-      KAFKA__PORT: "${KAFKA__PORT:-9092}"
     networks:
       # - public_network
       - private_network
