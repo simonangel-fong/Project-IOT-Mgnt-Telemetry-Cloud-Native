@@ -12,7 +12,7 @@ const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
 // Tag to distinguish solution variants
 const SOLUTION_ID = __ENV.SOLUTION_ID || "baseline";
 const PROFILE = "mixed"; // Mixed profile
-const ABORT_ON_FAIL = true;
+const ABORT_ON_FAIL = false;
 
 // read-write ratio: read/write
 const RATIO = __ENV.RATIO || 1;

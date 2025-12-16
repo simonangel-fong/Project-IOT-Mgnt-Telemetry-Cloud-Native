@@ -21,7 +21,7 @@ on:
         required: true
         type: string
 jobs:
-  testing-smoke:
+  testing-performance:
     name: Performance Testing ${{ inputs.env }}
     runs-on: ubuntu-latest
     env:
@@ -37,7 +37,7 @@ jobs:
         uses: grafana/setup-k6-action@v1
 
       - name: Smoke Testing
-        id: testing-smoke
+        id: testing-performance
         uses: grafana/run-k6-action@v1
         env:
           K6_WEB_DASHBOARD: "true"
@@ -49,7 +49,7 @@ jobs:
           path: |
             ${{ env.K6_SCRIPT }}
 
-      - name: Upload smoke report artifact
+      - name: Upload performance report artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:

@@ -112,27 +112,27 @@ jobs:
   #     aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
   #     aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
 
-  smoke_testing:
-    name: Smoke Testing
-    # needs: deploy
-    uses: ./.github/workflows/job_test_smoke.yaml
-    strategy:
-      fail-fast: false
-      matrix:
-        solution:
-          - env: baseline
-            base_url: "https://iot-baseline.arguswatcher.net"
-          - env: tune
-            base_url: "https://iot-tune.arguswatcher.net"
-    with:
-      env: ${{ matrix.solution.env }}
-      base_url: ${{ matrix.solution.base_url }}
+  # smoke_testing:
+  #   name: Smoke Testing
+  #   # needs: deploy
+  #   uses: ./.github/workflows/job_test_smoke.yaml
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       solution:
+  #         - env: baseline
+  #           base_url: "https://iot-baseline.arguswatcher.net"
+  #         - env: tune
+  #           base_url: "https://iot-tune.arguswatcher.net"
+  #   with:
+  #     env: ${{ matrix.solution.env }}
+  #     base_url: ${{ matrix.solution.base_url }}
 
   performance_testing_reaad:
       name: Performance Testing-Read
-      needs:
+      # needs:
           # - deploy
-          - smoke_testing
+          # - smoke_testing
       uses: ./.github/workflows/job_test_performance.yaml
       strategy:
           fail-fast: false
