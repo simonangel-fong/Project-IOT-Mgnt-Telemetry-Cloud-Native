@@ -22,7 +22,7 @@ on:
         type: string
 jobs:
   testing-smoke:
-    name: Smoke Testing ${{ inputs.env }}
+    name: Performance Testing ${{ inputs.env }}
     runs-on: ubuntu-latest
     env:
       ENV: ${{ inputs.env }}
