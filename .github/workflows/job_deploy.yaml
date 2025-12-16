@@ -134,7 +134,7 @@ jobs:
                   echo $FLYWAY_INIT_CMD
                   # CLUSTER="$(terraform output -raw ecs_cluster_name)"
 
-                  INIT_CMD<<EOF
+                  INIT_CMD=<<EOF
                     aws ecs wait tasks-stopped
                         --cluster $(terraform output -raw ecs_cluster_name) 
                         --tasks $(terraform output -raw flyway_init_cmd) 
