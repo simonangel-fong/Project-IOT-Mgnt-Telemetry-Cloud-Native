@@ -48,7 +48,7 @@ jobs:
             image_name: ${{ matrix.image.image_name }}
             image_tag: ${{ matrix.image.image_tag }}
             dir_dockerfile: ${{ matrix.image.dir_dockerfile }}
-            ecr_repo: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}"
+            ecr_repo: "${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}"
             aws_region: ${{ vars.AWS_REGION }}
         secrets:
             aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
