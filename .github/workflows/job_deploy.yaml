@@ -130,8 +130,7 @@ jobs:
                   set -euo pipefail
 
                   FLYWAY_INIT_CMD="$(terraform output -json flyway_init_cmd)"
-
-                  CLUSTER="${{vars.PROJECT}}"-"${{inputs.env}}-cluster"
+                  CLUSTER="$(terraform output -raw ecs_cluster_arn)"
 
                   echo $CLUSTER
 

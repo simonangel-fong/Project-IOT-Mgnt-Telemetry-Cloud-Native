@@ -2,6 +2,10 @@ output "dns_url" {
   value = "https://${cloudflare_record.dns_record.hostname}"
 }
 
+output "ecs_cluster_arn" {
+  value = aws_ecs_cluster.ecs_cluster.arn
+}
+
 output "flyway_init_cmd" {
   value = <<EOF
 
