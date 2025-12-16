@@ -134,6 +134,8 @@ jobs:
 
                   echo $FLYWAY_INIT_CMD
                   echo $CLUSTER
+                  
+                  bash $FLYWAY_INIT_CMD
 
                   echo aws ecs wait tasks-stopped --cluster "iot-mgnt-telemetry-baseline-cluster" --tasks "$FLYWAY_INIT_CMD" --region "${{vars.AWS_REGION}}"
 
