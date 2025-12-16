@@ -149,17 +149,6 @@ jobs:
 
                   echo "Flyway migration task completed successfully."
 
-            - name: Main step
-              id: main-step
-              run: |
-                  echo "url=$(terraform output -raw dns_url)" >> outcome.json
-
-            - name: Upload outcome artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: outcome-${{ matrix.runner_id }}-${{ inputs.env }}
-                  path: outcome.json
-
             - name: Output
               id: output_base_url
               working-directory: ${{ env.TF_DIR }}

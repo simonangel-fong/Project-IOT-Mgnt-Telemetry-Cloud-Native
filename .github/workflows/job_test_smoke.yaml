@@ -8,18 +8,19 @@ on:
         description: "The base url"
         required: true
         type: string
-      # env:
-      #   description: "Environment"
-      #   type: string
-      #   default: ca-central-1
+      env:
+        description: "Environment"
+        required: true
+        type: string
 
 jobs:
   testing-smoke:
     name: Smoke Testing
     runs-on: ubuntu-latest
     env:
+      ENV: ${{ inputs.env }}
       BASE_URL: ${{ inputs.base_url }}
-      K6_REPORT: k6/report/baseline_cicd_smoke.html
+      K6_REPORT: k6/report/${{ inputs.env }}_cicd_smoke.html
       K6_SCRIPT: k6/script/test_smoke.js
     steps:
       - name: Checkout
@@ -29,7 +30,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo ${{ inputs.base_url }}
+          echo ${{ env.BASE_URL }}
 
           ATTEMPT=120
           URL_STATUS=0
@@ -75,7 +76,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: "k6-report-smoke-${{ inputs.base_url }}"
+          name: "k6-report-smoke-${{ env.ENV }}"
           path: |
             ${{ env.K6_REPORT }}
           retention-days: 7

@@ -112,44 +112,21 @@ jobs:
       aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
       aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
 
-  collect_urls:
-    name: Collect URLs
-    runs-on: ubuntu-latest
+  smoke_testing:
+    name: Smoke Testing
     needs: deploy
-    outputs:
-      base_urls_json: ${{ steps.collect.outputs.base_urls_json }}
-
-    steps:
-      - name: Download all outcome artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts_dir
-
-      - name: test
-        run: |
-          echo "$(cat artifacts_dir/*/outcome.json | jq -cs .)"
-
-      - name: Collect Matrix Outputs
-        id: collect
-        run: |
-          echo "${{ needs.deploy.outputs.base_url }}"
-          # URLS_JSON='${{ toJSON(needs.deploy.outputs) }}'
-
-          # echo "Collected URLs: $URLS_JSON"
-
-          # echo "base_urls_json=$URLS_JSON" >> "$GITHUB_OUTPUT"
-
-  # smoke_testing:
-  #   name: Smoke Testing
-  #   needs: prepare_urls
-  #   uses: ./.github/workflows/job_test_smoke.yaml
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       solution:
-  #         ${{ fromJSON(needs.prepare_urls.outputs.base_urls_json) }}
-  #   with:
-  #     base_url: ${{ matrix.solution.base_url }}
+    uses: ./.github/workflows/job_test_smoke.yaml
+    strategy:
+      fail-fast: false
+      matrix:
+        solution:
+          - env: baseline
+            base_url: "https://iot-baseline.arguswatcher.net"
+          - env: tune
+            base_url: "https://iot-tune.arguswatcher.net"
+    with:
+      env: ${{ matrix.solution.env }}
+      base_url: ${{ matrix.solution.base_url }}
 
   # performance_testing:
   #     name: Performance Testing
