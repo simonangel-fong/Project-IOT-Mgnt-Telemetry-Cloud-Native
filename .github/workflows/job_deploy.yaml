@@ -139,11 +139,11 @@ jobs:
                   
                   echo "Arn ...."
                   TASK_ARN=$(eval "$FLYWAY_RUN_COMMAND" | tail -n 1)
-                  echo TASK_ARN
+                  echo $TASK_ARN
 
                   echo "Waiting for Flyway task to finish..."
                   aws ecs wait tasks-stopped \
-                    --launch-type "FARGATE"
+                    --launch-type "FARGATE" \
                     --cluster "$CLUSTER" \
                     --tasks "$TASK_ARN" \
                     --region "$REGION"
