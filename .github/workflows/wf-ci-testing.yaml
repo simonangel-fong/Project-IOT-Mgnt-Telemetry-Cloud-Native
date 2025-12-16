@@ -13,80 +13,80 @@ concurrency:
     cancel-in-progress: true # Cancel older runs
 
 jobs:
-    # unit_test:
-    #     name: Unit Test
-    #     strategy:
-    #         fail-fast: false
-    #         matrix:
-    #             fastapi:
-    #                 - path: app/fastapi_baseline
-    #                 - path: app/fastapi_redis
-    #                 - path: app/fastapi_kafka
+    unit_test:
+        name: Unit Test
+        strategy:
+            fail-fast: false
+            matrix:
+                fastapi:
+                    - path: app/fastapi_baseline
+                    - path: app/fastapi_redis
+                    - path: app/fastapi_kafka
 
-    #     uses: ./.github/workflows/job_unit_test.yaml
-    #     with:
-    #         dir_app: "${{matrix.fastapi.path}}"
+        uses: ./.github/workflows/job_unit_test.yaml
+        with:
+            dir_app: "${{matrix.fastapi.path}}"
 
-    # ecr_push:
-    #     name: ECR Push
-    #     needs: unit_test
-    #     permissions:
-    #         contents: read
-    #         id-token: write # OIDC
-    #     strategy:
-    #         fail-fast: false
-    #         matrix:
-    #             image:
-    #                 - image_name: fastapi-baseline
-    #                   image_tag: fastapi-baseline
-    #                   dir_dockerfile: app/fastapi_baseline
-    #                 - image_name: fastapi-redis
-    #                   image_tag: fastapi-redis
-    #                   dir_dockerfile: app/fastapi_redis
-    #                 - image_name: fastapi-kafka
-    #                   image_tag: fastapi-kafka
-    #                   dir_dockerfile: app/fastapi_kafka
-    #                 - image_name: flyway
-    #                   image_tag: flyway
-    #                   dir_dockerfile: app/flyway
-    #                 - image_name: kafka-consumer
-    #                   image_tag: kafka-consumer
-    #                   dir_dockerfile: app/kafka/consumer
-    #     uses: ./.github/workflows/job_ecr_push.yaml
-    #     with:
-    #         image_name: ${{ matrix.image.image_name }}
-    #         image_tag: ${{ matrix.image.image_tag }}
-    #         dir_dockerfile: ${{ matrix.image.dir_dockerfile }}
-    #         ecr_repo: "${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}"
-    #         aws_region: ${{ vars.AWS_REGION }}
-    #     secrets:
-    #         aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
+    ecr_push:
+        name: ECR Push
+        needs: unit_test
+        permissions:
+            contents: read
+            id-token: write # OIDC
+        strategy:
+            fail-fast: false
+            matrix:
+                image:
+                    - image_name: fastapi-baseline
+                      image_tag: fastapi-baseline
+                      dir_dockerfile: app/fastapi_baseline
+                    - image_name: fastapi-redis
+                      image_tag: fastapi-redis
+                      dir_dockerfile: app/fastapi_redis
+                    - image_name: fastapi-kafka
+                      image_tag: fastapi-kafka
+                      dir_dockerfile: app/fastapi_kafka
+                    - image_name: flyway
+                      image_tag: flyway
+                      dir_dockerfile: app/flyway
+                    - image_name: kafka-consumer
+                      image_tag: kafka-consumer
+                      dir_dockerfile: app/kafka/consumer
+        uses: ./.github/workflows/job_ecr_push.yaml
+        with:
+            image_name: ${{ matrix.image.image_name }}
+            image_tag: ${{ matrix.image.image_tag }}
+            dir_dockerfile: ${{ matrix.image.dir_dockerfile }}
+            ecr_repo: "${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}"
+            aws_region: ${{ vars.AWS_REGION }}
+        secrets:
+            aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
 
-    # lint-check:
-    #     name: Terraform Lint Check
-    #     # needs: ecr_push
-    #     strategy:
-    #         fail-fast: false
-    #         matrix:
-    #             solution:
-    #                 - tf_project_name: Baseline
-    #                   tf_path: aws/baseline
-    #                 - tf_project_name: Tune
-    #                   tf_path: aws/tune
-    #                 - tf_project_name: Scale
-    #                   tf_path: aws/scale
-    #                 - tf_project_name: cache
-    #                   tf_path: aws/cache
-    #                 - tf_project_name: queue
-    #                   tf_path: aws/queue
-    #     uses: ./.github/workflows/job_lint_check.yaml
-    #     with:
-    #         tf_project_name: ${{ matrix.solution.tf_project_name }}
-    #         tf_path: ${{ matrix.solution.tf_path }}
+    lint-check:
+        name: Terraform Lint Check
+        needs: ecr_push
+        strategy:
+            fail-fast: false
+            matrix:
+                solution:
+                    - tf_project_name: Baseline
+                      tf_path: aws/baseline
+                    - tf_project_name: Tune
+                      tf_path: aws/tune
+                    - tf_project_name: Scale
+                      tf_path: aws/scale
+                    - tf_project_name: cache
+                      tf_path: aws/cache
+                    - tf_project_name: queue
+                      tf_path: aws/queue
+        uses: ./.github/workflows/job_lint_check.yaml
+        with:
+            tf_project_name: ${{ matrix.solution.tf_project_name }}
+            tf_path: ${{ matrix.solution.tf_path }}
 
     deploy:
         name: Deploy Resources
-        # needs: lint-check
+        needs: lint-check
         uses: ./.github/workflows/job_deploy.yaml
         permissions:
             contents: read
