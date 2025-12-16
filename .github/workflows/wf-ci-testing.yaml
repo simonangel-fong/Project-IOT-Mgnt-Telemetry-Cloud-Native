@@ -43,6 +43,15 @@ jobs:
                     - image_name: fastapi-redis
                       image_tag: fastapi-redis
                       dir_dockerfile: app/fastapi_redis
+                    - image_name: fastapi-kafka
+                      image_tag: fastapi-kafka
+                      dir_dockerfile: app/fastapi_kafka
+                    - image_name: flyway
+                      image_tag: flyway
+                      dir_dockerfile: app/flyway
+                    - image_name: kafka-consumer
+                      image_tag: kafka-consumer
+                      dir_dockerfile: app/kafka/consumer
         uses: ./.github/workflows/job_ecr_push.yaml
         with:
             image_name: ${{ matrix.image.image_name }}
