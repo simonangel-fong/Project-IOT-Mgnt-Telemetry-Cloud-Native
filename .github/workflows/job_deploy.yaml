@@ -140,7 +140,7 @@ jobs:
                   echo "Waiting for Flyway task to finish..."
                   aws ecs wait tasks-stopped \
                     --cluster "iot-mgnt-telemetry-baseline-cluster" \
-                    --tasks "$FLYWAY_INIT_CMD" \
+                    --tasks ""$FLYWAY_INIT_CMD"" \
                     --region "${{vars.AWS_REGION}}"
 
                   echo "Flyway migration task completed successfully."
