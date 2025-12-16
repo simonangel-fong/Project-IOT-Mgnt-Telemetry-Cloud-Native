@@ -1,5 +1,5 @@
 # .github/workflows/job_test_performance.yaml
-name: Job-Performance Testing
+name: Job-Performance Testing Read
 
 on:
   workflow_call:
@@ -10,36 +10,25 @@ on:
         type: string
       env:
         description: "Environment"
+        required: true
         type: string
-        default: ca-central-1
-
+      test_report:
+        description: "Report name"
+        required: true
+        type: string
+      test_script:
+        description: "Testing script"
+        required: true
+        type: string
 jobs:
-  testing-performance:
-    name: Performance Testing ${{ inputs.env }}
+  testing-smoke:
+    name: Smoke Testing ${{ inputs.env }}
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        include:
-          - id: read
-            test_name: Read
-            script: k6/script/test_hp_read.js
-            report: k6/report/baseline_cicd_read.html
-
-          - id: write
-            test_name: Write
-            script: k6/script/test_hp_write.js
-            report: k6/report/baseline_cicd_write.html
-
-          - id: mixed
-            test_name: Mixed
-            script: k6/script/test_hp_mixed.js
-            report: k6/report/baseline_cicd_mixed.html
-
     env:
+      ENV: ${{ inputs.env }}
       BASE_URL: ${{ inputs.base_url }}
-
+      K6_REPORT: k6/report/${{ inputs.test_report }}
+      K6_SCRIPT: k6/script/${{ inputs.test_script }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,24 +36,24 @@ jobs:
       - name: Setup K6
         uses: grafana/setup-k6-action@v1
 
-      - name: ${{ matrix.test_name }} Testing
-        id: testing
+      - name: Smoke Testing
+        id: testing-smoke
         uses: grafana/run-k6-action@v1
         env:
           K6_WEB_DASHBOARD: "true"
-          K6_WEB_DASHBOARD_EXPORT: "${{ matrix.report }}"
+          K6_WEB_DASHBOARD_EXPORT: "${{ env.K6_REPORT }}"
         with:
           debug: true
           fail-fast: true
-          flags: --env BASE_URL=${{ env.BASE_URL }}
+          flags: --env BASE_URL=${{env.BASE_URL}}
           path: |
-            ${{ matrix.script }}
+            ${{ env.K6_SCRIPT }}
 
-      - name: Upload report artifact
+      - name: Upload smoke report artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: "k6-report-${{ matrix.id }}-${{ inputs.env }}"
+          name: "k6-report-smoke-${{ env.ENV }}"
           path: |
-            ${{ matrix.report }}
+            ${{ env.K6_REPORT }}
           retention-days: 7

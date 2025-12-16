@@ -128,20 +128,27 @@ jobs:
       env: ${{ matrix.solution.env }}
       base_url: ${{ matrix.solution.base_url }}
 
-  # performance_testing:
-  #     name: Performance Testing
-  #     needs:
-  #         - deploy
-  #         - smoke_testing
-  #     uses: ./.github/workflows/job_test_performance.yaml
-  #     strategy:
-  #         fail-fast: false
-  #         matrix:
-  #             solution:
-  #                 - env: baseline
-  #     with:
-  #         base_url: ${{ needs.deploy.outputs.base_url }}
-  #         env: ${{ matrix.solution.env }}
+  performance_testing:
+      name: Performance Testing-Read
+      needs:
+          - deploy
+          - smoke_testing
+      uses: ./.github/workflows/job_test_performance.yaml
+      strategy:
+          fail-fast: false
+          matrix:
+              solution:
+                - env: baseline
+                  base_url: "https://iot-baseline.arguswatcher.net"
+                  test_report: baseline_cicd_read.html
+                - env: tune
+                  base_url: "https://iot-tune.arguswatcher.net"
+                  test_report: tune_cicd_read.html
+      with:
+          base_url: ${{ needs.deploy.outputs.base_url }}
+          env: ${{ matrix.solution.env }}
+          test_report: ${{ matrix.solution.test_report }}
+          test_script: test_hp_read.js
 
   # destroy:
   #     name: Destroy Resources
