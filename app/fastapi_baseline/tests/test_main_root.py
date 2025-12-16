@@ -22,7 +22,7 @@ def test_home_basic_response():
     assert isinstance(data, dict)
 
     # Core fields
-    assert data["app"] == main.settings.app_name
+    assert data["project"] == main.settings.project
     assert data["status"] == "ok"
     assert data["environment"] == main.settings.env
     assert data["debug"] == main.settings.debug
