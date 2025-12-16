@@ -84,37 +84,37 @@ jobs:
   #     tf_project_name: ${{ matrix.solution.tf_project_name }}
   #     tf_path: ${{ matrix.solution.tf_path }}
 
-  deploy:
-    name: Deploy Resources
-    # needs: lint-check
-    uses: ./.github/workflows/job_deploy.yaml
-    permissions:
-      contents: read
-      id-token: write # OIDC
-    strategy:
-      fail-fast: false
-      matrix:
-        solution:
-          - env: baseline
-          - env: tune
-    with:
-      project: ${{ vars.PROJECT}}
-      env: ${{ matrix.solution.env }}
-      aws_region: ${{ vars.AWS_REGION }}
-    secrets:
-      db_name: ${{ secrets.DB_NAME }}
-      db_username: ${{ secrets.DB_USERNAME }}
-      db_password: ${{ secrets.DB_PASSWORD }}
-      db_app_pwd: ${{ secrets.DB_APP_PWD }}
-      db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
-      cf_api_token: ${{ secrets.CF_API_TOKEN }}
-      cf_zone_id: ${{ secrets.CF_ZONE_ID }}
-      aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
-      aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
+  # deploy:
+  #   name: Deploy Resources
+  #   # needs: lint-check
+  #   uses: ./.github/workflows/job_deploy.yaml
+  #   permissions:
+  #     contents: read
+  #     id-token: write # OIDC
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       solution:
+  #         - env: baseline
+  #         - env: tune
+  #   with:
+  #     project: ${{ vars.PROJECT}}
+  #     env: ${{ matrix.solution.env }}
+  #     aws_region: ${{ vars.AWS_REGION }}
+  #   secrets:
+  #     db_name: ${{ secrets.DB_NAME }}
+  #     db_username: ${{ secrets.DB_USERNAME }}
+  #     db_password: ${{ secrets.DB_PASSWORD }}
+  #     db_app_pwd: ${{ secrets.DB_APP_PWD }}
+  #     db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
+  #     cf_api_token: ${{ secrets.CF_API_TOKEN }}
+  #     cf_zone_id: ${{ secrets.CF_ZONE_ID }}
+  #     aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
+  #     aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
 
   smoke_testing:
     name: Smoke Testing
-    needs: deploy
+    # needs: deploy
     uses: ./.github/workflows/job_test_smoke.yaml
     strategy:
       fail-fast: false
@@ -131,7 +131,7 @@ jobs:
   performance_testing:
       name: Performance Testing-Read
       needs:
-          - deploy
+          # - deploy
           - smoke_testing
       uses: ./.github/workflows/job_test_performance.yaml
       strategy:
