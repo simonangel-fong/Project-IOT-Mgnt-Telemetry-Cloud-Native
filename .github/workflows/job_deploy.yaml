@@ -156,4 +156,4 @@ jobs:
                   BASE_URL="$(terraform output -raw dns_url)"
                   echo "$BASE_URL"
                   echo "base_url=$BASE_URL" >> "$GITHUB_OUTPUT"
-                  echo "base_url={${{ inputs.env }}:$BASE_URL" >> "$GITHUB_OUTPUT"
+                  echo "base_url={${{ inputs.env }}:$BASE_URL}" >> "$GITHUB_OUTPUT"
