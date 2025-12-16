@@ -134,13 +134,9 @@ jobs:
 
                   INIT_CMD="aws ecs wait tasks-stopped --cluster $CLUSTER --tasks $FLYWAY_INIT_CMD --region ${{vars.AWS_REGION}}"
 
-                  multi_line_var="$(cat <<'EOF'
-                    This is the first line.
-                    This is the second line.
-                  EOF
-                  )"
-
                   echo $INIT_CMD
+
+                  $INIT_CMD
 
                   echo "test ...."
                   # aws ecs run-task --launch-type "FARGATE" --region "ca-central-1" --cluster "iot-mgnt-telemetry-baseline-cluster" --task-definition "arn:aws:ecs:ca-central-1:099139718958:task-definition/iot-mgnt-telemetry-baseline-task-flyway:24" --network-configuration "awsvpcConfiguration={subnets=[subnet-0207b7320b4a54ff8,subnet-04720d591783a3bb4,subnet-06145ce6322834458],securityGroups=[sg-075086313eaca7bae]}"
