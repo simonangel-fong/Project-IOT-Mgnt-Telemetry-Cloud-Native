@@ -112,15 +112,15 @@ jobs:
       aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
       aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
 
-  prepare_urls:
-    name: Aggregate URLs
+  collect_urls:
+    name: Collect URLs
     runs-on: ubuntu-latest
     needs: deploy
     outputs:
       base_urls_json: ${{ steps.collect.outputs.base_urls_json }}
 
     steps:
-      - name: Collect Matrix Outputs and Format as JSON
+      - name: Collect Matrix Outputs
         id: collect
         run: |
           echo "${{ needs.deploy.outputs.base_url }}"
