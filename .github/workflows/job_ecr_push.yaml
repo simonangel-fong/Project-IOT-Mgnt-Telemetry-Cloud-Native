@@ -67,7 +67,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           tags: |
             ${{ env.ECR_REPOSITORY }}
-            ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
       # - name: Send email notification (on failure)
       #   if: failure()
