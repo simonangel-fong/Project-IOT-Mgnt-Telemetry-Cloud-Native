@@ -132,7 +132,7 @@ jobs:
                   FLYWAY_INIT_CMD="$(terraform output -raw flyway_init_cmd)"
                   CLUSTER="$(terraform output -raw ecs_cluster_name)"
 
-                  INIT_CMD='aws ecs wait tasks-stopped --cluster "$CLUSTER"' --tasks "$FLYWAY_INIT_CMD" --region "${{vars.AWS_REGION}}"'
+                  INIT_CMD='aws ecs wait tasks-stopped --cluster "$CLUSTER" --tasks "$FLYWAY_INIT_CMD" --region "${{vars.AWS_REGION}}"'
 
                   echo $INIT_CMD
 
