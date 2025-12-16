@@ -9,7 +9,7 @@ output "ecs_cluster_name" {
 output "flyway_init_cmd" {
   value = <<EOF
   aws ecs run-task  \
-    --launch-type "FARGATE" \
+    --launch-type FARGATE \
     --region "${var.aws_region}" \
     --cluster "${aws_ecs_cluster.ecs_cluster.name}" \
     --task-definition "${aws_ecs_task_definition.flyway.arn}" \
