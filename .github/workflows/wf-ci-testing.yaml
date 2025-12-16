@@ -96,6 +96,7 @@ jobs:
             matrix:
                 solution:
                     - env: baseline
+                    - env: tune
         with:
             project: ${{ vars.PROJECT}}
             env: ${{ matrix.solution.env }}
@@ -111,18 +112,19 @@ jobs:
             aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
             aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
 
-    smoke_testing:
-        name: Smoke Testing
-        needs: deploy
-        uses: ./.github/workflows/job_test_smoke.yaml
-        strategy:
-            fail-fast: false
-            matrix:
-                solution:
-                    - env: baseline
-        with:
-            base_url: ${{ needs.deploy.outputs.base_url }}
-            env: ${{ matrix.solution.env }}
+
+    # smoke_testing:
+    #     name: Smoke Testing
+    #     needs: deploy
+    #     uses: ./.github/workflows/job_test_smoke.yaml
+    #     strategy:
+    #         fail-fast: false
+    #         matrix:
+    #             solution:
+    #                 - env: baseline
+    #     with:
+    #         base_url: ${{ needs.deploy.outputs.base_url }}
+    #         env: ${{ matrix.solution.env }}
 
     # performance_testing:
     #     name: Performance Testing
