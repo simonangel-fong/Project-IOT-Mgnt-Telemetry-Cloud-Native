@@ -136,13 +136,15 @@ jobs:
 
                   echo "ECS Cluster: $CLUSTER"
                   echo "Starting Flyway task using: $FLYWAY_RUN_COMMAND"
-
+                  
+                  TASK_ARN=$(eval "$FLYWAY_RUN_COMMAND" | tail -n 1)
+                  echo TASK_ARN
 
                   echo "Waiting for Flyway task to finish..."
                   aws ecs wait tasks-stopped \
-                   --cluster "$CLUSTER" \
-                   --tasks "$FLYWAY_RUN_COMMAND" \
-                   --region "${{vars.AWS_REGION}}"
+                    --cluster "$CLUSTER" \
+                    --tasks "$TASK_ARN" \
+                    --region "$REGION"
 
                   echo "Flyway migration task completed successfully."
 
