@@ -38,20 +38,20 @@ jobs:
             matrix:
                 image:
                     - image_name: fastapi-baseline
-                      image_suffix: fastapi-baseline
+                      image_tag: fastapi-baseline
                       dir_dockerfile: app/fastapi_baseline
                     - image_name: fastapi-redis
-                      image_suffix: fastapi-redis
+                      image_tag: fastapi-redis
                       dir_dockerfile: app/fastapi_redis
         uses: ./.github/workflows/job_ecr_push.yaml
         with:
             image_name: ${{ matrix.image.image_name }}
-            image_suffix: ${{ matrix.image.image_suffix }}
+            image_tag: ${{ matrix.image.image_tag }}
             dir_dockerfile: ${{ matrix.image.dir_dockerfile }}
+            ecr_repo: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}"
             aws_region: ${{ vars.AWS_REGION }}
         secrets:
             aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
-            aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
 
     # lint-check:
     #     name: Terraform Lint Check

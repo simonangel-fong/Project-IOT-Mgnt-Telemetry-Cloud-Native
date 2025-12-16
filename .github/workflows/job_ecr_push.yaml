@@ -8,8 +8,12 @@ on:
         description: "Image Name"
         required: true
         type: string
-      image_suffix:
-        description: "suffix of the the image"
+      ecr_repo:
+        description: "ECR repo"
+        type: string
+        required: true
+      image_tag:
+        description: "Image tag"
         type: string
       dir_dockerfile:
         description: "Path of the Dockerfile"
@@ -23,9 +27,9 @@ on:
       aws_tf_role_arn:
         description: "AWS ARN - TF role"
         required: true
-      aws_account_id:
-        description: "AWS Account ID"
-        required: true
+      # aws_account_id:
+      #   description: "AWS Account ID"
+      #   required: true
 
 jobs:
   ecr-push:
@@ -34,7 +38,7 @@ jobs:
     env:
       DIR_DOCKFILE: ${{ inputs.dir_dockerfile }}
       AWS_REGION: ${{ inputs.aws_region }}
-      ECR_REPOSITORY: "${{ secrets.aws_account_id }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.PROJECT }}-${{ inputs.image_name }}"
+      ECR_REPOSITORY: ${{ inputs.ecr_repo }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -66,7 +70,7 @@ jobs:
           context: ${{ env.DIR_DOCKFILE }}
           labels: ${{ steps.meta.outputs.labels }}
           tags: |
-            ${{ env.ECR_REPOSITORY }}:${{inputs.image_suffix}}
+            ${{ env.ECR_REPOSITORY }}:${{inputs.image_tag}}
 
       # - name: Send email notification (on failure)
       #   if: failure()
