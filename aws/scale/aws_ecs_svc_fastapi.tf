@@ -10,6 +10,8 @@ locals {
   fastapi_cpu              = var.svc_param.fastapi_svc.cpu
   fastapi_memory           = var.svc_param.fastapi_svc.memory
   fastapi_count_desired    = var.svc_param.fastapi_svc.count_desired
+  fastapi_count_min        = var.svc_param.fastapi_svc.count_min
+  fastapi_count_max        = var.svc_param.fastapi_svc.count_max
   fastapi_env_pool_size    = var.svc_param.fastapi_svc.container_env["pool_size"]
   fastapi_env_max_overflow = var.svc_param.fastapi_svc.container_env["max_overflow"]
   fastapi_env_worker       = var.svc_param.fastapi_svc.container_env["worker"]
@@ -17,7 +19,7 @@ locals {
   fastapi_env_pgdb_db      = aws_db_instance.postgres.db_name
   fastapi_env_pgdb_user    = aws_db_instance.postgres.username
   fastapi_env_pgdb_pwd     = aws_db_instance.postgres.password
-  fastapi_threshold_cpu    = var.threshold_cpu
+  fastapi_scale_cpu        = var.threshold_cpu
 }
 
 
@@ -166,6 +168,52 @@ resource "aws_ecs_service" "ecs_svc_fastapi" {
 }
 
 # #################################
+# Service: Scaling policy
+# #################################
+resource "aws_appautoscaling_target" "scaling_target_fastapi" {
+  service_namespace  = "ecs"
+  resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.ecs_svc_fastapi.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  min_capacity       = local.fastapi_count_min
+  max_capacity       = local.fastapi_count_max
+}
+
+# scaling policy: cpu
+resource "aws_appautoscaling_policy" "scaling_cpu_fastapi" {
+  name               = "${var.project}-scale-cpu-fastapi"
+  resource_id        = aws_appautoscaling_target.scaling_target_fastapi.resource_id
+  scalable_dimension = aws_appautoscaling_target.scaling_target_fastapi.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.scaling_target_fastapi.service_namespace
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value       = local.fastapi_scale_cpu # cpu%
+    scale_in_cooldown  = 30
+    scale_out_cooldown = 30
+  }
+}
+
+resource "aws_appautoscaling_policy" "scaling_memory_fastapi" {
+  name               = "${var.project}-scale-memory-fastapi"
+  resource_id        = aws_appautoscaling_target.scaling_target_fastapi.resource_id
+  scalable_dimension = aws_appautoscaling_target.scaling_target_fastapi.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.scaling_target_fastapi.service_namespace
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    target_value       = 40
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
+}
+
+# #################################
 # Monitoring: cup alarm
 # #################################
 resource "aws_cloudwatch_metric_alarm" "ecs_fastapi_high_cpu" {
@@ -174,8 +222,8 @@ resource "aws_cloudwatch_metric_alarm" "ecs_fastapi_high_cpu" {
   metric_name         = "CPUUtilization"
   comparison_operator = "GreaterThanThreshold"
   statistic           = "Average"
-  threshold           = local.fastapi_threshold_cpu
-  period              = 30 # period in seconds
+  threshold           = local.fastapi_scale_cpu
+  period              = 60 # period in seconds
   evaluation_periods  = 2  # number of periods to compare with threshold.  
 
   dimensions = {

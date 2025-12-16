@@ -229,7 +229,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_fastapi_high_cpu" {
   metric_name         = "CPUUtilization"
   comparison_operator = "GreaterThanThreshold"
   statistic           = "Average"
-  threshold           = 50
+  threshold           = local.fastapi_scale_cpu
   period              = 60 # period in seconds
   evaluation_periods  = 2  # number of periods to compare with threshold.  
 
