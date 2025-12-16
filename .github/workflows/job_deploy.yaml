@@ -131,7 +131,9 @@ jobs:
 
                   FLYWAY_INIT_CMD="$(terraform output -json flyway_init_cmd)"
 
-                  CLUSTER="${{vars.PROJECT}}-${{inputs.env}}-cluster"
+                  CLUSTER="${{vars.PROJECT}}"-"${{inputs.env}}-cluster"
+
+                  echo $CLUSTER
 
                   echo "Waiting for Flyway task to finish..."
                   aws ecs wait tasks-stopped \
