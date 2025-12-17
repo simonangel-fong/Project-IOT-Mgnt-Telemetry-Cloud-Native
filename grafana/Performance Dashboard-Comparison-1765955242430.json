@@ -96,7 +96,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
+        "h": 9,
         "w": 24,
         "x": 0,
         "y": 1
@@ -127,7 +127,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "LoadBalancer": "app/iot-mgnt-telemetry-scale-alb/2664ee86b55b076c"
+            "LoadBalancer": "app/iot-mgnt-telemetry-scale-alb/e64931d3992b1d1c"
           },
           "expression": "",
           "id": "",
@@ -171,7 +171,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "LoadBalancer": "app/iot-mgnt-telemetry-tune-alb/4c9e6ed25ee827ee"
+            "LoadBalancer": "app/iot-mgnt-telemetry-tune-alb/07e265cc453b3a85"
           },
           "expression": "",
           "id": "",
@@ -215,7 +215,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "LoadBalancer": "app/iot-mgnt-telemetry-cache-alb/4460acd179c1f08b"
+            "LoadBalancer": "app/iot-mgnt-telemetry-redis-alb/98a8e1069539a5d7"
           },
           "expression": "",
           "id": "",
@@ -259,7 +259,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "LoadBalancer": "app/iot-mgnt-telemetry-queue-alb/bf1382f63d9f7981"
+            "LoadBalancer": "app/iot-mgnt-telemetry-kafka-alb/c4b304c52e9db8d2"
           },
           "expression": "",
           "id": "",
@@ -307,7 +307,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 10
       },
       "id": 9,
       "panels": [],
@@ -378,10 +378,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 13,
+        "h": 12,
         "w": 12,
         "x": 0,
-        "y": 9
+        "y": 11
       },
       "id": 6,
       "options": {
@@ -555,14 +555,14 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "ClusterName": "iot-mgnt-telemetry-cache-cluster",
-            "ServiceName": "iot-mgnt-telemetry-cache-service-fastapi"
+            "ClusterName": "iot-mgnt-telemetry-redis-cluster",
+            "ServiceName": "iot-mgnt-telemetry-redis-service-fastapi"
           },
           "expression": "",
           "id": "",
           "label": "Redis",
           "logGroups": [],
-          "matchExact": false,
+          "matchExact": true,
           "metricEditorMode": 0,
           "metricName": "DesiredTaskCount",
           "metricQueryType": 0,
@@ -581,14 +581,14 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "ClusterName": "iot-mgnt-telemetry-queue-cluster",
-            "ServiceName": "iot-mgnt-telemetry-queue-service-fastapi"
+            "ClusterName": "iot-mgnt-telemetry-kafka-cluster",
+            "ServiceName": "iot-mgnt-telemetry-kafka-service-fastapi"
           },
           "expression": "",
           "id": "",
           "label": "Kafka",
           "logGroups": [],
-          "matchExact": false,
+          "matchExact": true,
           "metricEditorMode": 0,
           "metricName": "DesiredTaskCount",
           "metricQueryType": 0,
@@ -669,10 +669,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 13,
+        "h": 12,
         "w": 12,
         "x": 12,
-        "y": 9
+        "y": 11
       },
       "id": 2,
       "options": {
@@ -752,8 +752,8 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "ClusterName": "iot-mgnt-telemetry-cache-cluster",
-            "ServiceName": "iot-mgnt-telemetry-cache-service-fastapi"
+            "ClusterName": "iot-mgnt-telemetry-redis-cluster",
+            "ServiceName": "iot-mgnt-telemetry-redis-service-fastapi"
           },
           "expression": "",
           "id": "",
@@ -778,8 +778,8 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "ClusterName": "iot-mgnt-telemetry-queue-cluster",
-            "ServiceName": "iot-mgnt-telemetry-queue-service-fastapi"
+            "ClusterName": "iot-mgnt-telemetry-kafka-cluster",
+            "ServiceName": "iot-mgnt-telemetry-kafka-service-fastapi"
           },
           "expression": "",
           "id": "",
@@ -808,7 +808,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 23
       },
       "id": 8,
       "panels": [],
@@ -879,10 +879,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 13,
+        "h": 12,
         "w": 12,
         "x": 0,
-        "y": 23
+        "y": 24
       },
       "id": 4,
       "options": {
@@ -960,7 +960,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "DBInstanceIdentifier": "iot-mgnt-telemetry-cache-rds-pgdb"
+            "DBInstanceIdentifier": "iot-mgnt-telemetry-redis-rds-pgdb"
           },
           "expression": "",
           "id": "",
@@ -985,7 +985,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "DBInstanceIdentifier": "iot-mgnt-telemetry-queue-rds-pgdb"
+            "DBInstanceIdentifier": "iot-mgnt-telemetry-kafka-rds-pgdb"
           },
           "expression": "",
           "id": "",
@@ -1071,10 +1071,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 13,
+        "h": 12,
         "w": 12,
         "x": 12,
-        "y": 23
+        "y": 24
       },
       "id": 3,
       "options": {
@@ -1152,7 +1152,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "DBInstanceIdentifier": "iot-mgnt-telemetry-cache-rds-pgdb"
+            "DBInstanceIdentifier": "iot-mgnt-telemetry-redis-rds-pgdb"
           },
           "expression": "",
           "id": "",
@@ -1177,7 +1177,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "DBInstanceIdentifier": "iot-mgnt-telemetry-queue-rds-pgdb"
+            "DBInstanceIdentifier": "iot-mgnt-telemetry-kafka-rds-pgdb"
           },
           "expression": "",
           "id": "",
@@ -1369,7 +1369,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "CacheClusterId": "iot-mgnt-telemetry-cache-redis-001",
+            "CacheClusterId": "iot-mgnt-telemetry-redis-redis-001",
             "CacheNodeId": "0001"
           },
           "expression": "",
@@ -1395,7 +1395,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "CacheClusterId": "iot-mgnt-telemetry-queue-redis-001",
+            "CacheClusterId": "iot-mgnt-telemetry-kafka-redis-001",
             "CacheNodeId": "0001"
           },
           "expression": "",
@@ -1575,7 +1575,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "CacheClusterId": "iot-mgnt-telemetry-cache-redis-001",
+            "CacheClusterId": "iot-mgnt-telemetry-redis-redis-001",
             "CacheNodeId": "0001"
           },
           "expression": "",
@@ -1601,7 +1601,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "CacheClusterId": "iot-mgnt-telemetry-queue-redis-001",
+            "CacheClusterId": "iot-mgnt-telemetry-kafka-redis-001",
             "CacheNodeId": "0001"
           },
           "expression": "",
@@ -1765,7 +1765,7 @@
           },
           "dimensions": {
             "Broker ID": "*",
-            "Cluster Name": "iot-mgnt-telemetry-queue-msk"
+            "Cluster Name": "iot-mgnt-telemetry-kafka-msk"
           },
           "expression": "",
           "id": "",
@@ -1914,7 +1914,7 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "Cluster Name": "iot-mgnt-telemetry-queue-msk"
+            "Cluster Name": "iot-mgnt-telemetry-kafka-msk"
           },
           "expression": "",
           "id": "",
@@ -2104,7 +2104,7 @@
                 {
                   "operator": {
                     "name": "=",
-                    "value": "iot-mgnt-telemetry-queue-cluster"
+                    "value": "iot-mgnt-telemetry-kafka-cluster"
                   },
                   "property": {
                     "name": "ClusterName",
@@ -2115,7 +2115,7 @@
                 {
                   "operator": {
                     "name": "=",
-                    "value": "iot-mgnt-telemetry-queue-service-consumer"
+                    "value": "iot-mgnt-telemetry-kafka-service-consumer"
                   },
                   "property": {
                     "name": "ServiceName",
@@ -2127,7 +2127,7 @@
               "type": "and"
             }
           },
-          "sqlExpression": "SELECT SUM(DesiredTaskCount) FROM \"ECS/ContainerInsights\" WHERE ClusterName = 'iot-mgnt-telemetry-queue-cluster' AND ServiceName = 'iot-mgnt-telemetry-queue-service-consumer' ORDER BY SUM() ASC",
+          "sqlExpression": "SELECT SUM(DesiredTaskCount) FROM \"ECS/ContainerInsights\" WHERE ClusterName = 'iot-mgnt-telemetry-kafka-cluster' AND ServiceName = 'iot-mgnt-telemetry-kafka-service-consumer' ORDER BY SUM() ASC",
           "statistic": "Average"
         }
       ],
@@ -2260,8 +2260,8 @@
             "uid": "eewwgkgzccc1sf"
           },
           "dimensions": {
-            "ClusterName": "iot-mgnt-telemetry-queue-cluster",
-            "ServiceName": "iot-mgnt-telemetry-queue-service-consumer"
+            "ClusterName": "iot-mgnt-telemetry-kafka-cluster",
+            "ServiceName": "iot-mgnt-telemetry-kafka-service-consumer"
           },
           "expression": "",
           "id": "",
@@ -2303,6 +2303,6 @@
   "timezone": "browser",
   "title": "Performance Dashboard-Comparison",
   "uid": "siv9pbx",
-  "version": 222,
+  "version": 237,
   "weekStart": ""
 }

@@ -137,11 +137,11 @@ jobs:
       env: ${{ matrix.solution.env }}
       base_url: ${{ matrix.solution.base_url }}
 
-  performance_testing_reaad:
+  performance_testing_read:
     name: Performance Testing-Read
-    needs:
-      # - deploy
-      - smoke_testing
+    needs: smoke_testing
+    #   only when smoke success
+    if: ${{ needs.smoke_testing.result == 'success' }}
     uses: ./.github/workflows/job_test_performance.yaml
     strategy:
       fail-fast: false
@@ -168,12 +168,48 @@ jobs:
       test_report: ${{ matrix.solution.test_report }}
       test_script: test_hp_read.js
 
+  reset_for_write:
+    name: Reset Resources for Write Testing
+    needs:
+      - smoke_testing
+      - performance_testing_read
+    # only when smoke testing success
+    if: ${{ needs.smoke_testing.result == 'success' }}
+    uses: ./.github/workflows/job_deploy.yaml
+    permissions:
+      contents: read
+      id-token: write # OIDC
+    strategy:
+      fail-fast: false
+      matrix:
+        solution:
+          # - env: baseline
+          - env: tune
+          - env: scale
+          - env: redis
+          - env: kafka
+    with:
+      project: ${{ vars.PROJECT}}
+      env: ${{ matrix.solution.env }}
+      aws_region: ${{ vars.AWS_REGION }}
+    secrets:
+      db_name: ${{ secrets.DB_NAME }}
+      db_username: ${{ secrets.DB_USERNAME }}
+      db_password: ${{ secrets.DB_PASSWORD }}
+      db_app_pwd: ${{ secrets.DB_APP_PWD }}
+      db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
+      cf_api_token: ${{ secrets.CF_API_TOKEN }}
+      cf_zone_id: ${{ secrets.CF_ZONE_ID }}
+      aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
+      aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
+
   performance_testing_write:
     name: Performance Testing-Write
     needs:
-      # - deploy
-      - performance_testing_reaad
-    if: always()
+      - smoke_testing
+      - reset_for_write
+    # only when smoke testing success
+    if: ${{ needs.smoke_testing.result == 'success' }}
     uses: ./.github/workflows/job_test_performance.yaml
     strategy:
       fail-fast: false
@@ -200,12 +236,47 @@ jobs:
       test_report: ${{ matrix.solution.test_report }}
       test_script: test_hp_write.js
 
+  reset_for_mixed:
+    name: Reset Resources for Mixed Testing
+    needs:
+      - smoke_testing
+      - performance_testing_write
+    # only when smoke testing success
+    if: ${{ needs.smoke_testing.result == 'success' }}
+    uses: ./.github/workflows/job_deploy.yaml
+    permissions:
+      contents: read
+      id-token: write # OIDC
+    strategy:
+      fail-fast: false
+      matrix:
+        solution:
+          # - env: baseline
+          - env: tune
+          - env: scale
+          - env: redis
+          - env: kafka
+    with:
+      project: ${{ vars.PROJECT}}
+      env: ${{ matrix.solution.env }}
+      aws_region: ${{ vars.AWS_REGION }}
+    secrets:
+      db_name: ${{ secrets.DB_NAME }}
+      db_username: ${{ secrets.DB_USERNAME }}
+      db_password: ${{ secrets.DB_PASSWORD }}
+      db_app_pwd: ${{ secrets.DB_APP_PWD }}
+      db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
+      cf_api_token: ${{ secrets.CF_API_TOKEN }}
+      cf_zone_id: ${{ secrets.CF_ZONE_ID }}
+      aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
+      aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
+
   performance_testing_mixed:
     name: Performance Testing-Mixed
     needs:
-      # - deploy
-      - performance_testing_write
-    if: always()
+      - smoke_testing
+      - reset_for_mixed
+    if: ${{ needs.smoke_testing.result == 'success' }}
     uses: ./.github/workflows/job_test_performance.yaml
     strategy:
       fail-fast: false
@@ -235,8 +306,16 @@ jobs:
   destroy:
     name: Destroy Resources
     needs:
+      - smoke_testing
       - performance_testing_mixed
-    if: always()
+    if: >-
+      ${{
+        always() &&
+        (
+          needs.smoke_testing.result != 'success' ||
+          needs.performance_testing_mixed.result != 'skipped'
+        )
+      }}
     uses: ./.github/workflows/job_destroy.yaml
     permissions:
       contents: read
