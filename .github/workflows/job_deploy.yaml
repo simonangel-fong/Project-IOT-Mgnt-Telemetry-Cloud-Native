@@ -149,6 +149,34 @@ jobs:
 
                   echo "Flyway migration task completed successfully."
 
+            - name: Initial Kafka
+              if: ${{ env.TF_VAR_env == 'queue' }}
+              working-directory: ${{ env.TF_DIR }}
+              env:
+                  AWS_REGION: ${{ inputs.AWS_REGION }}
+              run: |
+                  set -euo pipefail
+
+                  echo "Get output ...."
+                  CLUSTER="$(terraform output -raw ecs_cluster_name)"
+                  KAFKA_INIT_COMMAND="$(terraform output -raw kafka_init_cmd)"
+                  REGION="${{ inputs.AWS_REGION }}"
+
+                  echo "ECS Cluster: $CLUSTER"
+                  echo "Starting Flyway task using: $KAFKA_INIT_COMMAND"
+
+                  echo "Arn ...."
+                  TASK_ARN=$(eval "$KAFKA_INIT_COMMAND" | jq -r '.tasks[0].taskArn' | tr -d '[:space:]')
+                  echo $TASK_ARN
+
+                  echo "Waiting for Flyway task to finish..."
+                  aws ecs wait tasks-stopped \
+                    --cluster "$CLUSTER" \
+                    --tasks "$TASK_ARN" \
+                    --region "$REGION"
+
+                  echo "Kafka initialization task completed successfully."
+
             - name: Output
               id: output_base_url
               working-directory: ${{ env.TF_DIR }}

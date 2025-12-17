@@ -63,7 +63,7 @@ variable "svc_param" {
       cpu           = 2048
       memory        = 4096
       count_desired = 6
-      count_min     = 5
+      count_min     = 3
       count_max     = 10
       container_env = {
         pool_size    = 5
