@@ -7,7 +7,7 @@
 # Variable
 # #################################
 locals {
-  rds_postgres_identifier  = "${var.project}-${var.env}-rds-pgdb"
+  rds_postgres_identifier = "${var.project}-${var.env}-rds-pgdb"
 }
 
 # ##############################
