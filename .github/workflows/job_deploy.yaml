@@ -112,7 +112,7 @@ jobs:
             - name: Deploy - Save plan artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: deploy-tfplan-${{ env.TF_VAR_env }}
+                  name: "tfplan-deploy-${{ env.TF_VAR_env }}"
                   path: |
                       ${{ env.TF_DIR }}/tfplan
                       ${{ env.TF_DIR }}/tfplan.json

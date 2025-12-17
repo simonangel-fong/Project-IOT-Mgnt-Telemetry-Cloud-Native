@@ -106,7 +106,7 @@ jobs:
             - name: Destroy - Save plan artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: destroy-tfplan-${{ env.TF_VAR_env }}
+                  name: tfplan-destroy-${{ env.TF_VAR_env }}
                   path: |
                       ${{ env.TF_DIR }}/tfplan-destroy
                       ${{ env.TF_DIR }}/tfplan-destroy.json

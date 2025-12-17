@@ -175,7 +175,7 @@ jobs:
       - smoke_testing
       - performance_testing_read
     # only when smoke testing success
-    if: ${{ needs.smoke_testing.result == 'success' }}
+    if: ${{ always() && needs.smoke_testing.result == 'success' }}
     uses: ./.github/workflows/job_deploy.yaml
     permissions:
       contents: read
@@ -210,7 +210,7 @@ jobs:
       - smoke_testing
       - reset_for_write
     # only when smoke testing success
-    if: ${{ needs.smoke_testing.result == 'success' }}
+    if: ${{ always() && needs.smoke_testing.result == 'success' }}
     uses: ./.github/workflows/job_test_performance.yaml
     strategy:
       fail-fast: false
@@ -243,7 +243,7 @@ jobs:
       - smoke_testing
       - performance_testing_write
     # only when smoke testing success
-    if: ${{ needs.smoke_testing.result == 'success' }}
+    if: ${{ always() && needs.smoke_testing.result == 'success' }}
     uses: ./.github/workflows/job_deploy.yaml
     permissions:
       contents: read
@@ -277,7 +277,7 @@ jobs:
     needs:
       - smoke_testing
       - reset_for_mixed
-    if: ${{ needs.smoke_testing.result == 'success' }}
+    if: ${{ always() && needs.smoke_testing.result == 'success' }}
     uses: ./.github/workflows/job_test_performance.yaml
     strategy:
       fail-fast: false
