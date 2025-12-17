@@ -169,7 +169,7 @@ jobs:
                   TASK_ARN=$(eval "$KAFKA_INIT_COMMAND" | jq -r '.tasks[0].taskArn' | tr -d '[:space:]')
                   echo $TASK_ARN
 
-                  echo "Waiting for Flyway task to finish..."
+                  echo "Waiting for Kafka init task to finish..."
                   aws ecs wait tasks-stopped \
                     --cluster "$CLUSTER" \
                     --tasks "$TASK_ARN" \
