@@ -8,7 +8,7 @@ variable "project" {
 
 variable "env" {
   type    = string
-  default = "queue"
+  default = "kafka"
 }
 
 variable "debug" {
@@ -119,12 +119,12 @@ variable "task_param" {
 }
 
 # ##############################
-# AWS Elasticache
+# AWS Elastiredis
 # ##############################
 variable "redis_node_type" {
-  description = "Instance type for Redis cache nodes"
+  description = "Instance type for Redis redis nodes"
   type        = string
-  default     = "cache.t4g.micro"
+  default     = "redis.t4g.micro"
 }
 
 # ##############################

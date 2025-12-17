@@ -75,10 +75,10 @@ jobs:
   #           tf_path: aws/tune
   #         - tf_project_name: Scale
   #           tf_path: aws/scale
-  #         - tf_project_name: cache
-  #           tf_path: aws/cache
-  #         - tf_project_name: queue
-  #           tf_path: aws/queue
+  #         - tf_project_name: redis
+  #           tf_path: aws/redis
+  #         - tf_project_name: kafka
+  #           tf_path: aws/kafka
   #   uses: ./.github/workflows/job_lint_check.yaml
   #   with:
   #     tf_project_name: ${{ matrix.solution.tf_project_name }}
@@ -98,8 +98,8 @@ jobs:
           # - env: baseline
           - env: tune
           - env: scale
-          - env: cache
-          - env: queue
+          - env: redis
+          - env: kafka
     with:
       project: ${{ vars.PROJECT}}
       env: ${{ matrix.solution.env }}
@@ -129,10 +129,10 @@ jobs:
             base_url: "https://iot-tune.arguswatcher.net"
           - env: scale
             base_url: "https://iot-scale.arguswatcher.net"
-          - env: cache
-            base_url: "https://iot-cache.arguswatcher.net"
-          - env: queue
-            base_url: "https://iot-queue.arguswatcher.net"
+          - env: redis
+            base_url: "https://iot-redis.arguswatcher.net"
+          - env: kafka
+            base_url: "https://iot-kafka.arguswatcher.net"
     with:
       env: ${{ matrix.solution.env }}
       base_url: ${{ matrix.solution.base_url }}
@@ -156,12 +156,12 @@ jobs:
                 - env: tune
                   base_url: "https://iot-tune.arguswatcher.net"
                   test_report: tune_cicd_read.html
-                - env: cache
-                  base_url: "https://iot-cache.arguswatcher.net"
-                  test_report: cache_cicd_read.html
-                - env: queue
-                  base_url: "https://iot-queue.arguswatcher.net"
-                  test_report: queue_cicd_read.html
+                - env: redis
+                  base_url: "https://iot-redis.arguswatcher.net"
+                  test_report: redis_cicd_read.html
+                - env: kafka
+                  base_url: "https://iot-kafka.arguswatcher.net"
+                  test_report: kafka_cicd_read.html
       with:
           base_url: ${{ matrix.solution.base_url }}
           env: ${{ matrix.solution.env }}
@@ -188,12 +188,12 @@ jobs:
                 - env: tune
                   base_url: "https://iot-tune.arguswatcher.net"
                   test_report: tune_cicd_write.html
-                - env: cache
-                  base_url: "https://iot-cache.arguswatcher.net"
-                  test_report: cache_cicd_write.html
-                - env: queue
-                  base_url: "https://iot-queue.arguswatcher.net"
-                  test_report: queue_cicd_write.html
+                - env: redis
+                  base_url: "https://iot-redis.arguswatcher.net"
+                  test_report: redis_cicd_write.html
+                - env: kafka
+                  base_url: "https://iot-kafka.arguswatcher.net"
+                  test_report: kafka_cicd_write.html
       with:
           base_url: ${{ matrix.solution.base_url }}
           env: ${{ matrix.solution.env }}
@@ -220,18 +220,17 @@ jobs:
                 - env: tune
                   base_url: "https://iot-tune.arguswatcher.net"
                   test_report: tune_cicd_mixed.html
-                - env: cache
-                  base_url: "https://iot-cache.arguswatcher.net"
-                  test_report: cache_cicd_mixed.html
-                - env: queue
-                  base_url: "https://iot-queue.arguswatcher.net"
-                  test_report: queue_cicd_mixed.html
+                - env: redis
+                  base_url: "https://iot-redis.arguswatcher.net"
+                  test_report: redis_cicd_mixed.html
+                - env: kafka
+                  base_url: "https://iot-kafka.arguswatcher.net"
+                  test_report: kafka_cicd_mixed.html
       with:
           base_url: ${{ matrix.solution.base_url }}
           env: ${{ matrix.solution.env }}
           test_report: ${{ matrix.solution.test_report }}
           test_script: test_hp_mixed.js
-
 
   # destroy:
   #     name: Destroy Resources

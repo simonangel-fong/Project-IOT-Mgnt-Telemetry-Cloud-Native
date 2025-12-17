@@ -8,7 +8,7 @@ services:
       - .scale.env
     environment:
       APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      ENV: "${ENV:-redis}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"
@@ -52,7 +52,7 @@ services:
       - .scale.env
     environment:
       APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      ENV: "${ENV:-redis}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"
@@ -96,7 +96,7 @@ services:
       - .scale.env
     environment:
       APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      ENV: "${ENV:-redis}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"
@@ -140,7 +140,7 @@ services:
       - .scale.env
     environment:
       APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      ENV: "${ENV:-redis}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"
@@ -184,7 +184,7 @@ services:
       - .scale.env
     environment:
       APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      ENV: "${ENV:-redis}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"
@@ -228,7 +228,7 @@ services:
       - .scale.env
     environment:
       APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      ENV: "${ENV:-redis}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"
@@ -272,7 +272,7 @@ services:
       - .scale.env
     environment:
       APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      ENV: "${ENV:-redis}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"
@@ -316,7 +316,7 @@ services:
       - .scale.env
     environment:
       APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      ENV: "${ENV:-redis}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"
@@ -360,7 +360,7 @@ services:
       - .scale.env
     environment:
       APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      ENV: "${ENV:-redis}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"
@@ -404,7 +404,7 @@ services:
       - .scale.env
     environment:
       APP_NAME: "${APP_NAME:-iot-mgnt-telemetry}"
-      ENV: "${ENV:-cache}"
+      ENV: "${ENV:-redis}"
       DEBUG: "${DEBUG:-true}"
       POOL_SIZE: "${POOL_SIZE:-5}"
       MAX_OVERFLOW: "${MAX_OVERFLOW:-10}"

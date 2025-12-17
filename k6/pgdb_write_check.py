@@ -2,7 +2,7 @@ import requests
 import time
 
 END_POINT = "http://localhost:8080/api/telemetry/count/e003031d-e441-4ece-ba5b-7d54d5b1da21"
-# END_POINT = "https://iot-queue.arguswatcher.net/api/telemetry/count/e003031d-e441-4ece-ba5b-7d54d5b1da21"
+# END_POINT = "https://iot-kafka.arguswatcher.net/api/telemetry/count/e003031d-e441-4ece-ba5b-7d54d5b1da21"
 API_Key = "device-001"
 DURATION = 900
 

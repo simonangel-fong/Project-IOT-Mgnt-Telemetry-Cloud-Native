@@ -53,7 +53,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: "k6-report-${{ inputs.test_report }}-${{ env.ENV }}"
+          name: "k6-report-${{ inputs.test_report }}"
           path: |
             ${{ env.K6_REPORT }}
           retention-days: 7

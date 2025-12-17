@@ -8,7 +8,7 @@ variable "project" {
 
 variable "env" {
   type    = string
-  default = "cache"
+  default = "redis"
 }
 
 variable "debug" {

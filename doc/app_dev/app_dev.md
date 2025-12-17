@@ -84,7 +84,7 @@ docker push 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry:f
 
 ```
 
-- queue
+- kafka
 
 ```sh
 # Push

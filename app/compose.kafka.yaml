@@ -1,8 +1,8 @@
-name: queue
+name: kafka
 
 include:
-  - compose.queue.fastapi.yaml
-  - compose.queue.consumer.yaml
+  - compose.kafka.fastapi.yaml
+  - compose.kafka.consumer.yaml
 
 volumes:
   pgdata:
@@ -57,7 +57,7 @@ services:
       - private_network
     ports:
       - "5432:5432"
-    command: ["postgres", "-c", "config_file=/config/queue.conf"]
+    command: ["postgres", "-c", "config_file=/config/kafka.conf"]
     healthcheck:
       test:
         [
@@ -110,7 +110,7 @@ services:
     container_name: nginx
     image: nginx:latest
     volumes:
-      - ./nginx/config/queue.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/config/kafka.conf:/etc/nginx/conf.d/default.conf
     networks:
       - public_network
       - private_network

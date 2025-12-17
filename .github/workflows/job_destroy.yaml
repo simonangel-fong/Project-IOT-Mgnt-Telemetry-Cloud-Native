@@ -35,18 +35,17 @@ on:
                 description: "AWS role for tf"
             aws_backend_bucket:
                 description: "AWS bucket for tf remote backend"
-
 jobs:
     destroy:
-        name: Destroy Resources
+        name: Destroy ${{ inputs.env }}
         runs-on: ubuntu-latest
         timeout-minutes: 30
         env:
             TF_VERSION: 1.14.0
             TF_DIR: aws/${{ inputs.env }}
             TF_PLUGIN_CACHE_DIR: /home/runner/.terraform.d/plugin-cache
-            TF_VAR_aws_region: ${{ inputs.aws_region }}
-            TF_VAR_env: ${{ inputs.env }}
+            TF_VAR_aws_region: ${{ inputs.AWS_REGION }}
+            TF_VAR_env: ${{ inputs.ENV }}
             TF_VAR_db_name: ${{ secrets.db_name }}
             TF_VAR_db_username: ${{ secrets.db_username }}
             TF_VAR_db_password: ${{ secrets.db_password }}
@@ -66,8 +65,8 @@ jobs:
             - name: Configure AWS credentials (OIDC)
               uses: aws-actions/configure-aws-credentials@v4
               with:
-                  role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN}}
-                  aws-region: ${{ inputs.AWS_REGION }}
+                  role-to-assume: ${{ secrets.aws_tf_role_arn}}
+                  aws-region: ${{ inputs.aws_region }}
 
             - name: Configure Terraform plugin cache
               run: |
@@ -84,9 +83,9 @@ jobs:
               working-directory: ${{ env.TF_DIR }}
               run: |
                   terraform init -reconfigure -input=false \
-                    -backend-config="bucket=${{ secrets.aws_backend_bucket }}" \
-                    -backend-config="region=${{ inputs.aws_region }}" \
-                    -backend-config="key=${{ inputs.project }}/${{ inputs.env }}/terraform.tfstate" \
+                    -backend-config="bucket=${{ secrets.AWS_BACKEND_BUCKET }}" \
+                    -backend-config="region=${{ inputs.AWS_REGION }}" \
+                    -backend-config="key=${{ inputs.project }}/${{ inputs.ENV }}/terraform.tfstate" \
                     -backend-config="encrypt=true"
 
             - name: Terraform Validate
@@ -98,21 +97,21 @@ jobs:
             - name: Destroy - Terraform Plan
               working-directory: ${{ env.TF_DIR }}
               id: destroy-plan
-              run: terraform plan -out=destroy-tfplan -input=false -no-color -destroy
+              run: terraform plan -out=tfplan-destroy -input=false -no-color -destroy
 
             - name: Destroy - Show plan (JSON)
               working-directory: ${{ env.TF_DIR }}
-              run: terraform show -json destroy-tfplan > destroy-tfplan.json
+              run: terraform show -json tfplan-destroy > tfplan-destroy.json
 
             - name: Destroy - Save plan artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: tfplan-bundle-destroy
+                  name: destroy-tfplan-${{ env.TF_VAR_env }}
                   path: |
-                      ${{ env.TF_DIR }}/destroy-tfplan
-                      ${{ env.TF_DIR }}/destroy-tfplan.json
+                      ${{ env.TF_DIR }}/tfplan-destroy
+                      ${{ env.TF_DIR }}/tfplan-destroy.json
                   retention-days: 3
 
             - name: Destroy - Terraform Apply
               working-directory: ${{ env.TF_DIR }}
-              run: terraform apply -auto-approve -no-color destroy-tfplan
+              run: terraform apply -auto-approve -no-color tfplan-destroy

@@ -1,7 +1,7 @@
-name: cache
+name: redis
 
 include:
-  - compose.cache.fastapi.yaml
+  - compose.redis.fastapi.yaml
 
 volumes:
   pgdata:
@@ -29,7 +29,7 @@ services:
       - private_network
     ports:
       - "5432:5432"
-    command: ["postgres", "-c", "config_file=/config/cache.conf"]
+    command: ["postgres", "-c", "config_file=/config/redis.conf"]
     healthcheck:
       test:
         [
@@ -82,7 +82,7 @@ services:
     container_name: nginx
     image: nginx:latest
     volumes:
-      - ./nginx/config/cache.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/config/redis.conf:/etc/nginx/conf.d/default.conf
     networks:
       - public_network
       - private_network

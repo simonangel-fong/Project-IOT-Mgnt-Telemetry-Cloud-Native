@@ -33,8 +33,8 @@ Evaluate how multiple **system architectures** impact the performance of an IoT 
 | `baseline` | ECS(FastAPI) + RDS(PostgreSQL)                     | Starting reference                          |
 | `scale`    | ECS Autoscaling                                    | Improved handling of stress load            |
 | `tune`     | DB connection pool tuning; optimized SQL/app logic | Higher throughput, lower latency            |
-| `cache`    | Cache read endpoints                               | Faster reads, reduced DB load               |
-| `queue`    | Async write pipeline (producer → queue → consumer) | Higher write throughput, smoother ingestion |
+| `redis`    | Cache read endpoints                               | Faster reads, reduced DB load               |
+| `kafka`    | Async write pipeline (producer → kafka → consumer) | Higher write throughput, smoother ingestion |
 
 ---
 
@@ -71,7 +71,7 @@ Use the **same k6 tests** across **different architectures** to ensure a fair an
 | **Latency**        | p95, p99 (endpoint-specific)                                                |
 | **Errors**         | Failure rate, status code distribution, timeouts                            |
 | **Capacity**       | Max RPS where latency and error thresholds remain acceptable                |
-| **System Metrics** | ECS CPU/memory, RDS CPU/IOPS/connections, Redis hit rate, queue backlog/lag |
+| **System Metrics** | ECS CPU/memory, RDS CPU/IOPS/connections, Redis hit rate, kafka backlog/lag |
 
 ---
 
@@ -92,36 +92,18 @@ All architectures are evaluated using the same workload profiles and metrics to 
 | `scale`     | Read-Heavy   |                  |                |                     |                 |                 |            |       |
 | `scale`     | Write-Heavy  |                  |                |                     |                 |                 |            |       |
 | `scale`     | Mixed        |                  |                |                     |                 |                 |            |       |
-| `cache`     | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| `cache`     | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| `cache`     | Mixed        |                  |                |                     |                 |                 |            |       |
-| `queue`     | Read-Heavy   |                  |                |                     |                 |                 |            |       |
-| `queue`     | Write-Heavy  |                  |                |                     |                 |                 |            |       |
-| `queue`     | Mixed        |                  |                |                     |                 |                 |            |       |
+| `redis`     | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| `redis`     | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| `redis`     | Mixed        |                  |                |                     |                 |                 |            |       |
+| `kafka`     | Read-Heavy   |                  |                |                     |                 |                 |            |       |
+| `kafka`     | Write-Heavy  |                  |                |                     |                 |                 |            |       |
+| `kafka`     | Mixed        |                  |                |                     |                 |                 |            |       |
 
 ---
 
 - [App Development](./doc/app_dev/app_dev.md)
 - [Baseline](./doc/baseline/baseline.md)
-- [Tune](./doc/tune/tune.md)
 - [Scale](./doc/scale/scale.md)
-- [Cache](./doc/cache/cache.md)
-- [Queue](./doc/queue/queue.md)
-
-- SLO
-
-  - p99 latency: 300ms
-  - error rate: <0.01
-  - throughput: ~1000 req/s
-
-- (pool size, worker) = (15, 1); 50ms
-
-  - each connection can be used how many times: 1s/50ms = 20
-  - total pool size per second: 15 \* 20 = 300
-
-- debug
-
-```sh
-terraform destroy -auto-approve -target=aws_ecs_service.ecs_svc_consumer
-terraform apply -auto-approve -target=aws_ecs_service.ecs_svc_consumer
-```
+- [Tune](./doc/tune/tune.md)
+- [Redis](./doc/redis/redis.md)
+- [Kafka](./doc/kafka/kafka.md)

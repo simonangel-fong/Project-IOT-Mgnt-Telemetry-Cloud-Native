@@ -112,7 +112,7 @@ jobs:
             - name: Deploy - Save plan artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: ${{ env.TF_VAR_env }}-tfplan-bundle-deploy
+                  name: deploy-tfplan-${{ env.TF_VAR_env }}
                   path: |
                       ${{ env.TF_DIR }}/tfplan
                       ${{ env.TF_DIR }}/tfplan.json
@@ -150,7 +150,7 @@ jobs:
                   echo "Flyway migration task completed successfully."
 
             - name: Initial Kafka
-              if: ${{ env.TF_VAR_env == 'queue' }}
+              if: ${{ env.TF_VAR_env == 'kafka' }}
               working-directory: ${{ env.TF_DIR }}
               env:
                   AWS_REGION: ${{ inputs.AWS_REGION }}
