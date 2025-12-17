@@ -68,8 +68,8 @@ variable "svc_param" {
       image_suffix  = "fastapi-kafka"
       cpu           = 2048
       memory        = 4096
-      count_desired = 4
-      count_min     = 4
+      count_desired = 6
+      count_min     = 6
       count_max     = 10
       container_env = {
         pool_size    = 20

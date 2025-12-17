@@ -43,7 +43,7 @@ jobs:
     deploy:
         name: Deploy ${{ inputs.env }}
         runs-on: ubuntu-latest
-        timeout-minutes: 30
+        timeout-minutes: 60
         env:
             TF_VERSION: 1.14.0
             TF_DIR: aws/${{ inputs.env }}
