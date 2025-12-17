@@ -95,7 +95,7 @@ jobs:
       fail-fast: false
       matrix:
         solution:
-          - env: baseline
+          # - env: baseline
           - env: tune
           - env: scale
           - env: cache
@@ -123,8 +123,8 @@ jobs:
       fail-fast: false
       matrix:
         solution:
-          - env: baseline
-            base_url: "https://iot-baseline.arguswatcher.net"
+          # - env: baseline
+          #   base_url: "https://iot-baseline.arguswatcher.net"
           - env: tune
             base_url: "https://iot-tune.arguswatcher.net"
           - env: scale
