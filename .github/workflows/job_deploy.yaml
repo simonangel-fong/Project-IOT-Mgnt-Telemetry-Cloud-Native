@@ -116,6 +116,7 @@ jobs:
                   path: |
                       ${{ env.TF_DIR }}/tfplan
                       ${{ env.TF_DIR }}/tfplan.json
+                  overwrite: true
                   retention-days: 3
 
             - name: Deploy - Terraform Apply
