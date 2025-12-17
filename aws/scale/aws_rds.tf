@@ -8,7 +8,6 @@
 # #################################
 locals {
   rds_postgres_identifier  = "${var.project}-${var.env}-rds-pgdb"
-  rds_postgres_param_group = "${var.project}-${var.env}-rds-param-group-pgdb"
 }
 
 # ##############################
@@ -59,25 +58,6 @@ resource "aws_db_subnet_group" "postgres" {
     Name = "${var.project}-${var.env}-db-subnet"
   }
 }
-
-# # ##############################
-# # Parameter Group
-# # ##############################
-# resource "aws_db_parameter_group" "postgres" {
-#   name   = local.rds_postgres_param_group
-#   family = "postgres17"
-
-#   parameter {
-#     name         = "max_connections"
-#     value        = var.rds_max_connection
-#     apply_method = "pending-reboot"
-#   }
-
-#   parameter {
-#     name  = "timezone"
-#     value = "America/Toronto"
-#   }
-# }
 
 # ##############################
 # AWS RDS

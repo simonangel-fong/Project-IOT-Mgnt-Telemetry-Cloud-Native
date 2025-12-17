@@ -100,11 +100,6 @@ variable "instance_class" {
   default = "db.t4g.medium"
 }
 
-variable "rds_max_connection" {
-  type    = number
-  default = 400
-}
-
 variable "db_name" {
   type = string
 }
