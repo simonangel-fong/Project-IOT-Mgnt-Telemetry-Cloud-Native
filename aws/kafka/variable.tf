@@ -124,7 +124,7 @@ variable "task_param" {
 variable "redis_node_type" {
   description = "Instance type for Redis redis nodes"
   type        = string
-  default     = "redis.t4g.micro"
+  default     = "cache.t4g.micro"
 }
 
 # ##############################

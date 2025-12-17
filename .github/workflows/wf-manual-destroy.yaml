@@ -13,7 +13,6 @@ jobs:
 
   destroy:
     name: Destroy Resources
-    # needs: lint-check
     uses: ./.github/workflows/job_destroy.yaml
     permissions:
       contents: read
