@@ -236,6 +236,7 @@ jobs:
     name: Destroy Resources
     needs:
       - performance_testing_mixed
+    if: always()
     uses: ./.github/workflows/job_destroy.yaml
     permissions:
       contents: read
