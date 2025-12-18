@@ -14,6 +14,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap">
+
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <!-- enable scroll spy -->
@@ -29,16 +31,19 @@
             </a>
             <ul class="nav nav-masthead justify-content-center">
                 <li class="nav-item">
-                    <a class="nav-link fw-bold py-1 px-0 me-2" href="#da">Data Analysis</a>
+                    <a class="nav-link fw-bold py-1 px-0 me-2" href="#demo">Demo</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-bold py-1 px-0 me-2" href="#cicd"> CI/CD Pipeline </a>
+                    <a class="nav-link fw-bold py-1 px-0 me-2" href="#baseline">Baseline</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-bold py-1 px-0 me-2" href="#aws">Cloud Engineer</a>
+                    <a class="nav-link fw-bold py-1 px-0 me-2" href="#scale"> Auto-scaling </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-bold py-1 px-0 me-2" href="#sa">System Admin</a>
+                    <a class="nav-link fw-bold py-1 px-0 me-2" href="#redis">Redis</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold py-1 px-0 me-2" href="#kafka">Kafka</a>
                 </li>
             </ul>
         </nav>
@@ -47,17 +52,18 @@
         <div class="row vh-100 d-flex align-items-center">
             <div class="col-lg-5 col-md-10 col-sm-12 mx-5">
                 <div class="header-cover-text text-start p-4 text-dark">
-                    <h3 class="fs-1 fw-bold">Cloud Architecture Evolution</h1>
+                    <h3 class="fs-1 fw-bold"> Telemetry System </h3>
 
-                        <h5 class="lead fs-4 py-3">
-                            Comprehensive Project to Explore Different Architecture
-                        </h5>
+                    <h5 class="lead fs-4 py-3">
+                        Explore Different Cloud Architectures
+                    </h5>
 
-                        <p class="fs-5">
-                            A portfolio project that designs, deploys, and benchmarks multiple cloud architectures
-                            under increasing load, measuring latency, throughput, and error-rate trade-offs at each
-                            stage.
-                        </p>
+                    <p class="fs-5">
+                        An Internet of Things (IoT) project that designs, deploys, and benchmarks multiple cloud
+                        architectures
+                        under increasing load, measuring latency, throughput, and error-rate trade-offs at each
+                        stage.
+                    </p>
 
                 </div>
             </div>
@@ -139,19 +145,134 @@
         <!-- divider -->
         <hr class="col-8 mx-auto py-lg-2">
 
-        <!-- DevOps - CICD -->
-        <section id="cicd" class="container-flex">
+        <!-- Demo -->
+        <section id="demo" class="container-flex">
             <div data-bs-spy="scroll" data-bs-target="#trip-navbar" data-bs-root-margin="0px 0px -40%"
                 data-bs-smooth-scroll="true" class="bg-body-white p-3 rounded-2" tabindex="0">
 
                 <div class="row row-cols-1 py-5">
                     <h1 class="display-5 fw-bold text-body-emphasis text-center pb-3">
-                        DevOps - CI/CD Skill
+                        Telemetry System Demo
                     </h1>
                     <hr class="border-5 border-top border-black col-2 col-md-3 mx-auto">
-                </div> <!--devops cicd title -->
+                </div> <!--demo title -->
 
-                <!-- DevOps CICD: Slide -->
+                <div class=" row py-3 mb-4">
+                    <div class="w-full max-w-5xl px-4 py-8 mx-auto">
+                        <!-- Header -->
+                        <div class="mb-4">
+                            <h1 class="text-2xl font-semibold">Telemetry Viewer</h1>
+                            <p class="text-sm text-slate-400 mt-1">
+                                Select a device to see its latest (x, y) position. The green dot represents the device.
+                            </p>
+                        </div>
+
+                        <!-- Card -->
+                        <section class="bg-slate-950/80 border border-slate-800 shadow-xl rounded-xl p-4 md:p-6">
+                            <!-- Top controls -->
+                            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-3">
+                                <div class="flex flex-col gap-1">
+                                    <label for="device-select" class="text-xs font-medium text-slate-400">
+                                        Device
+                                    </label>
+                                    <select id="device-select"
+                                        class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                        <!-- Options will be filled by telemetry.js using DEVICES -->
+                                        <option value="" disabled selected>Select a device...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Status line -->
+                            <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 mb-4">
+                                <span>
+                                    Selected device:
+                                    <span id="status-device" class="font-semibold text-slate-100">None</span>
+                                </span>
+                                <span>
+                                    Last update:
+                                    <span id="status-updated" class="font-semibold text-slate-100">N/A</span>
+                                </span>
+                            </div>
+
+                            <!-- Main content -->
+                            <div class="flex flex-col lg:flex-row gap-6">
+                                <!-- Telemetry box -->
+                                <div id="telemetry-box"
+                                    class="relative w-full max-w-lg aspect-square rounded-xl border border-slate-800 bg-slate-950 overflow-hidden">
+                                    <!-- Grid background -->
+                                    <div class="pointer-events-none absolute inset-0 opacity-70" style="
+                background-image:
+                  linear-gradient(#111827 1px, transparent 1px),
+                  linear-gradient(90deg, #111827 1px, transparent 1px);
+                background-size: 40px 40px;
+              "></div>
+
+                                    <!-- Axes -->
+                                    <div class="absolute left-0 right-0 top-1/2 h-px bg-slate-700/80"></div>
+                                    <div class="absolute top-0 bottom-0 left-1/2 w-px bg-slate-700/80"></div>
+
+                                    <!-- Device point -->
+                                    <div id="device-point"
+                                        class="absolute z-10 w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)] -translate-x-1/2 -translate-y-1/2"
+                                        style="left: 50%; top: 50%;">
+                                        <span id="device-point-label"
+                                            class="absolute -translate-x-1/2 -translate-y-[180%] text-[0.65rem] px-2 py-0.5 rounded-full bg-slate-900/90 border border-slate-600 whitespace-nowrap">
+                                            –
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Side info panel -->
+                                <aside class="w-full lg:w-64 text-sm space-y-2">
+                                    <h2 class="text-base font-semibold mb-1">Current Telemetry</h2>
+
+                                    <p class="flex justify-between gap-2">
+                                        <span class="text-slate-400 w-20">Device:</span>
+                                        <span id="info-device" class="font-medium text-slate-100">–</span>
+                                    </p>
+                                    <p class="flex justify-between gap-2">
+                                        <span class="text-slate-400 w-20">x:</span>
+                                        <span id="info-x" class="font-medium text-slate-100">–</span>
+                                    </p>
+                                    <p class="flex justify-between gap-2">
+                                        <span class="text-slate-400 w-20">y:</span>
+                                        <span id="info-y" class="font-medium text-slate-100">–</span>
+                                    </p>
+                                    <p class="flex justify-between gap-2">
+                                        <span class="text-slate-400 w-20">Updated:</span>
+                                        <span id="info-updated" class="font-medium text-slate-100">–</span>
+                                    </p>
+
+                                    <p class="text-xs text-slate-500 mt-3">
+                                        Data is fetched from
+                                        <code class="text-emerald-400">/telemetry/latest/&lt;device_uuid&gt;</code>
+                                        using the <code class="text-emerald-400">x-api-key</code> header.
+                                    </p>
+                                </aside>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- divider -->
+        <hr class="col-8 mx-auto">
+
+        <!-- Baseline -->
+        <section id="baseline" class="container-flex">
+            <div data-bs-spy="scroll" data-bs-target="#trip-navbar" data-bs-root-margin="0px 0px -40%"
+                data-bs-smooth-scroll="true" class="bg-body-white p-3 rounded-2" tabindex="0">
+
+                <div class="row row-cols-1 py-5">
+                    <h1 class="display-5 fw-bold text-body-emphasis text-center pb-3">
+                        Baseline Architecture
+                    </h1>
+                    <hr class="border-5 border-top border-black col-2 col-md-3 mx-auto">
+                </div>
+
+                <!-- Baseline: Slide -->
                 <div class=" row py-3 mb-4">
                     <div id="dicd_Carousel" class="carousel carousel-dark slide shadow col-md-9 col-sm-12  p-0 mx-auto">
 
@@ -282,19 +403,19 @@
         <!-- divider -->
         <hr class="col-8 mx-auto">
 
-        <!-- DevOps - cloud -->
-        <section id="aws" class="container-flex">
+        <!-- auto scaling -->
+        <section id="scale" class="container-flex">
             <div data-bs-spy="scroll" data-bs-target="#trip-navbar" data-bs-root-margin="0px 0px -40%"
                 data-bs-smooth-scroll="true" class="bg-body-white p-3 rounded-2" tabindex="0">
 
                 <div class="row row-cols-1 py-5">
                     <h1 class="display-5 fw-bold text-body-emphasis text-center pb-3">
-                        DevOps - Cloud Skill(AWS)
+                        Auto-scaling Architecture
                     </h1>
                     <hr class="border-5 border-top border-black col-2 col-md-3 mx-auto">
-                </div> <!--devops cicd title -->
+                </div>
 
-                <!-- DevOps sa: Slide -->
+                <!-- auto scale: Slide -->
                 <div class=" row py-3 mb-4">
                     <div id="aws_Carousel" class="carousel carousel-dark slide shadow col-md-9 col-sm-12  p-0 mx-auto">
 
@@ -405,76 +526,192 @@
         <!-- divider -->
         <hr class="col-8 mx-auto">
 
-        <!-- DevOps - sa -->
-        <section id="sa" class="container-flex">
+        <!-- Redis -->
+        <section id="redis" class="container-flex">
             <div data-bs-spy="scroll" data-bs-target="#trip-navbar" data-bs-root-margin="0px 0px -40%"
                 data-bs-smooth-scroll="true" class="bg-body-white p-3 rounded-2" tabindex="0">
 
                 <div class="row row-cols-1 py-5">
                     <h1 class="display-5 fw-bold text-body-emphasis text-center pb-3">
-                        DevOps - System Administrator Skill
+                        Redis Architecture
                     </h1>
                     <hr class="border-5 border-top border-black col-2 col-md-3 mx-auto">
-                </div> <!--devops cicd title -->
+                </div>
 
-                <!-- DevOps sa: Slide -->
+                <!-- Baseline: Slide -->
                 <div class=" row py-3 mb-4">
-                    <div id="sa_Carousel" class="carousel carousel-dark slide shadow col-md-9 col-sm-12  p-0 mx-auto">
+                    <div id="dicd_Carousel" class="carousel carousel-dark slide shadow col-md-9 col-sm-12  p-0 mx-auto">
 
                         <!-- indicator -->
                         <div class="carousel-indicators">
-                            <button type="button" data-bs-target="#sa_Carousel" data-bs-slide-to="0" class="active"
-                                aria-current="true" aria-label="network"></button>
-                            <button type="button" data-bs-target="#sa_Carousel" data-bs-slide-to="1"
-                                aria-label="system architecture"></button>
-                            <button type="button button-warning" data-bs-target="#sa_Carousel" data-bs-slide-to="2"
-                                aria-label="etl"></button>
-                            <button type="button button-warning" data-bs-target="#sa_Carousel" data-bs-slide-to="3"
-                                aria-label="start"></button>
+                            <button type="button" data-bs-target="#dicd_Carousel" data-bs-slide-to="0" class="active"
+                                aria-current="true" aria-label="cicd github actions"></button>
+                            <button type="button" data-bs-target="#dicd_Carousel" data-bs-slide-to="1"
+                                aria-label="cicd jenkins"></button>
+                            <!-- <button type="button button-warning" data-bs-target="#dicd_Carousel" data-bs-slide-to="2"
+                                aria-label="de 3"></button> -->
                         </div>
 
                         <!-- content -->
                         <div class="carousel-inner">
 
                             <div class="carousel-item active">
-                                <img src="./img/devops/on-prem-network.gif" class="d-block w-100" alt="on-prem sa">
+                                <img src="./img/devops/devops_cicd_github.gif" class="d-block w-100" alt="on-prem sa">
                                 <div class="carousel-caption d-none d-md-block">
-                                    <h5>On-Prem Netowrk Design</h5>
+                                    <h5>Git Branching Strategy Diagram</h5>
+                                    <p> Implement a branching strategy with GitHub Environments (dev/stage/prod) <br>
+                                        to isolate and manage multiple environments.
+                                    </p>
                                 </div>
                             </div>
 
                             <div class="carousel-item">
-                                <img src="./img/de/on-prem.gif" class="d-block w-100" alt="on-prem sa">
+                                <img src="./img/devops/devops_cicd_jenkins_webhook.gif" class="d-block w-100"
+                                    alt="on-prem sa">
                                 <div class="carousel-caption d-none d-md-block">
-                                    <h5>On-Prem System Architecture</h5>
-                                </div>
-                            </div>
-
-                            <div class="carousel-item">
-                                <img src="./img/de/etl.gif" class="d-block w-100" alt="on-prem sa">
-                                <div class="carousel-caption d-none d-md-block">
-                                    <h5>ETL Data Pipeline</h5>
-                                </div>
-                            </div>
-
-                            <div class="carousel-item">
-                                <img src="./img/de/erd.png" class="d-block w-100" alt="on-prem sa">
-                                <div class="carousel-caption d-none d-md-block">
-                                    <h5>Start Schema</h5>
+                                    <h5>Jenkins with GitHub Diagram</h5>
+                                    <p> Secure the integration between the on-premises Jenkins and the remote GitHub
+                                        repository by Cloudflare tunnel and GitHub webhook to sync Jenkins jobs and
+                                        repository events.
+                                    </p>
                                 </div>
                             </div>
 
                             <!-- Left and right controls -->
-                            <button class="carousel-control-prev" type="button" data-bs-target="#sa_Carousel"
+                            <button class="carousel-control-prev" type="button" data-bs-target="#dicd_Carousel"
                                 data-bs-slide="prev">
                                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                                 <span class="visually-hidden">Previous</span>
                             </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#sa_Carousel"
+                            <button class="carousel-control-next" type="button" data-bs-target="#dicd_Carousel"
                                 data-bs-slide="next">
                                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
                                 <span class="visually-hidden">Next</span>
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- divider -->
+                <hr class="col-8 mx-auto py-lg-5">
+
+                <!-- CI/CD: GitHub Actions -->
+                <div class="row g-5 p-lg-5 pt-5">
+
+                    <!-- description -->
+                    <div class="col-lg-5 col-md-12 m-0 mb-4">
+                        <h1 class="fs-2 fw-bold text-center py-3">
+                            GitHub Actions CI/CD
+                        </h1>
+                        <p class="lead fs-5">
+                            Implement a <b>branching strategy</b> with <b>GitHub Environments</b> (dev/stage/prod) to
+                            manage and isolate multiple environments.
+
+                        </p>
+                        <p class="lead fs-5">
+                            Automate <b>unit tests</b> and <b>lint checks</b> on every <b>PR via GitHub Actions</b> to
+                            ensure code quality.
+                        </p>
+                        <p class="lead fs-5">
+                            Integrate and visualize <b>performance testing with Grafana K6</b> to enforce API
+                            performance thresholds (<u>error rate ≤ 0.01</u>; <u>p95 latency &lt; 500 ms</u>).
+                        </p>
+                    </div>
+
+                    <!-- video -->
+                    <div class="col-lg-7 col-md-12 m-0">
+                        <div class="ratio ratio-16x9 shadow p-0 m-0">
+                            <iframe
+                                src="https://www.youtube.com/embed/alHpGfgZ-z0?controls=1&autoplay=1&mute=1&vq=hd1080"
+                                title="GitHub Actions CI/CD Pipeline" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="col-8 mx-auto py-lg-2">
+
+                <!-- CI/CD: Jenkins -->
+                <div class="row flex-lg-row-reverse g-5 p-lg-5 pt-5 mt-5">
+
+                    <!-- description -->
+                    <div class="col-lg-5 col-md-12 m-0 mb-4">
+                        <h1 class="fs-2 fw-bold text-center py-3">
+                            Jenkins CI/CD
+                        </h1>
+                        <p class="lead fs-6">
+                            Use <b>JCasC (Jenkins Configuration as Code)</b> to deliver consistent
+                            configurations and accelerate Jenkins provisioning. (e.g., automate plugin installation)
+                        </p>
+                        <p class="lead fs-6">
+                            Leverage <b>Jenkins Job DSL (Domain Specific Languages)</b> with <b>GitHub</b> to codify and
+                            auto-provision jobs from the repo.
+                        </p>
+                        <p class="lead fs-6">
+                            Secure the integration between <b>on-premises Jenkins</b> and <b>remote
+                                GitHub repository</b> by <b>Cloudflare tunnel</b> and <b>GitHub webhook</b>, to
+                            auto-sync
+                            Jenkins jobs with repository events.
+                        </p>
+                    </div>
+
+                    <!-- video -->
+                    <div class="col-lg-7 col-md-12 m-0">
+                        <div class="ratio ratio-16x9 shadow p-0 m-0">
+                            <iframe
+                                src="https://www.youtube.com/embed/_6Rj7tFoMjA?controls=1&autoplay=1&mute=1&vq=hd1080"
+                                title="GitHub Actions CI/CD Pipeline" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- divider -->
+        <hr class="col-8 mx-auto">
+
+        <!-- Kafka -->
+        <section id="kafka" class="container-flex">
+            <div data-bs-spy="scroll" data-bs-target="#trip-navbar" data-bs-root-margin="0px 0px -40%"
+                data-bs-smooth-scroll="true" class="bg-body-white p-3 rounded-2" tabindex="0">
+
+                <div class="row row-cols-1 py-5">
+                    <h1 class="display-5 fw-bold text-body-emphasis text-center pb-3">
+                        Kafka Architecture
+                    </h1>
+                    <hr class="border-5 border-top border-black col-2 col-md-3 mx-auto">
+                </div>
+
+                <!-- auto scale: Slide -->
+                <div class=" row py-3 mb-4">
+                    <div id="aws_Carousel" class="carousel carousel-dark slide shadow col-md-9 col-sm-12  p-0 mx-auto">
+
+                        <!-- indicator -->
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#aws_Carousel" data-bs-slide-to="0" class="active"
+                                aria-current="true" aria-label="network"></button>
+                        </div>
+
+                        <!-- content -->
+                        <div class="carousel-inner">
+
+                            <div class="carousel-item active">
+                                <img src="./img/devops/devops_cloud.gif" class="d-block w-100" alt="on-prem sa">
+                                <div class="carousel-caption d-none d-md-block">
+                                    <h5>Serverless API & IaC</h5>
+                                </div>
+                            </div>
+
+                            <!-- Left and right controls -->
+                            <!-- <button class="carousel-control-prev" type="button" data-bs-target="#aws_Carousel"
+                                data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#aws_Carousel"
+                                data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button> -->
                         </div>
                     </div>
                 </div>
@@ -488,17 +725,20 @@
                     <!-- description -->
                     <div class="col-lg-5 col-md-12 m-0 mb-4">
                         <h1 class="fs-2 fw-bold text-center py-3">
-                            On-prem Environment Configuration
+                            Serverless API on AWS
                         </h1>
                         <p class="lead fs-5">
-                            Convert a repurposed laptop into a <b>on-premises homelab</b> with <b>Proxmox VE.</b>
+                            <b>API Architecture (AWS)</b>
+                            <li>
+                                S3 + DynamoDB + Lamdba + API Gateway + CloudFront + Cloudflare DNS
+                            </li>
                         </p>
                         <p class="lead fs-5">
-                            Enable <b>Internet access</b> for <b>Promox</b> via <b>Wi-Fi</b> using <b>NetworkManager</b>
-                            and <b>iptables</b>.
-                        </p>
-                        <p class="lead fs-5">
-                            Enable <b>Internet access</b> and <b>DHCP services</b> for <b>VMs</b> using <b>pfSense</b>.
+                            <b>Infrastructure as Code (Terraform)</b>
+                            <li>Configure S3 remote backend to lock resource state</li>
+                            <li>Use tfvars for reusable configuration</li>
+                            <li>Modularize functionalities to enable reuse</li>
+                            <li>Dynamize resource creation with for_each statement </li>
                         </p>
                     </div>
 
@@ -506,8 +746,10 @@
                     <div class="col-lg-7 col-md-12 m-0">
                         <div class="ratio ratio-16x9 shadow p-0 m-0">
                             <iframe
-                                src="https://www.youtube.com/embed/wk6c7T9pN4U?controls=1&autoplay=1&mute=1&vq=hd1080"
-                                title="GitHub Actions CI/CD Pipeline" allowfullscreen></iframe>
+                                src="https://www.youtube.com/embed/PXfqz6D7Q-o??controls=1&autoplay=1&mute=1&vq=hd1080"
+                                title="YouTube video player" frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                         </div>
                     </div>
                 </div>
@@ -520,18 +762,18 @@
                     <!-- description -->
                     <div class="col-lg-5 col-md-12 m-0 mb-4">
                         <h1 class="fs-2 fw-bold text-center py-3">
-                            On-prem Data Warehouse Deployment
+                            REST API Optimization
                         </h1>
                         <p class="lead">
-                            Deploy <b>Star schema</b> data warehouse using <b>PostgreSQL</b>, along with <b>Extract,
-                                Transform, and Load (ETL) pipeline</b>.
+                            <b>Optimize REST API(AWS) performance</b>
+                            <li> CloudFront: edge caching + response compression</li>
+                            <li> API Gateway: method level caching + resource query string caching</li>
                         </p>
                         <p class="lead">
-                            Monitor system performance using <b>Prometheus</b> and <b>Grafana</b>.
-                        </p>
-                        <p class="lead">
-                            Automate and accelerate deployment using <b>Shell scripts</b> & <b>Configuration as Code</b>
-                            (Jenkins & Grafana).
+                            <b>Improve API performance</b>
+                            <li>+500% higher peak RPS (70 reqs/s → 430 reqs/s)</li>
+                            <li>-60% lower latency (264 ms → 105 ms)</li>
+                            <li>-75% lower error rate (0.04 → 0.01)</li>
                         </p>
                     </div>
 
@@ -539,13 +781,14 @@
                     <div class="col-lg-7 col-md-12 m-0">
                         <div class="ratio ratio-16x9 shadow p-0 m-0">
                             <iframe
-                                src="https://www.youtube.com/embed/badYcoHlM4k?controls=1&autoplay=1&mute=1&vq=hd1080"
+                                src="https://www.youtube.com/embed/b94artW9V6s?controls=1&autoplay=1&mute=1&vq=hd1080"
                                 title="GitHub Actions CI/CD Pipeline" allowfullscreen></iframe>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+
     </main>
 
     <!-- footer -->
