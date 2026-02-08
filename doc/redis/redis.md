@@ -15,9 +15,6 @@
 # dev
 docker compose -f app/compose_redis/compose.redis.yaml down -v && docker compose --env-file app/compose_redis/.redis.dev.env -f app/compose_redis/compose.redis.yaml up -d --build
 
-# staging
-docker compose -f app/compose_redis/compose.redis.yaml down -v && docker compose --env-file app/compose_redis/.redis.staging.env -f app/compose_redis/compose.redis.yaml up -d --build
-
 # prod
 docker compose -f app/compose_redis/compose.redis.yaml down -v && docker compose --env-file app/compose_redis/.redis.prod.env -f app/compose_redis/compose.redis.yaml up -d --build
 

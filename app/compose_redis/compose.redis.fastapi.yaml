@@ -39,8 +39,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 512M
+          cpus: "1"
+          memory: 256M
         reservations:
           cpus: "1"
           memory: 256M
@@ -84,8 +84,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 512M
+          cpus: "1"
+          memory: 256M
         reservations:
           cpus: "1"
           memory: 256M
@@ -129,8 +129,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 512M
+          cpus: "1"
+          memory: 256M
         reservations:
           cpus: "1"
           memory: 256M
@@ -174,8 +174,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 512M
+          cpus: "1"
+          memory: 256M
         reservations:
           cpus: "1"
           memory: 256M
@@ -219,8 +219,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 512M
+          cpus: "1"
+          memory: 256M
         reservations:
           cpus: "1"
           memory: 256M
@@ -264,8 +264,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 512M
+          cpus: "1"
+          memory: 256M
         reservations:
           cpus: "1"
           memory: 256M
@@ -309,8 +309,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 512M
+          cpus: "1"
+          memory: 256M
         reservations:
           cpus: "1"
           memory: 256M
@@ -354,8 +354,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 512M
+          cpus: "1"
+          memory: 256M
         reservations:
           cpus: "1"
           memory: 256M
@@ -399,8 +399,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 512M
+          cpus: "1"
+          memory: 256M
         reservations:
           cpus: "1"
           memory: 256M
@@ -444,8 +444,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 512M
+          cpus: "1"
+          memory: 256M
         reservations:
           cpus: "1"
           memory: 256M

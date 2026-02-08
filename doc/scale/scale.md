@@ -1,13 +1,16 @@
-# Project: IOT Mgnt Telemetry Cloud Native - scale
+# Project: IOT Mgnt Telemetry AWS ECS - Scale
 
 [Back](../../README.md)
 
-- [Project: IOT Mgnt Telemetry Cloud Native - scale](#project-iot-mgnt-telemetry-cloud-native---scale)
+- [Project: IOT Mgnt Telemetry AWS ECS - Scale](#project-iot-mgnt-telemetry-aws-ecs---scale)
+  - [Local Development](#local-development)
   - [Local - Testing](#local---testing)
   - [AWS](#aws)
   - [Remote Testing](#remote-testing)
 
 ---
+
+## Local Development
 
 ## Local - Testing
 
@@ -15,14 +18,17 @@
 # dev
 docker compose -f app/compose_scale/compose.scale.yaml down -v && docker compose --env-file app/compose_scale/.scale.dev.env -f app/compose_scale/compose.scale.yaml up -d --build
 
-# staging
-docker compose -f app/compose_scale/compose.scale.yaml down -v && docker compose --env-file app/compose_scale/.scale.staging.env -f app/compose_scale/compose.scale.yaml up -d --build
-
 # prod
 docker compose -f app/compose_scale/compose.scale.yaml down -v && docker compose --env-file app/compose_scale/.scale.prod.env -f app/compose_scale/compose.scale.yaml up -d --build
 
 # smoke
 docker run --rm --name scale_local_smoke --net=scale_public_network -p 5665:5665 -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/scale_local_smoke.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_smoke.js
+
+# Read Stress testing
+docker run --rm --name scale_local_read_stress --net=scale_public_network -p 5665:5665 -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/scale_local_read_stress.html -e K6_WEB_DASHBOARD_PERIOD=3s -e STAGE_RAMP=1 -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/stress_testing_read.js
+
+# Write Stress testing
+docker run --rm --name scale_local_write_stress --net=scale_public_network -p 5665:5665 -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/scale_local_write_stress.html -e K6_WEB_DASHBOARD_PERIOD=3s -e STAGE_RAMP=1 -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/stress_testing_write.js
 
 # read heavy
 docker run --rm --name scale_local_read --net=scale_public_network -p 5665:5665 -e SOLUTION_ID="scale" -e BASE_URL="http://nginx:8080" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/scale_local_read.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js

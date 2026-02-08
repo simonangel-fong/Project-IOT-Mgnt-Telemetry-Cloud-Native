@@ -63,7 +63,7 @@ services:
       - private_network
     ports:
       - "5432:5432"
-    command: ["postgres", "-c", "config_file=/config/kafka.conf"]
+    command: ["postgres", "-c", "config_file=/config/prod.conf"]
     healthcheck:
       test:
         [

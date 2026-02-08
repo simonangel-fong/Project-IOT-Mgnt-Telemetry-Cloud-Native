@@ -22,14 +22,14 @@ services:
       POSTGRES_USER: dbadmin
       POSTGRES_PASSWORD: test123
     volumes:
-      # - pgdata:/var/lib/postgresql/data
-      - ../pgdb/config:/config
+      - pgdata:/var/lib/postgresql/data
+      - ../pgdb/config:/config:ro
     networks:
       # - public_network
       - private_network
     ports:
       - "5432:5432"
-    command: ["postgres", "-c", "config_file=/config/scale.conf"]
+    command: ["postgres", "-c", "config_file=/config/prod.conf"]
     healthcheck:
       test:
         [
@@ -40,14 +40,16 @@ services:
       timeout: 10s
       retries: 30
       start_period: 30s
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: 2028M
-        reservations:
-          cpus: "0.5"
-          memory: 1024M
+    mem_limit: 4g
+    cpus: 2.0
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: "2"
+    #       memory: 5G
+    #     reservations:
+    #       cpus: "1"
+    #       memory: 4G
 
   flyway:
     container_name: flyway

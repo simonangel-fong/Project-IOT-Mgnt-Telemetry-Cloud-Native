@@ -1,6 +1,5 @@
 # #################################
 # aws_rds_monitoring.tf
-# a file to define monitoring
 # #################################
 
 # ##############################
@@ -38,15 +37,15 @@ resource "aws_cloudwatch_metric_alarm" "rds_high_cpu" {
   metric_name         = "CPUUtilization"
   comparison_operator = "GreaterThanThreshold"
   statistic           = "Average"
-  threshold           = 80
+  threshold           = 50
   period              = 60 # period in seconds
-  evaluation_periods  = 2  # number of periods to compare with threshold 
+  evaluation_periods  = 1  # number of periods to compare with threshold 
 
   dimensions = {
     DBInstanceIdentifier = aws_db_instance.postgres.id
   }
 
-  alarm_description = "RDS Postgres CPU > 80% for 2 minutes"
+  alarm_description = "RDS Postgres CPU > 50% for 1 minutes"
 }
 
 # ##############################
@@ -59,8 +58,8 @@ resource "aws_cloudwatch_metric_alarm" "rds_low_memory" {
   comparison_operator = "LessThanThreshold"
   statistic           = "Average"
   threshold           = 200 * 1024 * 1024 # 200 MiB in bytes
-  period              = 60                # period in seconds
-  evaluation_periods  = 2                 # number of periods to compare with threshold 
+  period              = 50                # period in seconds
+  evaluation_periods  = 1                 # number of periods to compare with threshold 
 
   dimensions = {
     DBInstanceIdentifier = aws_db_instance.postgres.id

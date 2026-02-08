@@ -1,13 +1,13 @@
 # #################################
 # aws_rds.tf
-# a file to define rds
 # #################################
 
 # #################################
 # Variable
 # #################################
 locals {
-  rds_postgres_identifier = "${var.project}-${var.env}-rds-pgdb"
+  rds_postgres_identifier  = "${var.project}-${var.env}-rds-pgdb"
+  rds_postgres_param_group = "${var.project}-${var.env}-rds-param-group-pgdb"
 }
 
 # ##############################
@@ -23,11 +23,11 @@ resource "aws_security_group" "postgres" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    # security_groups = [
-    #   # aws_security_group.fastapi.id, # allow fastapi
-    #   aws_security_group.flyway.id, # allow flyway
-    # ]
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [
+      aws_security_group.fastapi.id, # allow fastapi
+      aws_security_group.flyway.id,  # allow flyway
+    ]
+    # cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -60,15 +60,35 @@ resource "aws_db_subnet_group" "postgres" {
 }
 
 # ##############################
+# Parameter Group
+# ##############################
+resource "aws_db_parameter_group" "postgres" {
+  name   = local.rds_postgres_param_group
+  family = "postgres17"
+
+  parameter {
+    name         = "max_connections"
+    value        = var.rds_max_connection
+    apply_method = "pending-reboot"
+  }
+
+  parameter {
+    name  = "timezone"
+    value = "America/Toronto"
+  }
+}
+
+# ##############################
 # AWS RDS
 # ##############################
 resource "aws_db_instance" "postgres" {
   identifier = local.rds_postgres_identifier
 
   # DBA
-  engine            = "postgres"
-  engine_version    = "17.6"
-  apply_immediately = true # apply modifications right away
+  engine               = "postgres"
+  engine_version       = "17.6"
+  parameter_group_name = aws_db_parameter_group.postgres.name
+  apply_immediately    = true # apply modifications right away
 
   # backup
   skip_final_snapshot      = true

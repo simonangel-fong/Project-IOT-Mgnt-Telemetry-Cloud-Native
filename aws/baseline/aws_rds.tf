@@ -5,6 +5,7 @@
 # #################################
 locals {
   rds_postgres_identifier = "${var.project}-${var.env}-rds-pgdb"
+  rds_postgres_param_group = "${var.project}-${var.env}-rds-param-group-pgdb"
 }
 
 # ##############################
@@ -57,14 +58,43 @@ resource "aws_db_subnet_group" "postgres" {
 }
 
 # ##############################
+# Parameter Group
+# ##############################
+resource "aws_db_parameter_group" "postgres" {
+  name   = local.rds_postgres_param_group
+  family = "postgres17"
+
+  parameter {
+    name         = "max_connections"
+    value        = var.rds_max_connection
+    apply_method = "pending-reboot"
+  }
+
+  parameter {
+    name  = "timezone"
+    value = "America/Toronto"
+  }
+}
+
+# ##############################
 # AWS RDS
 # ##############################
 resource "aws_db_instance" "postgres" {
   identifier = local.rds_postgres_identifier
 
-  engine         = "postgres"
-  engine_version = "17.6"
+  # DBA
+  engine               = "postgres"
+  engine_version       = "17.6"
+  parameter_group_name = aws_db_parameter_group.postgres.name
+  apply_immediately    = true # apply modifications right away
 
+  # backup
+  skip_final_snapshot      = true
+  backup_retention_period  = 0 # no backups for dev/testing
+  delete_automated_backups = true
+  deletion_protection      = false
+
+  # hardware
   instance_class    = var.instance_class
   allocated_storage = 20
   storage_type      = "gp3"
@@ -78,13 +108,6 @@ resource "aws_db_instance" "postgres" {
   publicly_accessible    = false
   db_subnet_group_name   = aws_db_subnet_group.postgres.name
   vpc_security_group_ids = [aws_security_group.postgres.id]
-
-  # DBA
-  skip_final_snapshot      = true
-  backup_retention_period  = 0 # no backups for dev/testing
-  delete_automated_backups = true
-  deletion_protection      = false
-  apply_immediately        = true # apply modifications right away
 
   # Encryption
   storage_encrypted = true

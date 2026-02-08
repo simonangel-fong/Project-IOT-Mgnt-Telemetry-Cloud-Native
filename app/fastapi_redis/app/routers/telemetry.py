@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_LATEST_SECONDS = 1800       # 30 minutes
 MAX_LATEST_SECONDS = 24 * 3600      # 24 hours
 
-TELEMETRY_CACHE_TTL_SECONDS = 60    # Short TTL to limit staleness
+TELEMETRY_CACHE_TTL_SECONDS = 3600    # Short TTL to limit staleness
 
 
 # ============================================================
@@ -221,14 +221,14 @@ async def get_authenticated_device(
             await redis_client.set(
                 cache_key,
                 json.dumps(device_data),
-                ex=3600,  # Cache for 1 hour; adjust as needed
+                ex=TELEMETRY_CACHE_TTL_SECONDS,  # Cache for 1 hour
             )
             logger.debug(
                 "Device registry cached",
                 extra={
                     "device_uuid": device_uuid_str,
                     "cache_key": cache_key,
-                    "ttl": 3600,
+                    "ttl": TELEMETRY_CACHE_TTL_SECONDS,
                 },
             )
         except Exception as exc:

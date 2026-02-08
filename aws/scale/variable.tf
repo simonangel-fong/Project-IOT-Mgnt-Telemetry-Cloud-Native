@@ -60,15 +60,15 @@ variable "svc_param" {
   default = {
     fastapi_svc = {
       image_suffix  = "fastapi-baseline"
-      cpu           = 2048
-      memory        = 4096
-      count_desired = 6
-      count_min     = 6
+      cpu           = 512
+      memory        = 1024
+      count_desired = 2
+      count_min     = 2
       count_max     = 10
       container_env = {
         pool_size    = 5
         max_overflow = 10
-        worker       = 2
+        worker       = 1
       }
     }
   }
@@ -98,6 +98,11 @@ variable "task_param" {
 variable "instance_class" {
   type    = string
   default = "db.t4g.medium"
+}
+
+variable "rds_max_connection" {
+  type    = number
+  default = 400
 }
 
 variable "db_name" {

@@ -18,9 +18,6 @@
 # dev
 docker compose -f app/compose_kafka/compose.kafka.yaml down -v && docker compose --env-file app/compose_kafka/.kafka.dev.env -f app/compose_kafka/compose.kafka.yaml up -d --build
 
-# staging
-docker compose -f app/compose_kafka/compose.kafka.yaml down -v && docker compose --env-file app/compose_kafka/.kafka.staging.env -f app/compose_kafka/compose.kafka.yaml up -d --build
-
 # prod
 docker compose -f app/compose_kafka/compose.kafka.yaml down -v && docker compose --env-file app/compose_kafka/.kafka.prod.env -f app/compose_kafka/compose.kafka.yaml up -d --build
 

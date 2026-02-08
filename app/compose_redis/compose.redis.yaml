@@ -22,14 +22,14 @@ services:
       POSTGRES_USER: dbadmin
       POSTGRES_PASSWORD: test123
     volumes:
-      # - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
       - ../pgdb/config:/config
     networks:
       # - public_network
       - private_network
     ports:
       - "5432:5432"
-    command: ["postgres", "-c", "config_file=/config/cache.conf"]
+    command: ["postgres", "-c", "config_file=/config/prod.conf"]
     healthcheck:
       test:
         [
