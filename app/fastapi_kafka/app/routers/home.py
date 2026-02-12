@@ -54,12 +54,12 @@ async def home() -> dict:
             "max_overflow": settings.max_overflow,
         }
 
-        # response["postgres"] = {
-        #     "host": settings.postgres.host,
-        #     "port": settings.postgres.port,
-        #     "db_name": settings.postgres.db,
-        #     "user": settings.postgres.user,
-        # }
+        response["postgres"] = {
+            "host": settings.postgres.host,
+            "port": settings.postgres.port,
+            "db_name": settings.postgres.db,
+            "user": settings.postgres.user,
+        }
 
         response["redis"] = {
             "host": settings.redis.host,
