@@ -123,27 +123,27 @@ jobs:
       aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
       aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
 
-  # smoke_testing:
-  #   name: Smoke Testing
-  #   needs: deploy
-  #   uses: ./.github/workflows/job_test_smoke.yaml
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       solution:
-  #         # - env: baseline
-  #         #   base_url: "https://iot-baseline.arguswatcher.net"
-  #         - env: tune
-  #           base_url: "https://iot-tune.arguswatcher.net"
-  #         - env: scale
-  #           base_url: "https://iot-scale.arguswatcher.net"
-  #         - env: redis
-  #           base_url: "https://iot-redis.arguswatcher.net"
-  #         - env: kafka
-  #           base_url: "https://iot-kafka.arguswatcher.net"
-  #   with:
-  #     env: ${{ matrix.solution.env }}
-  #     base_url: ${{ matrix.solution.base_url }}
+  smoke_testing:
+    name: Smoke Testing
+    needs: deploy
+    uses: ./.github/workflows/job_test_smoke.yaml
+    strategy:
+      fail-fast: false
+      matrix:
+        solution:
+          - env: baseline
+            base_url: "https://iot-baseline.arguswatcher.net"
+          # - env: tune
+          #   base_url: "https://iot-tune.arguswatcher.net"
+          # - env: scale
+          #   base_url: "https://iot-scale.arguswatcher.net"
+          # - env: redis
+          #   base_url: "https://iot-redis.arguswatcher.net"
+          # - env: kafka
+          #   base_url: "https://iot-kafka.arguswatcher.net"
+    with:
+      env: ${{ matrix.solution.env }}
+      base_url: ${{ matrix.solution.base_url }}
 
   # performance_testing_read:
   #   name: Performance Testing-Read
