@@ -103,7 +103,7 @@ jobs:
         solution:
           - env: baseline
           - env: scale
-          # - env: redis
+          - env: redis
           # - env: kafka
     with:
       project: ${{ vars.PROJECT}}
@@ -132,8 +132,8 @@ jobs:
             base_url: "https://iot-baseline.arguswatcher.net"
           - env: scale
             base_url: "https://iot-scale.arguswatcher.net"
-          # - env: redis
-          #   base_url: "https://iot-redis.arguswatcher.net"
+          - env: redis
+            base_url: "https://iot-redis.arguswatcher.net"
           # - env: kafka
           #   base_url: "https://iot-kafka.arguswatcher.net"
     with:
