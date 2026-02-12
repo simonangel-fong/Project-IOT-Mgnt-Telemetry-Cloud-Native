@@ -140,42 +140,42 @@ jobs:
       env: ${{ matrix.solution.env }}
       base_url: ${{ matrix.solution.base_url }}
 
-  performance_testing_read:
-    name: Performance Testing-Read
-    needs: smoke_testing
-    #   only when smoke success
-    if: ${{ needs.smoke_testing.result == 'success' }}
-    uses: ./.github/workflows/job_test_performance.yaml
-    strategy:
-      fail-fast: false
-      matrix:
-        solution:
-          - env: baseline
-            base_url: "https://iot-baseline.arguswatcher.net"
-            test_report: baseline_cicd_read.html
-          - env: scale
-            base_url: "https://iot-scale.arguswatcher.net"
-            test_report: scale_cicd_read.html
-          # - env: tune
-          #   base_url: "https://iot-tune.arguswatcher.net"
-          #   test_report: tune_cicd_read.html
-          - env: redis
-            base_url: "https://iot-redis.arguswatcher.net"
-            test_report: redis_cicd_read.html
-          - env: kafka
-            base_url: "https://iot-kafka.arguswatcher.net"
-            test_report: kafka_cicd_read.html
-    with:
-      base_url: ${{ matrix.solution.base_url }}
-      env: ${{ matrix.solution.env }}
-      test_report: ${{ matrix.solution.test_report }}
-      test_script: test_hp_read.js
+  # performance_testing_read:
+  #   name: Performance Testing-Read
+  #   needs: smoke_testing
+  #   #   only when smoke success
+  #   if: ${{ needs.smoke_testing.result == 'success' }}
+  #   uses: ./.github/workflows/job_test_performance.yaml
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       solution:
+  #         - env: baseline
+  #           base_url: "https://iot-baseline.arguswatcher.net"
+  #           test_report: baseline_cicd_read.html
+  #         - env: scale
+  #           base_url: "https://iot-scale.arguswatcher.net"
+  #           test_report: scale_cicd_read.html
+  #         # - env: tune
+  #         #   base_url: "https://iot-tune.arguswatcher.net"
+  #         #   test_report: tune_cicd_read.html
+  #         - env: redis
+  #           base_url: "https://iot-redis.arguswatcher.net"
+  #           test_report: redis_cicd_read.html
+  #         - env: kafka
+  #           base_url: "https://iot-kafka.arguswatcher.net"
+  #           test_report: kafka_cicd_read.html
+  #   with:
+  #     base_url: ${{ matrix.solution.base_url }}
+  #     env: ${{ matrix.solution.env }}
+  #     test_report: ${{ matrix.solution.test_report }}
+  #     test_script: test_hp_read.js
 
-  reset_cluster:
-    name: Reset Resources for the Next Testing
+  reset_for_write:
+    name: Reset Resources for the Writing Testing
     needs:
       - smoke_testing
-      - performance_testing_read
+      # - performance_testing_read
     # only when smoke testing success
     if: ${{ always() && needs.smoke_testing.result == 'success' }}
     uses: ./.github/workflows/job_reset.yaml
@@ -206,105 +206,105 @@ jobs:
       aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
       aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
 
-  # performance_testing_write:
-  #   name: Performance Testing-Write
-  #   needs:
-  #     - smoke_testing
-  #     - reset_for_write
-  #   # only when smoke testing success
-  #   if: ${{ always() && needs.smoke_testing.result == 'success' }}
-  #   uses: ./.github/workflows/job_test_performance.yaml
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       solution:
-  #         # - env: baseline
-  #         #   base_url: "https://iot-baseline.arguswatcher.net"
-  #         #   test_report: baseline_cicd_write.html
-  #         - env: scale
-  #           base_url: "https://iot-scale.arguswatcher.net"
-  #           test_report: scale_cicd_write.html
-  #         - env: tune
-  #           base_url: "https://iot-tune.arguswatcher.net"
-  #           test_report: tune_cicd_write.html
-  #         - env: redis
-  #           base_url: "https://iot-redis.arguswatcher.net"
-  #           test_report: redis_cicd_write.html
-  #         - env: kafka
-  #           base_url: "https://iot-kafka.arguswatcher.net"
-  #           test_report: kafka_cicd_write.html
-  #   with:
-  #     base_url: ${{ matrix.solution.base_url }}
-  #     env: ${{ matrix.solution.env }}
-  #     test_report: ${{ matrix.solution.test_report }}
-  #     test_script: test_hp_write.js
+  performance_testing_write:
+    name: Performance Testing-Write
+    needs:
+      - smoke_testing
+      # - reset_for_write
+    # only when smoke testing success
+    if: ${{ always() && needs.smoke_testing.result == 'success' }}
+    uses: ./.github/workflows/job_test_performance.yaml
+    strategy:
+      fail-fast: false
+      matrix:
+        solution:
+          - env: baseline
+            base_url: "https://iot-baseline.arguswatcher.net"
+            test_report: baseline_cicd_write.html
+          - env: scale
+            base_url: "https://iot-scale.arguswatcher.net"
+            test_report: scale_cicd_write.html
+          # - env: tune
+          #   base_url: "https://iot-tune.arguswatcher.net"
+          #   test_report: tune_cicd_write.html
+          - env: redis
+            base_url: "https://iot-redis.arguswatcher.net"
+            test_report: redis_cicd_write.html
+          - env: kafka
+            base_url: "https://iot-kafka.arguswatcher.net"
+            test_report: kafka_cicd_write.html
+    with:
+      base_url: ${{ matrix.solution.base_url }}
+      env: ${{ matrix.solution.env }}
+      test_report: ${{ matrix.solution.test_report }}
+      test_script: test_hp_write.js
 
-  # reset_for_mixed:
-  #   name: Reset Resources for Mixed Testing
-  #   needs:
-  #     - smoke_testing
-  #     - performance_testing_write
-  #   # only when smoke testing success
-  #   if: ${{ always() && needs.smoke_testing.result == 'success' }}
-  #   uses: ./.github/workflows/job_deploy.yaml
-  #   permissions:
-  #     contents: read
-  #     id-token: write # OIDC
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       solution:
-  #         # - env: baseline
-  #         - env: tune
-  #         - env: scale
-  #         - env: redis
-  #         - env: kafka
-  #   with:
-  #     project: ${{ vars.PROJECT}}
-  #     env: ${{ matrix.solution.env }}
-  #     aws_region: ${{ vars.AWS_REGION }}
-  #   secrets:
-  #     db_name: ${{ secrets.DB_NAME }}
-  #     db_username: ${{ secrets.DB_USERNAME }}
-  #     db_password: ${{ secrets.DB_PASSWORD }}
-  #     db_app_pwd: ${{ secrets.DB_APP_PWD }}
-  #     db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
-  #     cf_api_token: ${{ secrets.CF_API_TOKEN }}
-  #     cf_zone_id: ${{ secrets.CF_ZONE_ID }}
-  #     aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
-  #     aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
+  reset_for_mixed:
+    name: Reset Resources for the Mixed Testing
+    needs:
+      - smoke_testing
+      # - performance_testing_write
+    # only when smoke testing success
+    if: ${{ always() && needs.smoke_testing.result == 'success' }}
+    uses: ./.github/workflows/job_reset.yaml
+    permissions:
+      contents: read
+      id-token: write # OIDC
+    strategy:
+      fail-fast: false
+      matrix:
+        solution:
+          - env: baseline
+          # - env: tune
+          - env: scale
+          - env: redis
+          - env: kafka
+    with:
+      project: ${{ vars.PROJECT}}
+      env: ${{ matrix.solution.env }}
+      aws_region: ${{ vars.AWS_REGION }}
+    secrets:
+      db_name: ${{ secrets.DB_NAME }}
+      db_username: ${{ secrets.DB_USERNAME }}
+      db_password: ${{ secrets.DB_PASSWORD }}
+      db_app_pwd: ${{ secrets.DB_APP_PWD }}
+      db_readonly_pwd: ${{ secrets.DB_READONLY_PWD }}
+      cf_api_token: ${{ secrets.CF_API_TOKEN }}
+      cf_zone_id: ${{ secrets.CF_ZONE_ID }}
+      aws_tf_role_arn: ${{ secrets.AWS_TF_ROLE_ARN }}
+      aws_backend_bucket: ${{ vars.AWS_BACKEND_BUCKET }}
 
-  # performance_testing_mixed:
-  #   name: Performance Testing-Mixed
-  #   needs:
-  #     - smoke_testing
-  #     - reset_for_mixed
-  #   if: ${{ always() && needs.smoke_testing.result == 'success' }}
-  #   uses: ./.github/workflows/job_test_performance.yaml
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       solution:
-  #         # - env: baseline
-  #         #   base_url: "https://iot-baseline.arguswatcher.net"
-  #         #   test_report: baseline_cicd_mixed.html
-  #         - env: scale
-  #           base_url: "https://iot-scale.arguswatcher.net"
-  #           test_report: scale_cicd_mixed.html
-  #         - env: tune
-  #           base_url: "https://iot-tune.arguswatcher.net"
-  #           test_report: tune_cicd_mixed.html
-  #         - env: redis
-  #           base_url: "https://iot-redis.arguswatcher.net"
-  #           test_report: redis_cicd_mixed.html
-  #         - env: kafka
-  #           base_url: "https://iot-kafka.arguswatcher.net"
-  #           test_report: kafka_cicd_mixed.html
-  #   with:
-  #     base_url: ${{ matrix.solution.base_url }}
-  #     env: ${{ matrix.solution.env }}
-  #     test_report: ${{ matrix.solution.test_report }}
-  #     test_script: test_hp_mixed.js
+  performance_testing_mixed:
+    name: Performance Testing-Mixed
+    needs:
+      - smoke_testing
+      - reset_for_mixed
+    if: ${{ always() && needs.smoke_testing.result == 'success' }}
+    uses: ./.github/workflows/job_test_performance.yaml
+    strategy:
+      fail-fast: false
+      matrix:
+        solution:
+          - env: baseline
+            base_url: "https://iot-baseline.arguswatcher.net"
+            test_report: baseline_cicd_mixed.html
+          - env: scale
+            base_url: "https://iot-scale.arguswatcher.net"
+            test_report: scale_cicd_mixed.html
+          # - env: tune
+          #   base_url: "https://iot-tune.arguswatcher.net"
+          #   test_report: tune_cicd_mixed.html
+          - env: redis
+            base_url: "https://iot-redis.arguswatcher.net"
+            test_report: redis_cicd_mixed.html
+          - env: kafka
+            base_url: "https://iot-kafka.arguswatcher.net"
+            test_report: kafka_cicd_mixed.html
+    with:
+      base_url: ${{ matrix.solution.base_url }}
+      env: ${{ matrix.solution.env }}
+      test_report: ${{ matrix.solution.test_report }}
+      test_script: test_hp_mixed.js
 
   # destroy:
   #   name: Destroy Resources
