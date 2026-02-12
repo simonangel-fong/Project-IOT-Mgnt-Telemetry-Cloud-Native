@@ -119,7 +119,6 @@ resource "aws_ecs_task_definition" "ecs_task_fastapi" {
     pool_size     = local.fastapi_env_pool_size
     max_overflow  = local.fastapi_env_max_overflow
     worker        = local.fastapi_env_worker
-    region        = var.aws_region
     pgdb_host     = local.fastapi_env_pgdb_host
     pgdb_db       = local.fastapi_env_pgdb_db
     pgdb_user     = local.fastapi_env_pgdb_user

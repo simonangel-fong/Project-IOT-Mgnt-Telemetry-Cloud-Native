@@ -10,8 +10,6 @@ locals {
   redis-outbox_cpu              = var.svc_param.redis-outbox_svc.cpu
   redis-outbox_memory           = var.svc_param.redis-outbox_svc.memory
   redis-outbox_desired          = var.svc_param.redis-outbox_svc.count_desired
-  redis-outbox_min              = var.svc_param.redis-outbox_svc.count_min
-  redis-outbox_max              = var.svc_param.redis-outbox_svc.count_max
   redis-outbox_env_pool_size    = var.svc_param.redis-outbox_svc.container_env["pool_size"]
   redis-outbox_env_max_overflow = var.svc_param.redis-outbox_svc.container_env["max_overflow"]
   redis-outbox-poll_interval    = var.poll_interval
