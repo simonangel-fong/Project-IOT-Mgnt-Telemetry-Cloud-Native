@@ -53,6 +53,12 @@ variable "kafka_topic" {
   default = "telemetry"
 }
 
+variable "poll_interval" {
+  description = "The second of polling interval"
+  type        = number
+  default     = 1.0
+}
+
 variable "svc_param" {
   type = map(object({
     image_suffix  = string
@@ -68,9 +74,9 @@ variable "svc_param" {
       image_suffix  = "fastapi-kafka"
       cpu           = 1024
       memory        = 2048
-      count_desired = 1
-      count_min     = 1
-      count_max     = 10
+      count_desired = 4
+      count_min     = 4
+      count_max     = 30
       container_env = {
         pool_size    = 5
         max_overflow = 0
@@ -83,7 +89,7 @@ variable "svc_param" {
       memory        = 2048
       count_desired = 1
       count_min     = 1
-      count_max     = 4
+      count_max     = 5
       container_env = {
         pool_size    = 5
         max_overflow = 0
@@ -91,8 +97,8 @@ variable "svc_param" {
         group_id     = "telemetry-consumer"
       }
     },
-    outbox_worker_svc = {
-      image_suffix  = "outbox-worker"
+    redis-outbox_svc = {
+      image_suffix  = "redis-outbox"
       cpu           = 1024
       memory        = 2048
       count_desired = 1

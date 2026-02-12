@@ -8,21 +8,18 @@ locals {
   fastapi_app_debug        = var.debug
   fastapi_log_level        = "WARNING"
   fastapi_use_msk_auth     = true
-  fastapi_ecr              = "${local.ecr_repo}:${var.svc_param.fastapi_svc.image_suffix}"
-  fastapi_cpu              = var.svc_param.fastapi_svc.cpu
-  fastapi_memory           = var.svc_param.fastapi_svc.memory
   fastapi_count_desired    = var.svc_param.fastapi_svc.count_desired
   fastapi_count_min        = var.svc_param.fastapi_svc.count_min
   fastapi_count_max        = var.svc_param.fastapi_svc.count_max
+  fastapi_ecr              = "${local.ecr_repo}:${var.svc_param.fastapi_svc.image_suffix}"
+  fastapi_cpu              = var.svc_param.fastapi_svc.cpu
+  fastapi_memory           = var.svc_param.fastapi_svc.memory
   fastapi_env_pool_size    = var.svc_param.fastapi_svc.container_env["pool_size"]
   fastapi_env_max_overflow = var.svc_param.fastapi_svc.container_env["max_overflow"]
   fastapi_env_worker       = var.svc_param.fastapi_svc.container_env["worker"]
-  fastapi_env_pgdb_host    = aws_db_instance.postgres.address
-  fastapi_env_pgdb_db      = aws_db_instance.postgres.db_name
-  fastapi_env_pgdb_user    = aws_db_instance.postgres.username
-  fastapi_env_pgdb_pwd     = aws_db_instance.postgres.password
-  fastapi_env_kafka_topic  = var.kafka_topic
-  fastapi_scale_cpu        = var.threshold_cpu
+
+  fastapi_env_kafka_topic = var.kafka_topic
+  fastapi_threshold_cpu   = var.threshold_cpu
 }
 
 # #################################
@@ -151,21 +148,21 @@ resource "aws_ecs_task_definition" "ecs_task_fastapi" {
     env             = var.env
     debug           = local.fastapi_app_debug
     log_level       = local.fastapi_log_level
-    use_msk_auth    = local.fastapi_use_msk_auth
+    awslogs_group   = local.fastapi_log_id
     image           = local.fastapi_ecr
     cpu             = local.fastapi_cpu
     memory          = local.fastapi_memory
-    awslogs_group   = local.fastapi_log_id
-    pgdb_host       = local.fastapi_env_pgdb_host
-    pgdb_db         = local.fastapi_env_pgdb_db
-    pgdb_user       = local.fastapi_env_pgdb_user
-    pgdb_pwd        = local.fastapi_env_pgdb_pwd
     pool_size       = local.fastapi_env_pool_size
     max_overflow    = local.fastapi_env_max_overflow
     worker          = local.fastapi_env_worker
+    pgdb_host       = aws_db_instance.postgres.address
+    pgdb_db         = aws_db_instance.postgres.db_name
+    pgdb_user       = aws_db_instance.postgres.username
+    pgdb_pwd        = aws_db_instance.postgres.password
     redis_host      = aws_elasticache_replication_group.redis.primary_endpoint_address
     redis_port      = aws_elasticache_replication_group.redis.port
     kafka_bootstrap = aws_msk_cluster.kafka.bootstrap_brokers_sasl_iam
+    use_msk_auth    = local.fastapi_use_msk_auth
     kafka_topic     = local.fastapi_env_kafka_topic
   })
 
@@ -238,7 +235,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   comparison_operator = "GreaterThanOrEqualToThreshold"
   statistic           = "Average"
   metric_name         = "CPUUtilization"
-  threshold           = var.threshold_cpu
+  threshold           = local.fastapi_threshold_cpu
 
   dimensions = {
     ClusterName = aws_ecs_cluster.ecs_cluster.name
@@ -250,7 +247,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
 
 # scale up policy
 resource "aws_appautoscaling_policy" "scale_up" {
-  name               = "${var.project}-${var.env}-scale-up-policy"
+  name               = "${var.project}-${var.env}-scale-up"
   service_namespace  = aws_appautoscaling_target.scale_target.service_namespace
   resource_id        = aws_appautoscaling_target.scale_target.resource_id
   scalable_dimension = aws_appautoscaling_target.scale_target.scalable_dimension
@@ -275,13 +272,7 @@ resource "aws_appautoscaling_policy" "scale_up" {
 
     step_adjustment {
       metric_interval_lower_bound = 10
-      metric_interval_upper_bound = 15
       scaling_adjustment          = 3
-    }
-
-    step_adjustment {
-      metric_interval_lower_bound = 15
-      scaling_adjustment          = 4
     }
   }
 }
@@ -295,7 +286,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_low" {
   comparison_operator = "LessThanThreshold"
   statistic           = "Average"
   metric_name         = "CPUUtilization"
-  threshold           = var.threshold_cpu
+  threshold           = local.fastapi_threshold_cpu - 10
 
   dimensions = {
     ClusterName = aws_ecs_cluster.ecs_cluster.name
@@ -313,24 +304,12 @@ resource "aws_appautoscaling_policy" "scale_down" {
 
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
-    cooldown                = 30
+    cooldown                = 180
     metric_aggregation_type = "Average"
 
     step_adjustment {
-      metric_interval_lower_bound = -5
       metric_interval_upper_bound = 0
       scaling_adjustment          = -1
-    }
-
-    step_adjustment {
-      metric_interval_lower_bound = -10
-      metric_interval_upper_bound = -5
-      scaling_adjustment          = -2
-    }
-
-    step_adjustment {
-      metric_interval_upper_bound = -10
-      scaling_adjustment          = -3
     }
   }
 }

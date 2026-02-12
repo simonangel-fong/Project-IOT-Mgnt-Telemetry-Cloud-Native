@@ -20,7 +20,7 @@ locals {
   fastapi_env_pgdb_db      = aws_db_instance.postgres.db_name
   fastapi_env_pgdb_user    = aws_db_instance.postgres.username
   fastapi_env_pgdb_pwd     = aws_db_instance.postgres.password
-  fastapi_scale_cpu        = var.threshold_cpu
+  fastapi_threshold_cpu    = var.threshold_cpu
 }
 
 # #################################
@@ -112,11 +112,10 @@ resource "aws_ecs_task_definition" "ecs_task_fastapi" {
     env           = var.env
     debug         = local.fastapi_app_debug
     log_level     = local.fastapi_log_level
+    awslogs_group = local.fastapi_log_id
     image         = local.fastapi_ecr
-    log_level     = local.fastapi_log_level
     cpu           = local.fastapi_cpu
     memory        = local.fastapi_memory
-    awslogs_group = local.fastapi_log_id
     pgdb_host     = local.fastapi_env_pgdb_host
     pgdb_db       = local.fastapi_env_pgdb_db
     pgdb_user     = local.fastapi_env_pgdb_user
@@ -195,7 +194,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   comparison_operator = "GreaterThanOrEqualToThreshold"
   statistic           = "Average"
   metric_name         = "CPUUtilization"
-  threshold           = var.threshold_cpu
+  threshold           = local.fastapi_threshold_cpu
 
   dimensions = {
     ClusterName = aws_ecs_cluster.ecs_cluster.name
@@ -207,7 +206,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
 
 # scale up policy
 resource "aws_appautoscaling_policy" "scale_up" {
-  name               = "${var.project}-${var.env}-scale-up-policy"
+  name               = "${var.project}-${var.env}-scale-up"
   service_namespace  = aws_appautoscaling_target.scale_target.service_namespace
   resource_id        = aws_appautoscaling_target.scale_target.resource_id
   scalable_dimension = aws_appautoscaling_target.scale_target.scalable_dimension
@@ -232,13 +231,7 @@ resource "aws_appautoscaling_policy" "scale_up" {
 
     step_adjustment {
       metric_interval_lower_bound = 10
-      metric_interval_upper_bound = 15
       scaling_adjustment          = 3
-    }
-
-    step_adjustment {
-      metric_interval_lower_bound = 15
-      scaling_adjustment          = 4
     }
   }
 }
@@ -252,7 +245,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_low" {
   comparison_operator = "LessThanThreshold"
   statistic           = "Average"
   metric_name         = "CPUUtilization"
-  threshold           = var.threshold_cpu
+  threshold           = local.fastapi_threshold_cpu - 10
 
   dimensions = {
     ClusterName = aws_ecs_cluster.ecs_cluster.name
@@ -270,24 +263,12 @@ resource "aws_appautoscaling_policy" "scale_down" {
 
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
-    cooldown                = 30
+    cooldown                = 180
     metric_aggregation_type = "Average"
 
     step_adjustment {
-      metric_interval_lower_bound = -5
       metric_interval_upper_bound = 0
       scaling_adjustment          = -1
-    }
-
-    step_adjustment {
-      metric_interval_lower_bound = -10
-      metric_interval_upper_bound = -5
-      scaling_adjustment          = -2
-    }
-
-    step_adjustment {
-      metric_interval_upper_bound = -10
-      scaling_adjustment          = -3
     }
   }
 }

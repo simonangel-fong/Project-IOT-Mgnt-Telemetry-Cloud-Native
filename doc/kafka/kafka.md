@@ -86,11 +86,11 @@ docker push 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry:k
 
 ```sh
 # Push
-docker build -t outbox_worker app/redis/worker
+docker build -t redis_outbox app/redis/worker
 # tag
-docker tag outbox_worker 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry:outbox-worker
+docker tag redis_outbox 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry:redis-outbox
 # push to docker
-docker push 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry:outbox-worker
+docker push 099139718958.dkr.ecr.ca-central-1.amazonaws.com/iot-mgnt-telemetry:redis-outbox
 
 ```
 
@@ -148,7 +148,7 @@ python k6/pgdb_write_check.py
 
 ```sh
 # read breaking point
-docker run --rm --name kafka_aws_read_break -p 5665:5665 -e SOLUTION_ID="kafka" -e BASE_URL="https://iot-kafka.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/kafka_aws_read_break.html -e K6_WEB_DASHBOARD_PERIOD=3s -e RATE_TARGET=10000 -e STAGE_RAMP=60 -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
+docker run --rm --name kafka_aws_read_break -p 5665:5665 -e SOLUTION_ID="kafka" -e BASE_URL="https://iot-kafka.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/kafka_aws_read_break.html -e K6_WEB_DASHBOARD_PERIOD=3s -e RATE_TARGET=10000 -e STAGE_RAMP=60 -e MAX_VU=1000 -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
 
 # write breaking point
 docker run --rm --name kafka_aws_write_break -p 5665:5665 -e SOLUTION_ID="kafka" -e BASE_URL="https://iot-kafka.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/kafka_aws_write_break.html -e K6_WEB_DASHBOARD_PERIOD=3s -e RATE_TARGET=10000 -e STAGE_RAMP=60 -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_write.js
@@ -169,6 +169,7 @@ select * from app.device_registry;
 select * from app.telemetry_latest_outbox;
 
 
- aws ecs run-task      --launch-type FARGATE     --region "ca-central-1"     --cluster "iot-mgnt-telemetry-kafka-cluster"     --task-definition "arn:aws:ecs:ca-central-1:099139718958:task-definition/iot-mgnt-telemetry-kafka-task-flyway:8"     --network-configuration "awsvpcConfiguration={subnets=[subnet-0255626a49f724ae8,subnet-09990f0151a4d8f02,subnet-0ac10d6b7f2366b80],securityGroups=[sg-0baa49a6f8fe04df3]}"     --output json
+  aws ecs run-task        --launch-type "FARGATE"       --region "ca-central-1"        --cluster iot-mgnt-telemetry-kafka-cluster       --task-definition arn:aws:ecs:ca-central-1:099139718958:task-definition/iot-mgnt-telemetry-kafka-kafka-init:9       --network-configuration "awsvpcConfiguration={subnets=[subnet-0c8487cef6c59813a,subnet-06451ab37dbd6219f,subnet-04e129977b56dab08],securityGroups=[sg-0acb77d9f342ad05b]}"       --output json
+
 
 ```

@@ -1,7 +1,7 @@
-from .func import fetch_unprocessed, sync_outbox, sync_telemetry_count
+from .func import fetch_all_latest, sync_latest_rows_to_redis, sync_telemetry_count
 
 __all__ = [
-    "fetch_unprocessed",
-    "sync_outbox",
+    "fetch_all_latest",
+    "sync_latest_rows_to_redis",
     "sync_telemetry_count",
 ]

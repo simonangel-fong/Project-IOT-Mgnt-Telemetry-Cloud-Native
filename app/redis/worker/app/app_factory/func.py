@@ -8,7 +8,7 @@ from typing import Sequence, Iterable
 from sqlalchemy import select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import TelemetryLatestOutbox, TelemetryEvent
+from ..models import TelemetryLatest, TelemetryEvent
 from ..db.redis import redis_client
 
 logger = logging.getLogger(__name__)
@@ -46,88 +46,52 @@ def _redis_keys(device_uuid: str) -> tuple[str, str]:
     return data_key, ver_key
 
 
-async def fetch_unprocessed(session: AsyncSession) -> Sequence[TelemetryLatestOutbox]:
-    """
-    Fetch outbox rows that are not processed yet.
-    """
-    stmt = (
-        select(TelemetryLatestOutbox)
-        .where(TelemetryLatestOutbox.status != "PROCESSED")
-        .order_by(TelemetryLatestOutbox.created_at.asc())
-        .limit(BATCH_SIZE)
-    )
+async def fetch_all_latest(session: AsyncSession) -> Sequence[TelemetryLatest]:
+    stmt = select(TelemetryLatest)
     result = await session.execute(stmt)
     return result.scalars().all()
 
 
-async def sync_outbox(
-    session: AsyncSession,
-    rows: Iterable[TelemetryLatestOutbox],
-) -> int:
+def _row_to_payload(row: TelemetryLatest) -> dict:
+    return {
+        "device_uuid": str(row.device_uuid),
+        "alias": row.alias,
+        "x_coord": row.x_coord,
+        "y_coord": row.y_coord,
+        "device_time": row.device_time.isoformat(),
+        "system_time_utc": row.system_time_utc.isoformat(),
+    }
+
+
+async def sync_latest_rows_to_redis(session: AsyncSession, rows: Iterable[TelemetryLatest]) -> int:
     """
-    Sync unprocessed outbox rows to Redis and mark them PROCESSED in Postgres.
+    Full refresh: writes every device latest row to Redis.
+    Version guard ensures Redis never regresses.
 
     Returns:
-        count of rows marked PROCESSED
+        Number of rows that actually updated Redis (Lua returned 1).
     """
     sha = await _get_lua_sha()
-    processed_ids: list[int] = []
-    processed_count = 0
+    pipe = redis_client.pipeline(transaction=False)
 
+    # Queue all Lua calls in a pipeline
     for r in rows:
         device_uuid_str = str(r.device_uuid)
         data_key, ver_key = _redis_keys(device_uuid_str)
+        version = int(r.system_time_utc.timestamp() * 1000)
+        payload_json = json.dumps(_row_to_payload(
+            r), separators=(",", ":"), default=str)
 
-        # parse json into string
-        payload_json = json.dumps(
-            r.payload, separators=(",", ":"), default=str)
+        logger.debug(f"{payload_json}")
 
-        try:
-            updated = await redis_client.evalsha(
-                sha,
-                2,
-                data_key,
-                ver_key,
-                str(r.telemetry_event_id),  # version
-                payload_json,
-            )
+        pipe.evalsha(sha, 2, data_key, ver_key, str(version), payload_json)
 
-            processed_ids.append(r.outbox_id)
-            processed_count += 1
+    results = await pipe.execute()
 
-            if updated == 1:
-                logger.debug("Redis updated device=%s version=%s",
-                             device_uuid_str, r.telemetry_event_id)
-            else:
-                logger.debug("Redis skipped (older) device=%s version=%s",
-                             device_uuid_str, r.telemetry_event_id)
-
-        except Exception as e:
-            # Leave it unprocessed so it can be retried next poll
-            logger.exception(
-                "Redis sync failed outbox_id=%s device=%s", r.outbox_id, device_uuid_str)
-
-            await session.execute(
-                update(TelemetryLatestOutbox)
-                .where(TelemetryLatestOutbox.outbox_id == r.outbox_id)
-                .values(
-                    attempts=TelemetryLatestOutbox.attempts + 1,
-                    last_error=str(e),
-                    status="FAILED",
-                )
-            )
-
-    # Mark processed rows in a single UPDATE (fast)
-    if processed_ids:
-        await session.execute(
-            update(TelemetryLatestOutbox)
-            .where(TelemetryLatestOutbox.outbox_id.in_(processed_ids))
-            .values(status="PROCESSED", processed_at=__import__("sqlalchemy").sql.func.now())
-        )
-
-    await session.commit()
-
-    return processed_count
+    updated_count = sum(1 for x in results if int(x) == 1)
+    logger.debug("Redis sync completed. updated=%d total=%d",
+                 updated_count, len(results))
+    return updated_count
 
 
 async def sync_telemetry_count(session: AsyncSession) -> int:

@@ -27,8 +27,8 @@ resource "aws_security_group" "redis" {
     to_port     = local.redis_port
     protocol    = "tcp"
     security_groups = [
-      aws_security_group.fastapi.id, # allow FastAPI tasks
-      aws_security_group.outbox_worker.id, # allow Outbox worker tasks
+      aws_security_group.fastapi.id,       # allow FastAPI tasks
+      aws_security_group.redis-outbox.id, # allow Outbox worker tasks
     ]
   }
 
@@ -86,7 +86,6 @@ resource "aws_elasticache_replication_group" "redis" {
   engine_version       = "7.1"
   node_type            = var.redis_node_type
   port                 = local.redis_port
-
 
   apply_immediately = true
   #   # Disable cluster mode, single shard

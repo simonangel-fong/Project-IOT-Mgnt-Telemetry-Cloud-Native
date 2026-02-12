@@ -1,4 +1,3 @@
-
 services:
   redis:
     container_name: redis
@@ -16,8 +15,8 @@ services:
       retries: 3
       start_period: 20s
 
-  outbox_worker:
-    container_name: outbox_worker
+  redis-outbox:
+    container_name: redis-outbox
     build:
       context: ../redis/worker
       dockerfile: Dockerfile
@@ -33,6 +32,7 @@ services:
       POSTGRES__PASSWORD: test123
       REDIS__HOST: "${REDIS__HOST:-redis}"
       REDIS__PORT: "${REDIS__PORT:-6379}"
+      POLL_INTERVAL: "${POLL_INTERVAL:-1}"
     networks:
       - private_network
     depends_on:

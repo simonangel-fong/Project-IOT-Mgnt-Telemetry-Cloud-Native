@@ -1,8 +1,8 @@
 FROM amazoncorretto:17-alpine
 
-ARG KAFKA_VERSION=3.8.0
-ARG SCALA_VERSION=2.13
-ARG MSK_IAM_AUTH_VERSION=1.1.6
+ENV KAFKA_VERSION=3.8.0
+ENV SCALA_VERSION=2.13
+ENV MSK_IAM_AUTH_VERSION=1.1.6
 
 WORKDIR /opt
 
@@ -25,7 +25,7 @@ RUN mkdir -p /opt/kafka/config
 COPY client.properties /opt/kafka/config/client.properties
 
 # entrypoint script
-COPY scripts/create-topics.sh /create-topics.sh
+COPY ./scripts/create-topics.sh /create-topics.sh
 RUN chmod +x /create-topics.sh
 
 ENTRYPOINT ["/create-topics.sh"]

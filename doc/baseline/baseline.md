@@ -159,6 +159,10 @@ docker run --rm --name baseline_aws_smoke -p 5665:5665 -e BASE_URL="https://iot-
 # Stress testing
 docker run --rm --name baseline_aws_read_stress -p 5665:5665 -e BASE_URL="https://iot-baseline.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/baseline_aws_read_stress.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/stress_testing_read.js
 
+# constant read
+docker run --rm --name baseline_aws_constant_read -p 5665:5665 -e BASE_URL="https://iot-baseline.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_PERIOD=3s -e RATE_TARGET=50 -e STAGE_CONSTANT=60 -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/constant_read.js
+
+
 # read heavy
 docker run --rm --name baseline_aws_read -p 5665:5665 -e SOLUTION_ID="baseline" -e BASE_URL="https://iot-baseline.arguswatcher.net" -e K6_WEB_DASHBOARD=true -e K6_WEB_DASHBOARD_EXPORT=/report/baseline_aws_read.html -e K6_WEB_DASHBOARD_PERIOD=3s -v ./k6/script:/script -v ./k6/report:/report/ grafana/k6 run /script/test_hp_read.js
 

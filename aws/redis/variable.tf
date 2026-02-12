@@ -60,11 +60,11 @@ variable "svc_param" {
   default = {
     fastapi_svc = {
       image_suffix  = "fastapi-redis"
-      cpu           = 512
-      memory        = 1024
+      cpu           = 1024
+      memory        = 2048
       count_desired = 4
       count_min     = 4
-      count_max     = 35
+      count_max     = 30
       container_env = {
         pool_size    = 5
         max_overflow = 0

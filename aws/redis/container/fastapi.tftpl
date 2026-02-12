@@ -12,14 +12,17 @@
       { "name": "ENV", "value": "${env}" },
       { "name": "DEBUG", "value": "${debug}" },
       { "name": "LOG_LEVEL", "value": "${log_level}" },
+
+      { "name": "POOL_SIZE", "value": "${pool_size}" },
+      { "name": "MAX_OVERFLOW", "value": "${max_overflow}" },
+      { "name": "WORKER", "value": "${worker}" },
+
       { "name": "POSTGRES__HOST", "value": "${pgdb_host}" },
       { "name": "POSTGRES__PORT", "value": "5432" },
       { "name": "POSTGRES__DB", "value": "${pgdb_db}" },
       { "name": "POSTGRES__USER", "value": "${pgdb_user}" },
       { "name": "POSTGRES__PASSWORD", "value": "${pgdb_pwd}" },
-      { "name": "POOL_SIZE", "value": "${pool_size}" },
-      { "name": "MAX_OVERFLOW", "value": "${max_overflow}" },
-      { "name": "WORKER", "value": "${worker}" },
+
       { "name": "REDIS__HOST", "value": "${redis_host}" },
       { "name": "REDIS__PORT", "value": "${redis_port}" }
     ],
@@ -48,10 +51,10 @@
         "CMD-SHELL",
         "curl -f http://127.0.0.1:8000/api/health/ || exit 1"
       ],
-      "interval": 30,
+      "interval": 15,
       "timeout": 5,
-      "retries": 3,
-      "startPeriod": 15
+      "retries": 5,
+      "startPeriod": 90
     },
 
     "stopTimeout": 30,

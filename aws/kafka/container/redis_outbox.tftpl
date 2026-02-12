@@ -1,6 +1,6 @@
 [
   {
-    "name": "consumer",
+    "name": "redis-outbox",
     "image": "${image}",
 
     "cpu": ${cpu},
@@ -12,24 +12,20 @@
       { "name": "ENV", "value": "${env}" },
       { "name": "DEBUG", "value": "${debug}" },
       { "name": "AWS_REGION", "value": "${region}" },
+
       { "name": "POOL_SIZE", "value": "${pool_size}" },
       { "name": "MAX_OVERFLOW", "value": "${max_overflow}" },
       { "name": "WORKER", "value": "${worker}" },
+      
       { "name": "POSTGRES__HOST", "value": "${pgdb_host}" },
       { "name": "POSTGRES__PORT", "value": "5432" },
       { "name": "POSTGRES__DB", "value": "${pgdb_db}" },
       { "name": "POSTGRES__USER", "value": "${pgdb_user}" },
       { "name": "POSTGRES__PASSWORD", "value": "${pgdb_pwd}" },
+      
       { "name": "REDIS__HOST", "value": "${redis_host}" },
-      { "name": "REDIS__PORT", "value": "${redis_port}" }
-    ],
-
-    "portMappings": [
-      {
-        "name": "consumer",
-        "containerPort": 8000,
-        "protocol": "tcp"
-      }
+      { "name": "REDIS__PORT", "value": "${redis_port}" },
+      { "name": "POLL_INTERVAL", "value": "${poll_interval}" }
     ],
 
     "logConfiguration": {
@@ -43,7 +39,22 @@
       }
     },
 
-    "stopTimeout": 30,
+    "linuxParameters": {
+      "initProcessEnabled": true
+    },
+
+    "healthCheck": {
+      "command": [
+        "CMD-SHELL",
+        "python -c \"import os,socket; socket.gethostbyname(os.environ['POSTGRES__HOST']); socket.gethostbyname(os.environ['REDIS__HOST']); print('ok')\" || exit 1"
+      ],
+      "interval": 30,
+      "timeout": 5,
+      "retries": 3,
+      "startPeriod": 60
+    },
+
+    "stopTimeout": 90,
     "readonlyRootFilesystem": false
   }
 ]

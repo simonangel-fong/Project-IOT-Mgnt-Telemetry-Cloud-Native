@@ -124,6 +124,12 @@ class Settings(BaseSettings):
         description="The number of uvicorn workers.",
     )
 
+    poll_interval: float = Field(
+        default=1.0,
+        alias="POLL_INTERVAL",
+        description="The second of polling interval.",
+    )
+
     # ------------------------------
     # Logging controls
     # ------------------------------
