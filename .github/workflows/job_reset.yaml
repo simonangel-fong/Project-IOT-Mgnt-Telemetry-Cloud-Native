@@ -124,7 +124,7 @@ jobs:
               run: terraform apply -auto-approve -no-color tfplan
 
             - name: Sleep for minutes
-              run: sleep 10m
+              run: sleep 30m
               shell: bash
 
             - name: Output

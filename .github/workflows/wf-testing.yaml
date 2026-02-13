@@ -3,10 +3,10 @@ name: Workflow-Auto Testing
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "main"
-      # - "testing"
+  # push:
+  #   branches:
+  #     - "main"
+  #     # - "testing"
 
 # multiple trigger
 concurrency:

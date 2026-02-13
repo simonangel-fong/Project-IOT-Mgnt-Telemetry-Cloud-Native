@@ -21,8 +21,8 @@ jobs:
       fail-fast: false
       matrix:
         solution:
-          # - env: baseline
-          - env: tune
+          - env: baseline
+          # - env: tune
           - env: scale
           - env: redis
           - env: kafka
