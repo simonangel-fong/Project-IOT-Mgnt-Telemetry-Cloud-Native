@@ -117,6 +117,7 @@
                 <!-- Baseline Architecture -->
                 <div class="arch-section">
                     <div class="row g-5 align-items-center">
+                        <!-- Baseline -->
                         <div class="col-lg-6 col-md-12">
                             <h3 class="arch-title">Baseline – Single Service</h3>
                             <p class="arch-description">
@@ -132,12 +133,9 @@
                                 <b>Trade-off:</b> Limited scalability and high database dependency
                             </p>
                         </div>
+                        <!-- Diagram -->
                         <div class="col-lg-6 col-md-12">
-                            <div class="ratio ratio-4x3">
-                                <div class="diagram-placeholder">
-                                    Architecture Diagram Placeholder
-                                </div>
-                            </div>
+                            <img class="rounded img-fluid" src="./img/diagram/baseline.gif" alt="">
                         </div>
                     </div>
                 </div>
@@ -160,10 +158,9 @@
                                 <b>Trade-off:</b> Higher infrastructure cost and operational complexity
                             </p>
                         </div>
+                        <!-- Diagram -->
                         <div class="col-lg-6 col-md-12">
-                            <div class="diagram-placeholder">
-                                Architecture Diagram Placeholder
-                            </div>
+                            <img class="ratio ratio-16x9 col-12" src="./img/diagram/scale.gif" alt="">
                         </div>
                     </div>
                 </div>
@@ -187,10 +184,9 @@
                                 <b>Trade-off:</b> Cache consistency management and additional infrastructure
                             </p>
                         </div>
+                        <!-- Diagram -->
                         <div class="col-lg-6 col-md-12">
-                            <div class="diagram-placeholder">
-                                Architecture Diagram Placeholder
-                            </div>
+                            <img class="col-12 ratio-16x9" src="./img/diagram/redis.gif" alt="">
                         </div>
                     </div>
                 </div>
@@ -215,10 +211,9 @@
                                 considerations
                             </p>
                         </div>
+                        <!-- Diagram -->
                         <div class="col-lg-6 col-md-12">
-                            <div class="diagram-placeholder">
-                                Architecture Diagram Placeholder
-                            </div>
+                            <img class="col-12 ratio-16x9" src="./img/diagram/kafka.gif" alt="">
                         </div>
                     </div>
                 </div>
@@ -313,28 +308,28 @@
                                         <td>230–400</td>
                                         <td>Up to 2.2%</td>
                                         <td>~1s</td>
-                                        <td>N/A (Backed Saturated)</td>
+                                        <td>N/A (Backend Saturated)</td>
                                     </tr>
                                     <tr>
                                         <td><strong style="color: var(--color-text);">Scale</strong></td>
-                                        <td>1000 <b class="h5">⏫ +300%</b></td>
+                                        <td>1000 <b class="h5 ps-3">⏫ +300%</b></td>
                                         <td>0%</td>
-                                        <td>~100ms <b class="h5">⏬-90%</b></td>
+                                        <td>~100ms <b class="h5 ps-5">⏬-90%</b></td>
                                         <td>65%</td>
                                     </tr>
                                     <tr>
                                         <td><strong style="color: var(--color-text);">Redis</strong></td>
-                                        <td>1000 <b class="h5">⏫ +300%</b></td>
+                                        <td>1000 <b class="h5 ps-3">⏫ +300%</b></td>
                                         <td>0%</td>
-                                        <td>~50ms (reads) <b class="h5">⏬-95%</b> </td>
-                                        <td>55.5% <b class="h5">⏬-15%</b> </td>
+                                        <td>~50ms (reads) <b class="h5 ">⏬-95%</b> </td>
+                                        <td>55.5% <b class="h5 ps-5">⏬-15%</b> </td>
                                     </tr>
                                     <tr>
                                         <td><strong style="color: var(--color-text);">Kafka</strong></td>
-                                        <td>1000 <b class="h5">⏫ +300%</b></td>
+                                        <td>1000 <b class="h5 ps-3">⏫ +300%</b></td>
                                         <td>0%</td>
                                         <td>~100ms (write) <b class="h5">⏬-90%</b></td>
-                                        <td>18% (write) <b class="h5">⏬-72%</b></td>
+                                        <td>18% (write) <b class="h5 ps-1">⏬-72%</b></td>
                                     </tr>
                                 </tbody>
                             </table>
