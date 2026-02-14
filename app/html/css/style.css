@@ -1,47 +1,537 @@
-/*
- * This css is style sheet for
- */
-body {
-  padding-top: 3rem;
-  text-shadow: 0 0.05rem 0.1rem rgba(0, 0, 0, 0.5);
-  box-shadow: inset 0 0 2rem rgba(0, 0, 0, 0.5);
+:root {
+  --color-bg: #0f0e0d;
+  --color-surface: #1a1714;
+  --color-surface-light: #252018;
+  --color-primary: #e48d22;
+  --color-accent: #d4712abb;
+  --color-success: #e8b968;
+  --color-warning: #ff6b35;
+  --color-text: #f5f0ea;
+  --color-text-muted: #b8a896;
+  --color-border: #3a342a;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Archivo", sans-serif;
 }
 
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  /* padding-top: 80px; */
+}
+
+/* Animated grid background */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(var(--color-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.15;
+  z-index: -1;
+  animation: gridMove 20s linear infinite;
+}
+
+@keyframes gridMove {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  100% {
+    transform: translate(60px, 60px);
+  }
+}
+
+/* Navigation */
+.navbar {
+  background: rgba(19, 24, 32, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.navbar-brand {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-primary) !important;
+}
+
+.nav-link {
+  color: var(--color-text-muted) !important;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--color-primary) !important;
+}
+
+.nav-link:hover::after {
+  width: 80%;
+}
+
+/* header Section */
 header {
   min-height: 100vh;
   background-image: url("../img/header/bg.jpg");
-  background-size: cover; /* covers the entire area */
-  background-position: center; /*Centers the image*/
-  background-repeat: no-repeat; /* no repeating */
+  background-size: cover;
+  /* covers the entire area */
+  background-position: center;
+  /*Centers the image*/
+  background-repeat: no-repeat;
+  /* no repeating */
   /* opacity: 0.5; */
+  margin-top: 60px;
 }
 
-.header-cover {
-  max-width: 43rem;
-}
-/* 
-.header-cover-text {
-  background-color: #00a941d7;
-} */
-
-/*
- * Header Navbar
- */
-.nav-masthead .nav-link {
-  color: rgba(255, 255, 255, 0.5);
-  border-bottom: 0.25rem solid transparent;
-}
-
-.nav-masthead .nav-link:hover,
-.nav-masthead .nav-link:focus {
-  border-bottom-color: rgba(255, 255, 255, 0.25);
+header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to right,
+    rgba(10, 14, 23, 0.95) 0%,
+    rgba(10, 14, 23, 0.85) 50%,
+    rgba(10, 14, 23, 0.3) 100%
+  );
 }
 
-.nav-masthead .nav-link + .nav-link {
-  margin-left: 1rem;
+header::before {
+  opacity: 0;
 }
 
-.nav-masthead .active {
-  color: #fff;
-  border-bottom-color: #fff;
+header .container {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 2px;
+  margin-bottom: 2rem;
+}
+
+.hero h1 {
+  margin-top: 60px;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(
+    135deg,
+    var(--color-text) 0%,
+    var(--color-primary) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  font-weight: 300;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+}
+
+.hero-description {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  line-height: 1.8;
+  margin-bottom: 3rem;
+}
+
+/* Stat Cards */
+.stat-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 2rem;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-primary), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s ease;
+}
+
+.stat-card:hover::before {
+  transform: scaleX(1);
+}
+
+.stat-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-4px);
+}
+
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Section Styles */
+section {
+  padding: 5rem 0;
+}
+
+section:nth-child(even) {
+  background: var(--color-surface);
+}
+
+section:nth-child(odd) {
+  background: var(--color-bg);
+}
+
+.section-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.section-title::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--color-primary);
+}
+
+.section-subtitle {
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+  margin-top: 2rem;
+}
+
+/* Architecture Cards */
+.arch-section {
+  padding: 4rem 0;
+}
+
+.arch-section:not(:last-child) {
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: 3rem;
+}
+
+.diagram-placeholder {
+  background: var(--color-surface-light);
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+}
+
+.arch-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.arch-description {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.arch-description b {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.arch-card {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.arch-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.arch-card::before {
+  display: none;
+}
+
+/* Table */
+.table-dark {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-dark thead {
+  background: var(--color-surface-light);
+}
+
+.table-dark th {
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  border-color: var(--color-border);
+}
+
+.table-dark td {
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+
+.table-dark tbody tr:hover {
+  background: var(--color-surface-light);
+}
+
+/* Result Cards */
+.result-card {
+  background: linear-gradient(
+    135deg,
+    var(--color-surface) 0%,
+    var(--color-surface-light) 100%
+  );
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.result-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, var(--color-primary) 0%, transparent 70%);
+  opacity: 0.05;
+}
+
+.result-metric {
+  font-family: var(--font-mono);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--color-success);
+  margin-bottom: 0.5rem;
+}
+
+.result-label {
+  font-size: 1rem;
+  color: var(--color-text);
+  margin-bottom: 0.75rem;
+}
+
+.result-description {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+/* Pipeline Steps */
+.pipeline-list {
+  list-style: none;
+  counter-reset: step-counter;
+  padding-left: 0;
+}
+
+.pipeline-list li {
+  counter-increment: step-counter;
+  margin-bottom: 2rem;
+  padding-left: 3rem;
+  position: relative;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.pipeline-list li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-accent)
+  );
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-bg);
+}
+
+.pipeline-step {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+.pipeline-step::before {
+  display: none;
+}
+
+.pipeline-step:hover {
+  border-color: transparent;
+}
+
+/* Capability Cards */
+.capability-list-simple {
+  list-style: none;
+  padding-left: 0;
+}
+
+.capability-list-simple li {
+  margin-bottom: 2.5rem;
+  padding-left: 3.5rem;
+  position: relative;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--color-text);
+}
+
+.capability-list-simple li .icon-circle {
+  position: absolute;
+  left: 0;
+  top: -5px;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-accent)
+  );
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+}
+
+.capability-card {
+  background: transparent;
+  border: none;
+  padding: 0;
+  height: auto;
+}
+
+.capability-card:hover {
+  box-shadow: none;
+}
+
+.capability-icon {
+  display: none;
+}
+
+.capability-card h3 {
+  display: none;
+}
+
+.capability-list {
+  display: none;
+}
+
+/* Background variations */
+.remove-bg {
+  background: transparent !important;
+}
+
+/* Footer */
+footer {
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: 3rem 0;
+  margin-top: 3rem;
+  height: 60px;
+  text-align: center;
+}
+
+footer p {
+  color: var(--color-text-muted);
+  margin-bottom: 0;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeInUp 0.5s ease forwards;
 }
