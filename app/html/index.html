@@ -34,19 +34,19 @@
                         <a class="nav-link" href="#home">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#challenge">Challenge</a>
+                        <a class="nav-link" href="#challenge"> Challenge </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#architecture">Architecture</a>
+                        <a class="nav-link" href="#architecture"> Architecture </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#results">Results</a>
+                        <a class="nav-link" href="#results"> Results </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#pipeline">Pipeline</a>
+                        <a class="nav-link" href="#pipeline"> Pipeline </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#capabilities">Capabilities</a>
+                        <a class="nav-link" href="#capabilities"> Capabilities </a>
                     </li>
                 </ul>
             </div>
@@ -292,7 +292,7 @@
                                     <th>Max RPS</th>
                                     <th>Failure Rate</th>
                                     <th>p95 Latency</th>
-                                    <th>RDS CPU Behavior</th>
+                                    <th>Database CPU Usage(Max)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -301,28 +301,28 @@
                                     <td>230–400</td>
                                     <td>Up to 2.2%</td>
                                     <td>~1s</td>
-                                    <td>Saturated under load</td>
+                                    <td>N/A (Backed Saturated)</td>
                                 </tr>
                                 <tr>
                                     <td><strong style="color: var(--color-text);">Scale</strong></td>
-                                    <td>1000</td>
+                                    <td>1000 <b class="h5">⏫ 400%</b></td>
                                     <td>0%</td>
-                                    <td>~100ms <b>+90%⏫</b></td>
-                                    <td>Elevated during write-heavy traffic</td>
+                                    <td>~100ms <b class="h5">⏫+90%</b></td>
+                                    <td>65%</td>
                                 </tr>
                                 <tr>
                                     <td><strong style="color: var(--color-text);">Redis</strong></td>
-                                    <td>1000</td>
+                                    <td>1000 <b class="h5">⏫ 400%</b></td>
                                     <td>0%</td>
-                                    <td>~50ms (reads) <b>+95%⏫</b> </td>
-                                    <td>Significantly reduced read pressure</td>
+                                    <td>~50ms (reads) <b class="h5">⏫+95%</b> </td>
+                                    <td>55.5% <b class="h5">⏬-15%</b> </td>
                                 </tr>
                                 <tr>
                                     <td><strong style="color: var(--color-text);">Kafka</strong></td>
-                                    <td>1000</td>
+                                    <td>1000 <b class="h5">⏫ 400%</b></td>
                                     <td>0%</td>
-                                    <td>~100ms (write) <b>+90%⏫</b></td>
-                                    <td>Write load stabilized and distributed</td>
+                                    <td>~100ms (write) <b class="h5">⏫+90%</b></td>
+                                    <td>18% (write) <b class="h5">⏬-72%</b></td>
                                 </tr>
                             </tbody>
                         </table>
