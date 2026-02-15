@@ -68,7 +68,8 @@ jobs:
         with:
           debug: true
           fail-fast: true
-          flags: cloud --env BASE_URL=${{ env.BASE_URL }}
+          flags: --env BASE_URL=${{ env.BASE_URL }}
+          cloud-run-locally: false
           path: |
             ${{ env.K6_SCRIPT }}
 
