@@ -13,10 +13,6 @@ concurrency:
   group: wf-testing-${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true # Cancel older runs
 
-permissions:
-  pull-requests: write
-  contents: read
-
 jobs:
   # unit_test:
   #   name: Unit Test
@@ -128,9 +124,9 @@ jobs:
     name: Smoke Testing
     # needs: deploy
     # github local
-    # uses: ./.github/workflows/job_test_smoke.yaml
-    # grafana cloud
-    uses: ./.github/workflows/job_test_smoke_cloud.yaml
+    uses: ./.github/workflows/job_test_smoke.yaml
+    # # grafana cloud
+    # uses: ./.github/workflows/job_test_smoke_cloud.yaml
     strategy:
       fail-fast: false
       matrix:
