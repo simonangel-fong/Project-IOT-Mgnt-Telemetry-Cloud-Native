@@ -58,6 +58,8 @@ jobs:
 
       - name: Setup K6
         uses: grafana/setup-k6-action@v1
+        with:
+          browser: true
 
       - name: Smoke Testing(Cloud)
         uses: grafana/run-k6-action@v1
@@ -69,6 +71,7 @@ jobs:
         with:
           debug: true
           fail-fast: true
+          flags: cloud
           # flags: --env BASE_URL=${{ env.BASE_URL }}
           cloud-run-locally: false
           path: |
