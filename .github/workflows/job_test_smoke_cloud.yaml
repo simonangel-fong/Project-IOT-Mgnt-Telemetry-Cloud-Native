@@ -61,7 +61,7 @@ jobs:
 
       - name: Smoke Testing(Cloud)
         uses: grafana/run-k6-action@v1
-        id: testing
+        id: smoke_testing
         env:
           K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
           K6_CLOUD_PROJECT_ID: ${{ secrets.K6_CLOUD_PROJECT_ID }}
