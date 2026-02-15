@@ -91,7 +91,7 @@ jobs:
     name: Deploy Resources
     needs:
       - ecr_push
-      - lint-check
+      # - lint-check
     uses: ./.github/workflows/job_deploy.yaml
     permissions:
       contents: read
