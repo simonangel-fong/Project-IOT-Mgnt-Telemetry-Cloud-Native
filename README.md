@@ -79,6 +79,6 @@ All architectures are evaluated using the same workload profiles and metrics to 
 
 - [Baseline](./doc/baseline/baseline.md)
 - [Scale](./doc/scale/scale.md)
-- [Tune](./doc/tune/tune.md)
 - [Redis](./doc/redis/redis.md)
 - [Kafka](./doc/kafka/kafka.md)
+<!-- - [Tune](./doc/tune/tune.md) -->

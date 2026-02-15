@@ -101,5 +101,9 @@ python k6/pgdb_write_check.py
 # smoke
 docker run --rm --name k6_redis_aws_smoke --env-file ./k6/.env -e BASE_URL="https://iot-redis.arguswatcher.net" -e SOLUTION_ID=redis -e MAX_VU=100 -v ./k6/script:/script grafana/k6 cloud run --include-system-env-vars=true /script/test_smoke.js
 
+# read
+docker run --rm --name k6_redis_aws_read --env-file ./k6/.env -e BASE_URL="https://iot-redis.arguswatcher.net" -e SOLUTION_ID=redis -e MAX_VU=100 -v ./k6/script:/script grafana/k6 cloud run --include-system-env-vars=true /script/test_hp_read.js
 
+# write
+docker run --rm --name k6_redis_aws_write --env-file ./k6/.env -e BASE_URL="https://iot-redis.arguswatcher.net" -e SOLUTION_ID=redis -e MAX_VU=100 -v ./k6/script:/script grafana/k6 cloud run --include-system-env-vars=true /script/test_hp_write.js
 ```
