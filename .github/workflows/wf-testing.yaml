@@ -123,10 +123,10 @@ jobs:
   smoke_testing:
     name: Smoke Testing
     # needs: deploy
-    # github local
-    uses: ./.github/workflows/job_test_smoke.yaml
-    # # grafana cloud
-    # uses: ./.github/workflows/job_test_smoke_cloud.yaml
+    # # github local
+    # uses: ./.github/workflows/job_test_smoke.yaml
+    # grafana cloud
+    uses: ./.github/workflows/job_test_smoke_cloud.yaml
     strategy:
       fail-fast: false
       matrix:
@@ -145,6 +145,7 @@ jobs:
     secrets:
       k6_cloud_token: ${{ secrets.K6_CLOUD_TOKEN }}
       k6_cloud_project_id: ${{ secrets.K6_CLOUD_PROJECT_ID }}
+      k6_cloud_stack_id: ${{ secrets.K6_CLOUD_STACK_ID }}
 
   # performance_testing_read:
   #   name: Performance Testing-Read

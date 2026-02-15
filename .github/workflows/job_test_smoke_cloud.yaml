@@ -17,6 +17,8 @@ on:
         required: true
       k6_cloud_project_id:
         required: true
+      k6_cloud_stack_id:
+        required: true
 
 
 jobs:
@@ -73,6 +75,7 @@ jobs:
         env:
           K6_CLOUD_TOKEN: ${{ secrets.k6_cloud_token }}
           K6_CLOUD_PROJECT_ID: ${{ secrets.k6_cloud_project_id }}
+          K6_CLOUD_STACK_ID: ${{ secrets.k6_cloud_stack_id }}
         with:
           debug: true
           fail-fast: true
