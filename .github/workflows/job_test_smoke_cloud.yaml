@@ -18,9 +18,6 @@ on:
       k6_cloud_project_id:
         required: true
 
-permissions:
-  pull-requests: write
-  contents: read
 
 jobs:
   testing-smoke:

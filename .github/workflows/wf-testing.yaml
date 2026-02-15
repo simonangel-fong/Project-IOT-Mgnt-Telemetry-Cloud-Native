@@ -13,6 +13,10 @@ concurrency:
   group: wf-testing-${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true # Cancel older runs
 
+permissions:
+  pull-requests: write
+  contents: read
+
 jobs:
   # unit_test:
   #   name: Unit Test
