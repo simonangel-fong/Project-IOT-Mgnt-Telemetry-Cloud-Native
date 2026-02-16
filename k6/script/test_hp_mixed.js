@@ -32,10 +32,10 @@ const STAGE_PEAK = parseNumberEnv("STAGE_PEAK", 5); // minutes to hold peak
 
 // -------- VU --------
 const W_VU = parseNumberEnv("W_VU", 20); // pre-allocated VUs for write
-const W_MAX_VU = parseNumberEnv("W_MAX_VU", 100); // max VUs for write scenario
+const W_MAX_VU = parseNumberEnv("W_MAX_VU", 300); // max VUs for write scenario
 
 const R_VU = parseNumberEnv("R_VU", 20); // pre-allocated VUs for read
-const R_MAX_VU = parseNumberEnv("R_MAX_VU", 100); // max VUs for read scenario
+const R_MAX_VU = parseNumberEnv("R_MAX_VU", 300); // max VUs for read scenario
 
 // ==============================
 // k6 options

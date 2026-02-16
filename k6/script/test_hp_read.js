@@ -25,7 +25,7 @@ const STAGE_PEAK = parseNumberEnv("STAGE_PEAK", 5); // minutes to hold peak
 
 // VU pool
 const VU = parseNumberEnv("VU", 50); // pre-allocated VUs
-const MAX_VU = parseNumberEnv("MAX_VU", 200); // max VUs
+const MAX_VU = parseNumberEnv("MAX_VU", 300); // max VUs
 
 // ==============================
 // k6 options
