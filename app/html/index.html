@@ -73,27 +73,27 @@
                         </p>
 
                         <!-- Call to Action Buttons -->
-                        <div class="mt-4 d-flex gap-3 flex-wrap">
-                            <div class="hero-buttons mt-4">
-                                <a href="YOUR_DASHBOARD_URL" class="btn-custom-primary" target="_blank">
-                                    Dashboard Snapshot
-                                </a>
+                        <div class="hero-buttons mt-4 d-flex flex-column flex-lg-row gap-3">
 
-                                <a href="YOUR_GITHUB_REPO_URL" class="btn-custom-outline" target="_blank">
-                                    GitHub Repository
-                                </a>
-                            </div>
+                            <a href="#project_video" class="btn-custom-primary text-center" target="_blank">
+                                Project Video
+                            </a>
+
+                            <a href="https://github.com/simonangel-fong/Project-IOT-Mgnt-Telemetry-Cloud-Native"
+                                class="btn-custom-outline text-center" target="_blank">
+                                GitHub Repository
+                            </a>
 
                         </div>
-
                     </div>
                 </div>
-            </div>
         </header>
 
         <!-- Business Challenge -->
         <section id="challenge">
             <div class="container">
+
+                <!-- description -->
                 <div class="row">
                     <div class="col-12">
                         <h2 class="section-title">Business Challenge</h2>
@@ -108,13 +108,20 @@
                         <p class="section-subtitle" style="margin-top: 1.5rem;">
                             This project introduces an automated benchmarking approach to answer that question.
                         </p>
+
+                        <p class="section-subtitle" style="margin-top: 1.5rem;">
+                            🎥 Watch <strong style="color: var(--color-success);">1 munite</strong> walkthrough 👇
+                        </p>
                     </div>
                 </div>
 
-                <div class="row mt-3 pt-5">
-                    <div class="col-8 mx-auto">
-                        <div class="diagram-placeholder ratio ratio-4x3">
-                            All gif
+                <!-- video -->
+                <div class="row mt-5">
+                    <div class="col-10 col-lg-8 mx-auto">
+                        <div id="project_video" class="ratio ratio-16x9 shadow rounded overflow-hidden">
+                            <video muted controls autoplay preload="metadata" class="w-100">
+                                <source src="./video/project_video.mp4" type="video/mp4">
+                            </video>
                         </div>
                     </div>
                 </div>
@@ -307,17 +314,37 @@
         <!-- Performance Results -->
         <section id="results">
             <div class="container">
-                <div class="row mb-5">
+                <div class="row">
                     <div class="col-12">
                         <h2 class="section-title">Performance Impact</h2>
                         <p class="section-subtitle">
                             All four architectures were deployed and benchmarked under identical traffic conditions
                             using automated load testing.
                         </p>
+                        <p class="section-subtitle" style="margin-top: 1.5rem;">
+                            📈 Checkout Grafana dashboard 👉
+                            <a href="https://simonangelfong.grafana.net/dashboard/snapshot/vm8GHz4ne3ej2IijhAXtitw74oAXRSKr"
+                                target="_blank" title="snapshot">Grafana Snapshot</a>
+                        </p>
+                        <p class="section-subtitle" style="margin-top: 1.5rem;">
+                            🎥 Watch capture of <strong style="color: var(--color-success);">Grafana dashboard</strong>
+                            👇
+                        </p>
                     </div>
                 </div>
 
+                <!-- grafana dashboard video -->
                 <div class="row">
+                    <div class="col-lg-10  mx-auto">
+                        <div class="ratio ratio-16x9 shadow rounded overflow-hidden">
+                            <video muted controls autoplay loop preload="metadata" class="w-100">
+                                <source src="./video/grafana_dashboard.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-5">
                     <div class="col-12">
                         <h3 class="mb-4" style="font-size: 1.8rem; color: var(--color-text);">Key Results (Read:Write
                             1:1)</h3>
@@ -410,13 +437,6 @@
                     </div>
                 </div>
 
-                <div class="row mt-3 pt-5">
-                    <div class="col-8 mx-auto">
-                        <div class="diagram-placeholder ratio ratio-4x3">
-                            dashboards gif
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -453,31 +473,24 @@
                             </li>
                         </ol>
                     </div>
+                    <p class="section-subtitle" style="margin-top: 1.5rem;">
+                        🎥 Watch capture of <strong style="color: var(--color-success);">K6 load testing</strong>
+                        👇
+                    </p>
                 </div>
 
-                <div class="row mt-3">
-                    <div class="col-lg-10">
-                        <h3 class="mb-4" style="font-size: 1.8rem; color: var(--color-text);">Pipeline Benefits</h3>
-                        <p class="lead" style="color: var(--color-text-muted); font-size: 1.1rem; line-height: 1.9;">
-                            • <strong style="color: var(--color-primary);">Atuomates</strong> deployment and testing
-                            steps <br>
-                            • <strong style="color: var(--color-primary);">Standardized</strong> benchmarking conditions
-                            <br>
-                            • Enables <strong style="color: var(--color-primary);">reproducible performance
-                                comparisons</strong> <br>
-                            • Supports <strong style="color: var(--color-primary);">data-driven architectural
-                                decisions</strong> <br>
-                        </p>
-                    </div>
-                </div>
+                <!-- k6 video -->
+                <div class="row mt-5">
+                    <div class="col-10 col-lg-8 mx-auto">
 
-                <div class="row mt-3">
-                    <div class="col-8 mx-auto">
-                        <div class="diagram-placeholder ratio ratio-4x3">
-                            GitHub Capture gif
+                        <div class="ratio ratio-16x9 shadow rounded overflow-hidden">
+                            <video muted controls autoplay loop preload="metadata" class="w-100">
+                                <source src="./video/k6_testing.mp4" type="video/mp4">
+                            </video>
                         </div>
                     </div>
                 </div>
+
             </div>
         </section>
 

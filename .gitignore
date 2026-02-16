@@ -259,3 +259,4 @@ backend.config
 logs/
 
 *.env
+video/*
