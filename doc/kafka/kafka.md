@@ -173,4 +173,7 @@ docker run --rm --name k6_kafka_aws_read --env-file ./k6/.env -e BASE_URL="https
 # write
 docker run --rm --name k6_kafka_aws_write --env-file ./k6/.env -e BASE_URL="https://iot-kafka.arguswatcher.net" -e SOLUTION_ID=kafka -e MAX_VU=100 -v ./k6/script:/script grafana/k6 cloud run --include-system-env-vars=true /script/test_hp_write.js
 
+# mixed
+docker run --rm --name k6_kafka_aws_mixed --env-file ./k6/.env -e BASE_URL="https://iot-kafka.arguswatcher.net" -e SOLUTION_ID=kafka -e MAX_VU=100 -v ./k6/script:/script grafana/k6 cloud run --include-system-env-vars=true /script/test_hp_mixed.js
+
 ```

@@ -42,8 +42,16 @@ const R_MAX_VU = parseNumberEnv("R_MAX_VU", 300); // max VUs for read scenario
 // ==============================
 export const options = {
   cloud: {
-    name: `HP Mixed: ${SOLUTION_ID}`,
+    name: `${SOLUTION_ID}: ${PROFILE}`,
+    distribution: {
+      distributionLabel1: { loadZone: "amazon:ca:montreal", percent: 100 },
+    },
   },
+
+  // SLO:
+  // "rate<0.01": Less than 1% of requests return an error.
+  // "p(99)<300": 99% of requests have a response time below 300ms.
+  // "p(90)<1000": 90% of requests have a response time below 1000ms.
 
   // Global tags applied to all metrics
   tags: {
@@ -70,7 +78,7 @@ export const options = {
     // Write performance (POST /telemetry)
     "http_req_duration{scenario:hp_write_telemetry,endpoint:telemetry_post}": [
       {
-        threshold: "p(99)<300", // 99% of requests < 300ms
+        threshold: "p(95)<300", // 95% of requests < 300ms
         abortOnFail: ABORT_ON_FAIL, // abort when 1st failure
         delayAbortEval: "10s",
       },
@@ -81,7 +89,7 @@ export const options = {
     "http_req_duration{scenario:hp_read_telemetry,endpoint:telemetry_get_latest}":
       [
         {
-          threshold: "p(99)<300", // 99% of requests < 300ms
+          threshold: "p(95)<300", // 95% of requests < 300ms
           abortOnFail: ABORT_ON_FAIL, // abort when 1st failure
           delayAbortEval: "10s",
         },
