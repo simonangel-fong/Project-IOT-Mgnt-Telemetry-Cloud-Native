@@ -175,7 +175,9 @@ jobs:
 
   performance_testing_read:
     name: Performance Testing-Read
-    needs: smoke_testing
+    needs:
+      - smoke_testing
+      - reset_for_read
     #   only when smoke success
     if: ${{ needs.smoke_testing.result == 'success' }}
     uses: ./.github/workflows/job_test_performance.yaml
