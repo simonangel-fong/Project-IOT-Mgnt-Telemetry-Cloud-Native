@@ -1,162 +1,104 @@
-# Automated Architecture Benchmark
+# Automated Architecture Benchmark (ECS)
 
 **One Pipeline. Four Designs. Real Metrics.**
 
-- [Automated Architecture Benchmark](#automated-architecture-benchmark)
-  - [Project Overview](#project-overview)
-  - [Benchmark Scenario](#benchmark-scenario)
-  - [Architecture Overview](#architecture-overview)
-    - [Baseline – Classic Architecture](#baseline--classic-architecture)
-    - [Scale – Auto-Scaling Architecture](#scale--auto-scaling-architecture)
-    - [Redis – Caching Architecture](#redis--caching-architecture)
-    - [Kafka – Event-Driven Architecture](#kafka--event-driven-architecture)
-  - [Key Findings](#key-findings)
-  - [Automated Benchmarking Pipeline - GitHub Actions](#automated-benchmarking-pipeline---github-actions)
-  - [Observability - Grafana Dashboard](#observability---grafana-dashboard)
+- [Automated Architecture Benchmark (ECS)](#automated-architecture-benchmark-ecs)
+  - [Motivation](#motivation)
+  - [Results](#results)
+  - [Four Designs](#four-designs)
+  - [One Pipeline](#one-pipeline)
   - [Tech Stack](#tech-stack)
 
 ---
 
-## Project Overview
+## Motivation
 
-- [Project Website](https://ecs-benchmark.arguswatcher.net/)
+Architecture advice is often theoretical — "add caching," "use a message queue" — without data to back it up. This project answers a practical question:
 
-An project to **automate deployment and load testing**, and **compare 4 cloud architecture patterns** under identical traffic conditions:
+**How much does each architectural decision actually move the needle under real load?**
 
-- **Baseline** – Single service
-- **Scale** – Horizontal auto-scaling
-- **Redis** – Caching layer added
-- **Kafka** – Event-driven write path
-
-This project benchmarks **performance**, **scalability**, and **operational trade-offs** using controlled load testing and real-time monitoring.
-
-Each architecture is deployed using the **same workload** and tested under **identical traffic patterns** to ensure fair comparison.
+Four designs. One automated pipeline. Identical traffic conditions. Real numbers.
 
 ---
 
-## Benchmark Scenario
+## Results
 
-To ensure consistency, all architectures were tested with:
+Four architectures were tested in progression — Baseline, Auto-Scaling, Redis Caching, and Kafka — each addressing a limitation of the previous.
 
-- **Traffic Pattern:** 1:1 Read/Write
-- **Ramp Up:** 0 → 1000 requests/sec over 10 minutes
-- **Sustain:** 1000 requests/sec for 5 minutes
-- **Ramp Down:** 1 minute
+**Baseline → Kafka:**
 
-- **Metrics Collected**
-  - `Throughput (RPS)`
-  - `p95 Response Time`
-  - `HTTP Failure Rate`
-  - `Application Scaling Behavior`
-  - `Database CPU Utilization`
-
-**Same workload. Same duration. Only the architecture changes.**
+- **+213% Throughput Improvement** — 320 → 1,000 RPS
+- **-99% Latency Reduction** — 3,000ms → 25ms (p95)
+- **~0% Request Failures** — nearly eliminated at 1,000 RPS
+- **-67% Database CPU Reduction** — 48.6% → 15.8%
 
 ---
 
-## Architecture Overview
+**Technical Comparison**
 
-### Baseline – Classic Architecture
+| Architecture | Peak RPS | HTTP Failures | P95 Latency | ECS Tasks (Peak) | DB CPU |
+| ------------ | -------- | ------------- | ----------- | ---------------- | ------ |
+| Baseline     | 320      | 34.6%         | 3,000ms     | 1                | 19.2%  |
+| Scale        | 1,000    | ~0%           | 70ms        | 18               | 48.6%  |
+| Redis        | 1,000    | ~0%           | 75ms        | 16               | 34.9%  |
+| Kafka        | 1,000    | ~0%           | 25ms        | 10               | 15.8%  |
 
-Simple to implement but lacks scalability.
+**Business Impact**
 
-- [Note: Baseline](./docs/baseline/baseline.md)
+| Architecture | Business Continuity | DB Overload Risk | Operational Cost | Complexity |
+| ------------ | ------------------- | ---------------- | ---------------- | ---------- |
+| Baseline     | ❌ Low              | 🔴 High          | 🟢 Low           | 🟢 Low     |
+| Scale        | 🟢 High             | 🟠 Medium–High   | 🟠 Medium        | 🟠 Medium  |
+| Redis        | 🟢 High             | 🟡 Medium        | 🟠 Medium        | 🟠 Medium  |
+| Kafka        | 🟢 Very High        | 🟢 Low           | 🔴 High          | 🔴 High    |
+
+![dashboard](./path/to/dashboard.gif)
+
+[Full Metrics Snapshot](grafana-link) · [Load Testing Snapshot](grafana-link) · [Further analysis — load profile, metric behavior, and per-design breakdown](link)
+
+---
+
+## Four Designs
+
+Each architecture addresses a limitation of the previous, tested under identical conditions.
 
 ![baseline](./app/html/img/diagram/baseline.gif)
 
-### Scale – Auto-Scaling Architecture
-
-Handles growth but increases direct database pressure.
-
-- [Note: Scale](./docs/scale/scale.md)
-
 ![scale](./app/html/img/diagram/scale.gif)
-
-### Redis – Caching Architecture
-
-Improves read performance and reduces database load.
-
-- [Note: Redis](./docs/redis/redis.md)
 
 ![redis](./app/html/img/diagram/redis.gif)
 
-### Kafka – Event-Driven Architecture
-
-Stabilizes database usage and improves write performance at the cost of higher complexity.
-
-- [Note: Kafka](./docs/kafka/kafka.md)
-
 ![kafka](./app/html/img/diagram/kafka.gif)
 
----
-
-## Key Findings
-
-- **Technical Comparison**
-
-| Architecture | RPS(Peak) | HTTP Failures | P95 Response Time | Task | Database CPU%             |
-| ------------ | --------- | ------------- | ----------------- | ---- | ------------------------- |
-| Baseline     | 320       | 34.6%         | 3000ms            | 1    | 19.2% (Backend Saturated) |
-| Scale        | 1k        | ~0%           | 70ms              | 18   | 48.6%                     |
-| Redis        | 1k        | ~0%           | 75ms              | 16   | 34.9%                     |
-| Kafka        | 1k        | ~0%           | 25ms              | 10   | 15.8%                     |
-
-> - **Highlights**
->   - `Baseline` **failed** under moderate load.
->   - `Auto-scaling` **eliminated** failures but **increased** database stress.
->   - `Redis` **reduced** read pressure.
->   - `Kafka` achieved the **most stable database behavior** under mixed traffic.
-
-- **Business Insight**
-
-| Architecture | Business Continuity | Database Overload Risk | Operational Cost | Operational Complexity |
-| ------------ | ------------------- | ---------------------- | ---------------- | ---------------------- |
-| Baseline     | ❌ Low              | 🔴 High                | 🟢 Low           | 🟢 Low                 |
-| Scale        | 🟢 High             | 🟠 Medium–High         | 🟠 Medium        | 🟠 Medium              |
-| Redis        | 🟢 High             | 🟡 Medium              | 🟠 Medium        | 🟠 Medium              |
-| Kafka        | 🟢 Very High        | 🟢 Low                 | 🔴 High          | 🔴 High                |
+[Architecture deep dives — design decisions, trade-offs, and technical challenges](link)
 
 ---
 
-## Automated Benchmarking Pipeline - GitHub Actions
+## One Pipeline
 
-A fully automated workflow ensures repeatable and consistent evaluation.
+One automated workflow runs across all four designs — ensuring every benchmark is provisioned, tested, and torn down under identical conditions.
 
-**Pipeline Steps:**
+![pipeline](./path/to/github-actions-screenshot.png)
 
-1. **Provision** infrastructure
-2. **Deploy** selected architecture
-3. Execute controlled **load testing**
-4. **Capture** metrics and generate report
-5. **Upload** results to Amazon S3
-6. **Tear down** infrastructure
+| Step | Action                   | Tool             |
+| ---- | ------------------------ | ---------------- |
+| 1    | Provision infrastructure | Terraform · Helm |
+| 2    | Validate deployment      | Smoke test       |
+| 3    | Load testing             | k6               |
+| 4    | Tear down infrastructure | Terraform        |
 
-This eliminates manual setup and ensures fair comparison across architectures.
-
-- GitHub Actions Workflows: `.github/workflows/`
-
----
-
-## Observability - Grafana Dashboard
-
-System behavior is monitored in real time using:
-
-- Grafana dashboards
-- Infrastructure metrics
-- Database utilization tracking
-- Scaling activity visualization
-
-Metric Snapshot:
-👉 [Full Metrics Dashboard Snapshot](https://simonangelfong.grafana.net/dashboard/snapshot/RyoJLicAercSDvhV4hlXTyShGWmparsq?orgId=1&from=2026-02-16T05:40:00.000Z&to=2026-02-16T06:20:00.000Z&timezone=browser&refresh=5s)
-👉 [Load Testing Metrics Dashboard Snapshot](https://simonangelfong.grafana.net/dashboard/snapshot/vm8GHz4ne3ej2IijhAXtitw74oAXRSKr?orgId=1&from=2026-02-16T05:45:00.000Z&to=2026-02-16T06:20:00.000Z&timezone=browser&refresh=5s)
+[Pipeline design decisions — why GitHub Actions, why k6, and how state is managed across steps](link)
 
 ---
 
 ## Tech Stack
 
-- Docker
-- AWS ECS / RDS / ElastiCache / MSK
-- GitHub Actions
-- k6 Load Testing
-- Grafana Monitoring
-- Python / FastAPI (Backend API)
+| Role               | Tools                                                |
+| ------------------ | ---------------------------------------------------- |
+| **Infrastructure** | AWS ECS · RDS · ElastiCache · MSK · Terraform · Helm |
+| **CI/CD**          | GitHub Actions · Docker                              |
+| **Load Testing**   | k6                                                   |
+| **Observability**  | Grafana · CloudWatch                                 |
+| **Backend**        | Python · FastAPI                                     |
+
+---
