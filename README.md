@@ -34,7 +34,7 @@ Four architectures were tested in progression — Baseline, Auto-Scaling, Redis 
 
 ---
 
-**Technical Comparison**
+**Technical Comparison** - [Load Testing Snapshot](https://simonangelfong.grafana.net/dashboard/snapshot/vm8GHz4ne3ej2IijhAXtitw74oAXRSKr?orgId=1&from=2026-02-16T05:45:00.000Z&to=2026-02-16T06:20:00.000Z&timezone=browser&refresh=5s)
 
 | Architecture | Peak RPS | HTTP Failures | P95 Latency | ECS Tasks (Peak) | DB CPU |
 | ------------ | -------- | ------------- | ----------- | ---------------- | ------ |
@@ -42,6 +42,8 @@ Four architectures were tested in progression — Baseline, Auto-Scaling, Redis 
 | Scale        | 1,000    | ~0%           | 70ms        | 18               | 48.6%  |
 | Redis        | 1,000    | ~0%           | 75ms        | 16               | 34.9%  |
 | Kafka        | 1,000    | ~0%           | 25ms        | 10               | 15.8%  |
+
+![dashboard](./docs/resource/grafana_dashboard.gif)
 
 **Business Impact**
 
@@ -52,9 +54,7 @@ Four architectures were tested in progression — Baseline, Auto-Scaling, Redis 
 | Redis        | 🟢 High             | 🟡 Medium        | 🟠 Medium        | 🟠 Medium  |
 | Kafka        | 🟢 Very High        | 🟢 Low           | 🔴 High          | 🔴 High    |
 
-![dashboard](./path/to/dashboard.gif)
-
-[Full Metrics Snapshot](grafana-link) · [Load Testing Snapshot](grafana-link) · [Further analysis — load profile, metric behavior, and per-design breakdown](link)
+<!-- [Further analysis — load profile, metric behavior, and per-design breakdown](link) -->
 
 ---
 
@@ -78,8 +78,6 @@ Each architecture addresses a limitation of the previous, tested under identical
 
 One automated workflow runs across all four designs — ensuring every benchmark is provisioned, tested, and torn down under identical conditions.
 
-![pipeline](./path/to/github-actions-screenshot.png)
-
 | Step | Action                   | Tool             |
 | ---- | ------------------------ | ---------------- |
 | 1    | Provision infrastructure | Terraform · Helm |
@@ -87,7 +85,9 @@ One automated workflow runs across all four designs — ensuring every benchmark
 | 3    | Load testing             | k6               |
 | 4    | Tear down infrastructure | Terraform        |
 
-[Pipeline design decisions — why GitHub Actions, why k6, and how state is managed across steps](link)
+![pipeline](./docs/resource/github_action.gif)
+
+<!-- [Pipeline design decisions — why GitHub Actions, why k6, and how state is managed across steps](link) -->
 
 ---
 
