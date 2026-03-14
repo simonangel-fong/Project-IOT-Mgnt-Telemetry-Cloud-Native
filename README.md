@@ -2,6 +2,8 @@
 
 **One Pipeline. Four Designs. Real Metrics.**
 
+![AWS](https://img.shields.io/badge/AWS-FF9900?style=for-the-badge&logo=amazonwebservices&logoColor=white&style=plastic) ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white&style=plastic) ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white&style=plastic) ![Grafana](https://img.shields.io/badge/grafana-%23F46800.svg?style=for-the-badge&logo=grafana&logoColor=white&style=plastic) ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white&style=plastic) ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white&style=plastic) ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&style=plastic)
+
 - [Automated Architecture Benchmark (ECS)](#automated-architecture-benchmark-ecs)
   - [Motivation](#motivation)
   - [Results](#results)
@@ -70,7 +72,7 @@ Each architecture addresses a limitation of the previous, tested under identical
 
 ![kafka](./app/html/img/diagram/kafka.gif)
 
-[Architecture deep dives — design decisions, trade-offs, and technical challenges](link)
+<!-- [Architecture deep dives — design decisions, trade-offs, and technical challenges](link) -->
 
 ---
 
